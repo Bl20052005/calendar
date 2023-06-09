@@ -1,38 +1,300 @@
-.App {
-  text-align: center;
+:root {
+    --body-background-color: rgb(227, 243, 243);
+    --division-color: rgb(135, 196, 196);
+    --clickable-background-color: rgb(161, 209, 209);
+    --clickable-hover-background-color: rgb(108, 180, 180);
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+body {
+    background-color: var(--body-background-color);
+    margin: 0;
+    padding: 0;
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.calendar_header {
+    width: 100%;
+    min-width: 700px;
+    height: 70px;
+    border-bottom: 1px solid var(--division-color);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.toggle-header-menu-container {
+    height: 33px;
+    width: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    margin-left: 20px;
 }
 
-.App-link {
-  color: #61dafb;
+.header-calendar-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    font-size: 35px;
+    height: 70px;
+    width: 200px;
+    justify-content: center;
+    margin-right: 100px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.header-dropdown-container {
+    position: relative;
+    top: 78px;
+    width: 120px;
+    font-size: 20px;
+    z-index: 2;
+}
+
+.dropdown-main {
+    width: 120px;
+    height: 40px;
+    background-color: var(--clickable-background-color);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    gap: 5px;
+    transition: background-color 0.5s;
+}
+
+.dropdown-main-down-arrow {
+    margin-top: 5px;
+}
+
+.dropdown-main:hover {
+    background-color: var(--clickable-hover-background-color);
+}
+
+.header-dropdown-select {
+    background-color: aliceblue;
+    margin-top: 5px;
+    box-shadow: -3px 3px 5px rgb(110, 110, 110);
+}
+
+.header-dropdown-select-options {
+    height: 30px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+}
+
+.header-signIn-container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: 20px;
+    width: calc(100% - 570px);
+
+}
+
+.toggle-header-menu-line {
+    height: 5px;
+    width: 30px;
+    background-color: black;
+    border-radius: 5px;
+}
+
+.header-signIn-profile-pic {
+    height: 40px;
+    border-radius: 50%;
+}
+
+.header-signIn-text {
+    background-color: var(--clickable-background-color);
+    padding: 10px;
+    border-radius: 15px;
+    transition: background-color 0.5s;
+}
+
+.header-signIn-text:hover {
+    background-color: var(--clickable-hover-background-color);
+}
+
+
+
+
+.calendar-menu {
+    width: 280px;
+    height: calc(100vh - 71px);
+    position: absolute;
+    border-right: 1px solid var(--division-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.add-event-container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    width: 150px;
+    height: 60px;
+    margin-top: 10px;
+    font-size: 30px;
+    background-color: var(--clickable-background-color);
+    transition: background-color 0.5s;
+    border-radius: 25px;
+}
+
+.calendar-menu-divider-line {
+    width: 100%;
+    height: 1px;
+    background-color: var(--division-color);
+}
+
+.add-event-container:hover {
+    background-color: var(--clickable-hover-background-color);
+}
+
+.add-event-add-sign {
+    margin-top: 9px;
+    padding: 0;
+}
+
+.today-events-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+}
+
+.today-events {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+    width: 200px;
+    max-height: 152px;
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.today-events::-webkit-scrollbar {
+    width: 5px;
+}
+
+.today-events::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.today-events::-webkit-scrollbar-thumb {
+    background: var(--clickable-hover-background-color);
+    border-radius: 4px;
+}
+
+.today-events-item-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 200px;
+}
+
+.today-events-item {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.today-events-item-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.today-events-divider-line {
+    width: 200px;
+    height: 1px;
+    background-color: var(--division-color);
+}
+
+.today-events-text {
+    font-size: 25px;
+}
+
+.add-event-popup-calender {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.text-color-gray {
+    color:rgb(128, 128, 128);
+}
+
+.text-color-black {
+    color:rgb(0, 0, 0);
+}
+
+.add-event-popup-calender-top {
+    display: flex;
+    width: 200px;
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.add-event-popup-calender-arrow-left, .add-event-popup-calender-arrow-right {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.5s;
+}
+
+.add-event-popup-calender-week-group {
+    display: flex;
+    justify-content: space-evenly;
+    width: 200px;
+    gap: 10px;
+}
+
+.add-event-popup-calender-day, .add-event-popup-calender-week-top-group {
+    font-size: 13px;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    transition: background-color 0.5s;
+}
+
+.add-event-popup-calender-day:hover, .add-event-popup-calender-arrow-left:hover, .add-event-popup-calender-arrow-right:hover {
+    background-color: var(--clickable-background-color);
+    cursor: pointer;
+}
+
+
+
+.calendar_body {
+    width: calc(100vw - 281px);
+    min-width: 350px;
+    height: calc(100vh - 71px);
+    position: absolute;
+    top: 71px;
+    left: 281px;
 }
