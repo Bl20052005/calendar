@@ -5,11 +5,21 @@
     --clickable-hover-background-color: rgb(108, 180, 180);
 }
 
+html {
+    height: 100%;
+  }
+
 body {
     background-color: var(--body-background-color);
+    width: auto;
+    min-height: 100%;
     margin: 0;
     padding: 0;
     font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+#root {
+    height: 100%;
 }
 
 .calendar_header {
@@ -232,11 +242,31 @@ body {
     font-size: 25px;
 }
 
-.add-event-popup-calender {
+.add-event-popup-calendar, .base-calendar {
     display: flex;
     align-items: center;
     flex-direction: column;
     gap: 10px;
+}
+
+.add-event-popup-calendar {
+    gap: 6px;
+    position: absolute;
+    background-color: rgb(200, 250, 250);
+    border-radius: 20px;
+    padding: 10px;
+    border: 1px solid var(--division-color);
+    top: 25px;
+    left: -18%;
+    z-index: 3;
+}
+
+.visibility-visible {
+    visibility: visible;
+}
+
+.visibility-hidden {
+    visibility: hidden;
 }
 
 .text-color-gray {
@@ -247,15 +277,19 @@ body {
     color:rgb(0, 0, 0);
 }
 
-.add-event-popup-calender-top {
+.add-event-popup-calendar-top, .base-calendar-top {
     display: flex;
-    width: 200px;
+    width: 220px;
     align-items: center;
     flex-direction: row;
     justify-content: space-between;
 }
 
-.add-event-popup-calender-arrow-left, .add-event-popup-calender-arrow-right {
+.add-event-popup-calendar-top {
+    width: 180px;
+}
+
+.add-event-popup-calendar-arrow-left, .add-event-popup-calendar-arrow-right, .base-calendar-arrow-right, .base-calendar-arrow-left {
     width: 22px;
     height: 22px;
     display: flex;
@@ -265,14 +299,22 @@ body {
     transition: background-color 0.5s;
 }
 
-.add-event-popup-calender-week-group {
+.add-event-popup-calendar-week-group, .base-calendar-week-group {
     display: flex;
     justify-content: space-evenly;
-    width: 200px;
+    width: 220px;
     gap: 10px;
 }
 
-.add-event-popup-calender-day, .add-event-popup-calender-week-top-group {
+.add-event-popup-calendar-week-group {
+    width: 180px;
+}
+
+.add-event-popup-calendar-week-group {
+    gap: 0px;
+}
+
+.add-event-popup-calendar-day, .add-event-popup-calendar-week-top-group, .base-calendar-day, .base-calendar-week-top-group {
     font-size: 13px;
     width: 22px;
     height: 22px;
@@ -283,9 +325,233 @@ body {
     transition: background-color 0.5s;
 }
 
-.add-event-popup-calender-day:hover, .add-event-popup-calender-arrow-left:hover, .add-event-popup-calender-arrow-right:hover {
+.add-event-popup-calendar-day, .add-event-popup-calendar-week-top-group {
+    font-size: 11px;
+    width: 19px;
+    height: 19px;
+}
+
+.add-event-popup-calendar-day:hover, .add-event-popup-calendar-arrow-left:hover, .add-event-popup-calendar-arrow-right:hover
+, .base-calendar-day:hover, .base-calendar-arrow-right:hover, .base-calendar-arrow-left:hover {
     background-color: var(--clickable-background-color);
     cursor: pointer;
+}
+
+.date-today {
+    background-color: rgb(67, 121, 202);
+    color: white;
+}
+
+.date-today:hover {
+    background-color: rgb(12, 87, 201);
+}
+
+.date-highlighted {
+    background-color: rgb(160, 198, 255);
+}
+
+.date-highlighted:hover {
+    background-color: rgb(92, 157, 255);
+}
+
+.add-event-popup {
+    position: fixed;
+    width: 400px;
+    height: 500px;
+    top: calc((100% - 550px) / 2);
+    left: calc((100% - 450px) / 2);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background-color: rgb(182, 238, 238);
+    padding: 30px 15px 15px 15px;
+    border-radius: 20px;
+    box-shadow: 0px 0px 20px 2px rgb(136, 146, 146, 0.6);
+}
+
+.add-event-popup input {
+    border: none;
+    border-bottom: 1px solid black;
+    background-color: transparent;
+    border-radius: 5px 5px 0px 0px;
+    transition: background-color 0.2s, border 0.5s;
+}
+
+.add-event-popup input:focus {
+    border-bottom: 1px solid rgb(35, 190, 190);
+    background-color: rgb(206, 255, 255);
+    outline: none;
+}
+
+.add-event-popup-move {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 25px;
+    width: 100%;
+    background-color: var(--clickable-background-color);
+    border-radius: 20px 20px 0px 0px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.add-event-popup-exit {
+    margin-right: 20px;
+    cursor: pointer;
+}
+
+.add-event-popup-move:hover {
+    cursor: move;
+}
+
+.add-event-popup-title {
+    font-size: 25px;
+}
+
+.add-event-popup-time {
+    display: flex;
+    flex-direction: row;
+    justify-content:space-evenly;
+}
+
+.add-event-popup-time-sub {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.add-event-popup-time-to {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+}
+
+.add-event-popup-time-date {
+    font-size: 17px;
+    width: 140px;
+    text-align: center;
+}
+
+.add-event-popup-time-time {
+    font-size: 17px;
+    width: 100px;
+    text-align: center;
+}
+
+.popup-time-container {
+    gap: 6px;
+    position: absolute;
+    background-color: rgb(200, 250, 250);
+    border-radius: 10px;
+    border: 1px solid var(--division-color);
+    top: 78px;
+    left: 15%;
+    z-index: 3;
+    width: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    max-height: 155px;
+}
+
+.popup-time {
+    margin: 5px 0px;
+    max-height: 145px;
+    width: 100%;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.popup-time::-webkit-scrollbar {
+    width: 5px;
+}
+
+.popup-time::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.popup-time::-webkit-scrollbar-thumb {
+    background: black;
+    border-radius: 10px;
+}
+
+.popup-time-choices {
+    padding: 2px;
+    text-align: center;
+    width: calc(100% - 4px);
+    transition: background-color 0.2s;
+}
+
+.popup-time-choices:hover {
+    background-color: rgb(134, 233, 233);
+    cursor: pointer;
+}
+
+.add-event-popup-time-container, .add-event-popup-description-container, 
+.add-event-popup-color-container, .add-event-popup-location-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.add-event-popup-texts {
+    font-size: 14px;
+    margin-top: 2px;
+}
+
+.add-event-popup-description-menu {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.add-event-popup-description {
+    resize: none;
+    background-color: transparent;
+    width: 350px;
+    height: 200px;
+    align-self: center;
+    border: 1px solid black;
+    transition: border 0.2s;
+}
+
+.add-event-popup-description:focus {
+    border: 1px solid rgb(35, 190, 190);
+    outline: none;
+}
+
+.add-event-popup-description-menu-line {
+    height: 4px;
+    background-color: black;
+    margin-top: 2px;
+    border-radius: 3px;
+}
+
+.add-event-popup-description-menu-line-1 {
+    width: 20px;
+}
+
+.add-event-popup-description-menu-line-2 {
+    width: 15px;
+}
+
+.add-event-popup-description-menu-line-3 {
+    width: 10px;
+}
+
+.input-incorrect {
+    background-color: rgb(238, 118, 118);
 }
 
 
