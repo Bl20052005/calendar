@@ -3,6 +3,7 @@
     --division-color: rgb(135, 196, 196);
     --clickable-background-color: rgb(161, 209, 209);
     --clickable-hover-background-color: rgb(108, 180, 180);
+    --number-of-weeks : 5;
 }
 
 html {
@@ -19,12 +20,12 @@ body {
 }
 
 #root {
-    height: 100%;
+    min-height: 100vh;
 }
 
-.calendar_header {
+.calendar-header {
     width: 100%;
-    min-width: 700px;
+    min-width: 950px;
     height: 70px;
     border-bottom: 1px solid var(--division-color);
     display: flex;
@@ -50,9 +51,8 @@ body {
     gap: 20px;
     font-size: 35px;
     height: 70px;
-    width: 200px;
     justify-content: center;
-    margin-right: 100px;
+    padding-right: 35px;
 }
 
 .header-dropdown-container {
@@ -73,7 +73,7 @@ body {
     justify-content: center;
     border-radius: 15px;
     gap: 5px;
-    transition: background-color 0.5s;
+    transition: background-color 0.2s;
 }
 
 .dropdown-main-down-arrow {
@@ -82,6 +82,7 @@ body {
 
 .dropdown-main:hover {
     background-color: var(--clickable-hover-background-color);
+    cursor: pointer;
 }
 
 .header-dropdown-select {
@@ -97,6 +98,12 @@ body {
     align-items: center;
     justify-content: center;
     width: 120px;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.header-dropdown-select-options:hover {
+    background-color: rgb(214, 214, 214);
 }
 
 .header-signIn-container {
@@ -106,8 +113,7 @@ body {
     align-items: center;
     justify-content: flex-end;
     font-size: 20px;
-    width: calc(100% - 570px);
-
+    width: calc(100% - 460px);
 }
 
 .toggle-header-menu-line {
@@ -120,17 +126,48 @@ body {
 .header-signIn-profile-pic {
     height: 40px;
     border-radius: 50%;
+    margin-right: 10px;
 }
 
 .header-signIn-text {
     background-color: var(--clickable-background-color);
     padding: 10px;
     border-radius: 15px;
-    transition: background-color 0.5s;
+    transition: background-color 0.2s;
 }
 
 .header-signIn-text:hover {
     background-color: var(--clickable-hover-background-color);
+    cursor: pointer;
+}
+
+.header-description-container {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    align-items: center;
+    padding: 15px;
+}
+
+.header-description-arrow-left, .header-description-arrow-right {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 22px;
+    width: 22px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.header-description-arrow-left:hover, .header-description-arrow-right:hover {
+    background-color: var(--clickable-hover-background-color);
+    cursor: pointer;
+}
+
+.header-description-title {
+    white-space: nowrap;
+    font-size: 23px;
 }
 
 
@@ -138,16 +175,27 @@ body {
 
 .calendar-menu {
     width: 280px;
-    height: calc(100vh - 71px);
+    overflow: auto;
+    height: calc(100vh - 81px);
     position: absolute;
     border-right: 1px solid var(--division-color);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 15px;
+    padding-bottom: 10px;
 }
 
 .add-event-container {
+    margin-top: 20px;
+    height: 50px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.add-event {
     display: flex;
     flex-direction: row;
     gap: 10px;
@@ -155,7 +203,6 @@ body {
     align-items: center;
     width: 150px;
     height: 40px;
-    margin-top: 15px;
     font-size: 25px;
     background-color: var(--clickable-background-color);
     transition: background-color 0.5s;
@@ -169,7 +216,7 @@ body {
     background-color: var(--division-color);
 }
 
-.add-event-container:hover {
+.add-event:hover {
     background-color: var(--clickable-hover-background-color);
 }
 
@@ -200,15 +247,15 @@ body {
     justify-content: flex-start;
 }
 
-.today-events::-webkit-scrollbar, .color-chooser-main::-webkit-scrollbar {
+.today-events::-webkit-scrollbar, .color-chooser-main::-webkit-scrollbar, .calendar-menu::-webkit-scrollbar {
     width: 5px;
 }
 
-.today-events::-webkit-scrollbar-track, .color-chooser-main::-webkit-scrollbar-track {
+.today-events::-webkit-scrollbar-track, .color-chooser-main::-webkit-scrollbar-track, .calendar-menu::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.today-events::-webkit-scrollbar-thumb, .color-chooser-main::-webkit-scrollbar-thumb {
+.today-events::-webkit-scrollbar-thumb, .color-chooser-main::-webkit-scrollbar-thumb, .calendar-menu::-webkit-scrollbar-thumb {
     background: var(--clickable-hover-background-color);
     border-radius: 4px;
 }
@@ -706,11 +753,119 @@ body {
 }
 
 
-.calendar_body {
+.calendar-body-month-container {
     width: calc(100vw - 281px);
     min-width: 350px;
     height: calc(100vh - 71px);
     position: absolute;
     top: 71px;
     left: 281px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.calendar-body-month {
+    position: relative;
+    width: 95%;
+    height: 95%;
+}
+
+.calendar-body-month-week-group, .calendar-body-month-week-top-group-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-evenly;
+}
+
+.calendar-body-month-week-group {
+    height: calc((100% - 20px) / var(--number-of-weeks));
+}
+
+.calendar-body-month-week-top-group-container {
+    height: 20px;
+    font-size: 13.5px;
+}
+
+.calendar-body-month-day-container, .calendar-body-month-week-top-group {
+    width: calc(100% / 7);
+    height: 100%;
+    text-align: center;
+}
+
+.calendar-body-month-day-values {
+    width: calc(100% - 14px);
+    height: calc(100% - 14px);
+    padding: 7px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.calendar-body-month-divider-line-vertical {
+    position: absolute;
+    width: 1px;
+    height: 100%;
+    background-color: var(--division-color);
+}
+
+.calendar-body-month-divider-line-vertical-0 {
+    visibility: hidden;
+}
+
+.calendar-body-month-divider-line-horizontal {
+    position: absolute;
+    background-color: var(--division-color);
+    width: 100%;
+    height: 1px;
+}
+
+.calendar-body-month-day {
+    font-size: 14px;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+}
+
+.calendar-body-month-day-events-container {
+    height: calc(100% - 25px);
+    width: 100%;
+    overflow: auto;
+}
+
+.calendar-body-month-day-events-container::-webkit-scrollbar {
+    width: 2px;
+}
+
+.calendar-body-month-day-events-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.calendar-body-month-day-events-container::-webkit-scrollbar-thumb {
+    background: var(--division-color);
+    border-radius: 4px;
+}
+
+.calendar-body-month-day-events {
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    font-size: 11px;
+    gap: 4px;
+    padding: 5px 0px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.calendar-body-month-day-events-color {
+    width: 10px;
+    min-width: 10px;
+    height: 10px;
+    min-height: 10px;
+    border-radius: 50%;
 }

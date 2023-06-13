@@ -3,12 +3,12 @@ import { createSlice } from '@reduxjs/toolkit';
 let curDate = new Date();
 
 export const dateSlice = createSlice({
-    name: "dates",
+    name: "date",
     initialState: {
         year: curDate.getFullYear(),
         month: curDate.getMonth(),
         day: curDate.getDate(),
-
+        specifics: "month",
     },
     reducers: {
         changeDate: (state, action) => {

@@ -633,10 +633,12 @@ function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch, currentColors
 function AddEvent({setAddEventPopUpVisible}) {
     return(
         <div className='add-event-container' onClick={() => setAddEventPopUpVisible("visibility-visible")}>
-            <div className='add-event-add-sign'>
-                <svg xmlns="http://www.w3.org/2000/svg" height="25px" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
+            <div className='add-event'>
+                <div className='add-event-add-sign'>
+                    <svg xmlns="http://www.w3.org/2000/svg" height="25px" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
+                </div>
+                <div className='add-event-text'>Event</div>
             </div>
-            <div className='add-event-text'>Event</div>
         </div>
     )
 }
@@ -661,8 +663,18 @@ function TodayEvents({currentEvents, curentUnwantedColors}) {
         return returnStr;
     }
 
+    const filterEvents = (event, year, month, day, curentUnwantedColors) => {
+        let eventDate = new Date(event.startTime);
+        return (eventDate.getDate() === day && 
+        eventDate.getMonth() === month &&
+        eventDate.getFullYear() === year &&
+        curentUnwantedColors.indexOf(event.color) === -1);
+    }
+
+    let newDate = new Date();
+
     //const currentEvents = [["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"],["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"],["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"],["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"]];
-    const currentEventsJSX = [...currentEvents].filter((event) => new Date(event.startTime).getDate() === new Date().getDate() && curentUnwantedColors.indexOf(event.color) === -1).sort((a, b) => {
+    const currentEventsJSX = [...currentEvents].filter((event) => filterEvents(event, newDate.getFullYear(), newDate.getMonth(), newDate.getDate(), curentUnwantedColors)).sort((a, b) => {
         return (new Date(a.startTime).getHours() * 60 + new Date(a.startTime).getMinutes()) - (new Date(b.startTime).getHours() * 60 + new Date(b.startTime).getMinutes())
     }).map((item, index) =>
         <div className='today-events-item-container' key={"today-events-" + index}>
