@@ -154,12 +154,13 @@ body {
     justify-content: center;
     align-items: center;
     width: 150px;
-    height: 60px;
-    margin-top: 10px;
-    font-size: 30px;
+    height: 40px;
+    margin-top: 15px;
+    font-size: 25px;
     background-color: var(--clickable-background-color);
     transition: background-color 0.5s;
     border-radius: 25px;
+    cursor: pointer;
 }
 
 .calendar-menu-divider-line {
@@ -173,8 +174,8 @@ body {
 }
 
 .add-event-add-sign {
-    margin-top: 9px;
     padding: 0;
+    margin-top: 4px;
 }
 
 .today-events-container {
@@ -191,22 +192,23 @@ body {
     gap: 5px;
     align-items: center;
     width: 245px;
-    max-height: 156px;
+    min-height: 30px;
+    max-height: 133px;
     position: relative;
     overflow-y: auto;
     overflow-x: hidden;
     justify-content: flex-start;
 }
 
-.today-events::-webkit-scrollbar {
+.today-events::-webkit-scrollbar, .color-chooser-main::-webkit-scrollbar {
     width: 5px;
 }
 
-.today-events::-webkit-scrollbar-track {
+.today-events::-webkit-scrollbar-track, .color-chooser-main::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.today-events::-webkit-scrollbar-thumb {
+.today-events::-webkit-scrollbar-thumb, .color-chooser-main::-webkit-scrollbar-thumb {
     background: var(--clickable-hover-background-color);
     border-radius: 4px;
 }
@@ -620,6 +622,88 @@ body {
     background-color: rgb(238, 118, 118) !important;
 }
 
+.color-chooser-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.color-chooser-main {
+    width: 250px;
+    max-height: 110px;
+    overflow-y: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.color-chooser-container input[type="checkbox"] {
+    padding: 0px;
+    margin: 0px;
+    border: 1px solid black;
+}
+
+.color-chooser {
+    display: flex;
+    gap: 10px;
+}
+
+.color-chooser-color {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+}
+
+.color-chooser-label {
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid black;
+    width: 150px;
+    font-size: 12.5px;
+}
+
+.color-chooser-label:focus {
+    outline: none;
+}
+
+.color-chooser-introduction {
+    font-size: 13px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding-bottom: 5px;
+    border-radius: 20px;
+}
+
+.color-chooser-introduction-box {
+    font-size: 13px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    border: 1px solid black;
+    padding: 5px;
+    border-radius: 20px;
+    width: 200px;
+    align-self: center;
+}
+
+.color-chooser-title {
+    font-size: 25px;
+    margin-bottom: 5px;
+}
+
+.color-chooser-checkbox-example {
+    pointer-events: none;
+}
+
+.color-chooser-checkbox-description {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 10px;
+}
 
 
 .calendar_body {

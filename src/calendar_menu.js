@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { addEvent, removeEvent, changeEvent } from './eventSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import { changeDate } from './dateSlice';
+import { addUndesiredColor, removeUndesiredColor, addTotalColor, removeTotalColor } from './colorSlice';
 import { current } from '@reduxjs/toolkit';
 
 // const curDate = useSelector((state) => state.calendar.date);
@@ -297,7 +298,6 @@ function ChooseColorPalate({selectedColor, setSelectedColor}) {
         return(
             <div className='color-palate' key={'color-palate-container-' + index}>
                 <div style={{"backgroundColor" : color, "border" : color === selectedColor ? "3px solid white" : ""}} className='color-palate-color' onClick={() => setSelectedColor(color)}></div>
-                {/* <input type="text" placeholder='Enter label here...' className='color-palate-label'></input> */}
             </div>
         )
     });
@@ -309,7 +309,7 @@ function ChooseColorPalate({selectedColor, setSelectedColor}) {
     )
 }
 
-function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch}) {
+function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch, currentColors}) {
 
     const getTimeIn15MinuteIntervals = (hour, minute, wantedFunction) => {
         let returnStr = "";
@@ -559,6 +559,10 @@ function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch}) {
 
             dispatch(addEvent(finalObj));
 
+            if(currentColors.indexOf(selectedColor) === -1) {
+                dispatch(addTotalColor(selectedColor));
+            }
+
             handleClickEventExit();
         }
     }
@@ -598,7 +602,6 @@ function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch}) {
                     </div>
                 </div>
             </div>
-            <div></div>
             <div className='add-event-popup-description-container'>
                 <div className='add-event-popup-description-menu'>
                     <div className='add-event-popup-description-menu-line add-event-popup-description-menu-line-1'></div>
@@ -610,7 +613,7 @@ function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch}) {
             <textarea className='add-event-popup-description' name='add-event-popup-description' value={curDescription} onChange={(e) => setCurDescription(e.target.value)}></textarea>
             <div className='add-event-popup-color-container'>
                 <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 576 512"><path d="M339.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L568.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S517.7-4.4 499.1 9.6L262.4 187.2c-24 18-38.2 46.1-38.4 76.1L339.3 367.1zm-19.6 25.4l-116-104.4C143.9 290.3 96 339.6 96 400c0 3.9 .2 7.8 .6 11.6C98.4 429.1 86.4 448 68.8 448H64c-17.7 0-32 14.3-32 32s14.3 32 32 32H208c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg>
-                <div className='add-event-popup-texts'>Color</div>
+                <div className='add-event-popup-texts'>Color & Label</div>
             </div>
             <ChooseColorPalate selectedColor={selectedColor} setSelectedColor={setSelectedColor}/>
             <div className='add-event-popup-location-container'>
@@ -631,20 +634,41 @@ function AddEvent({setAddEventPopUpVisible}) {
     return(
         <div className='add-event-container' onClick={() => setAddEventPopUpVisible("visibility-visible")}>
             <div className='add-event-add-sign'>
-                <svg xmlns="http://www.w3.org/2000/svg" height="40px" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" height="25px" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
             </div>
-            <div className='add-event-text'>event</div>
+            <div className='add-event-text'>Event</div>
         </div>
     )
 }
 
-function TodayEvents({currentEvents}) {
+function TodayEvents({currentEvents, curentUnwantedColors}) {
+    const getHourAndMinutes = (hour, minute) => {
+        let returnStr = "";
+
+        let condensedHour = ((hour + 11) % 12 + 1);
+
+        if(condensedHour < 10) condensedHour = "0" + condensedHour;
+        if(minute < 10) minute = "0" + minute;
+
+        returnStr += condensedHour + ":" + minute;
+
+        if(hour % 24 > 11) {
+            returnStr += " PM";
+        } else {
+            returnStr += " AM";
+        }
+
+        return returnStr;
+    }
+
     //const currentEvents = [["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"],["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"],["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"],["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"]];
-    const currentEventsJSX = currentEvents.map((item, index) =>
+    const currentEventsJSX = [...currentEvents].filter((event) => new Date(event.startTime).getDate() === new Date().getDate() && curentUnwantedColors.indexOf(event.color) === -1).sort((a, b) => {
+        return (new Date(a.startTime).getHours() * 60 + new Date(a.startTime).getMinutes()) - (new Date(b.startTime).getHours() * 60 + new Date(b.startTime).getMinutes())
+    }).map((item, index) =>
         <div className='today-events-item-container' key={"today-events-" + index}>
             <div className='today-events-item'>
                 <div className="today-events-item-color" style={{"backgroundColor": item.color}}></div>
-                <div className="today-events-item-time">{item.rawStartTime}</div>
+                <div className="today-events-item-time">{getHourAndMinutes(new Date(item.startTime).getHours(), new Date(item.startTime).getMinutes())}</div>
                 <div className='today-events-item-name'>{item.title}</div>
             </div>
             <div className='today-events-divider-line'></div>
@@ -661,23 +685,75 @@ function TodayEvents({currentEvents}) {
     
 }
 
-function ColorChooser() {
-    
+function ColorChooser({curentUnwantedColors, dispatch, currentColors}) {
+    let colors = ["#9fc0f5", "#4332d9", "#ae99e0", "#320699", "#c979bf", "#8a0e79", "#cf5f66", "#9e0812", "#93db7f", "#26820d", "#7adedc", "#0da3a1"];
+    colors = colors.filter((color) => {
+        return currentColors.indexOf(color) !== -1
+    });
+
+
+    const handleColorCheckboxChange = (e, color) => {
+        if(!e.target.checked && curentUnwantedColors.indexOf(color) === -1) {
+            dispatch(addUndesiredColor(color));
+        } else {
+            let index = curentUnwantedColors.indexOf(color);
+            if(index !== -1) {
+                dispatch(removeUndesiredColor(index));
+            }
+        }
+        console.log(curentUnwantedColors);
+    }
+
+    let returnArr = colors.map((color, index) => {
+        return(
+            <div className='color-chooser' key={'color-chooser-' + index}>
+                <input type="checkbox" id={"color-chooser-checkbox " + index} name={"color-chooser-checkbox " + index} value={color} defaultChecked={true} onChange={(e) => handleColorCheckboxChange(e, color)}></input>
+                <div style={{"backgroundColor" : color}} className='color-chooser-color'></div>
+                <input type="text" placeholder='Enter label here...' className='color-chooser-label' name={"color-chooser-label-" + index}></input>
+            </div>
+        )
+    });
+
+    return(
+        <div className='color-chooser-container'>
+            <div className='color-chooser-introduction'>
+                <div className='color-chooser-title'>Color Chooser</div>
+                <div className='color-chooser-introduction-box'>
+                    <div className='color-chooser-checkbox-description'>
+                        <input type="checkbox" className="color-chooser-checkbox-example" name="color-chooser-checkbox-example" checked={true} readOnly></input>
+                        <div>indicates to show color</div>
+                    </div>
+                    <div className='color-chooser-checkbox-description'>
+                        <input type="checkbox" className="color-chooser-checkbox-example" name="color-chooser-checkbox-example" checked={false} readOnly></input>
+                        <div>indicates to hide color</div>
+                    </div>
+                </div>
+            </div>
+            <div className='color-chooser-main'>
+                {returnArr}
+            </div>
+        </div>
+    )
+
 }
 
 function Menu() {
     const currentEvents = useSelector((state) => state.event.events);
     const currentDate = useSelector((state) => state.date);
+    const curentUnwantedColors = useSelector((state) => state.color.undesiredColors);
+    const currentColors = useSelector((state) => state.color.totalColors);
     const dispatch = useDispatch();
     const [addEventPopUpVisible, setAddEventPopUpVisible] = useState("visibility-hidden");
     return(
         <div className="calendar-menu">
             <AddEvent setAddEventPopUpVisible={setAddEventPopUpVisible}/>
-            <AddEventPopUp isThisVisible={addEventPopUpVisible} setIsThisVisible={setAddEventPopUpVisible} dispatch={dispatch}/>
-            <div className='calendar-menu-divider-line'></div>
-            <TodayEvents currentEvents={currentEvents}/>
+            <AddEventPopUp isThisVisible={addEventPopUpVisible} setIsThisVisible={setAddEventPopUpVisible} dispatch={dispatch} currentColors={currentColors}/>
             <div className='calendar-menu-divider-line'></div>
             <BaseCalendar currentDate={currentDate} dispatch={dispatch}/>
+            <div className='calendar-menu-divider-line'></div>
+            <TodayEvents currentEvents={currentEvents} curentUnwantedColors={curentUnwantedColors}/>
+            <div className='calendar-menu-divider-line'></div>
+            <ColorChooser curentUnwantedColors={curentUnwantedColors} dispatch={dispatch} currentColors={currentColors}/>
         </div>
     )
 }
