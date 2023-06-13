@@ -188,13 +188,14 @@ body {
 .today-events {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 5px;
     align-items: center;
-    width: 200px;
-    max-height: 152px;
+    width: 245px;
+    max-height: 156px;
     position: relative;
     overflow-y: auto;
     overflow-x: hidden;
+    justify-content: flex-start;
 }
 
 .today-events::-webkit-scrollbar {
@@ -214,8 +215,10 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
-    width: 200px;
+    align-items: flex-start;
+    white-space: nowrap;
+    width: 240px;
+    font-size: 15px;
 }
 
 .today-events-item {
@@ -232,8 +235,15 @@ body {
     border-radius: 50%;
 }
 
+.today-events-item-name {
+    max-width: 150px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
 .today-events-divider-line {
-    width: 200px;
+    width: 240px;
     height: 1px;
     background-color: var(--division-color);
 }
@@ -357,17 +367,20 @@ body {
 .add-event-popup {
     position: fixed;
     width: 400px;
-    height: 500px;
-    top: calc((100% - 550px) / 2);
-    left: calc((100% - 450px) / 2);
+    height: 540px;
     z-index: 2;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     background-color: rgb(182, 238, 238);
     padding: 30px 15px 15px 15px;
     border-radius: 20px;
     box-shadow: 0px 0px 20px 2px rgb(136, 146, 146, 0.6);
+}
+
+.add-event-popup-position {
+    top: calc((100% - 585px) / 2);
+    left: calc((100% - 430px) / 2);
 }
 
 .add-event-popup input {
@@ -472,15 +485,15 @@ body {
     flex-direction: column;
 }
 
-.popup-time::-webkit-scrollbar {
+.popup-time::-webkit-scrollbar, .add-event-popup-description::-webkit-scrollbar {
     width: 5px;
 }
 
-.popup-time::-webkit-scrollbar-track {
+.popup-time::-webkit-scrollbar-track, .add-event-popup-description::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.popup-time::-webkit-scrollbar-thumb {
+.popup-time::-webkit-scrollbar-thumb, .add-event-popup-description::-webkit-scrollbar-thumb {
     background: black;
     border-radius: 10px;
 }
@@ -520,10 +533,12 @@ body {
     resize: none;
     background-color: transparent;
     width: 350px;
-    height: 200px;
+    height: 70px;
+    border-radius: 10px;
     align-self: center;
     border: 1px solid black;
     transition: border 0.2s;
+    padding: 4px;
 }
 
 .add-event-popup-description:focus {
@@ -550,8 +565,59 @@ body {
     width: 10px;
 }
 
-.input-incorrect {
-    background-color: rgb(238, 118, 118);
+.add-event-popup-location {
+    font-size: 15px;
+    width: 350px;
+    align-self: center;
+}
+
+.add-event-popup-save {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.color-palate-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-items: center;
+    height: 26px;
+}
+
+.color-palate-label {
+    width: 100px;
+}
+
+.color-palate-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    transition: border 0.1s;
+}
+
+.color-palate-color:hover {
+    border: 3px solid rgb(105, 123, 131);
+    cursor: pointer;
+}
+
+.add-event-popup-button {
+    margin-top: 10px;
+    padding: 7px;
+    border: 2px solid black;
+    font-size: 16px;
+    transition: background-color 0.2s, border 0.2s;
+}
+
+.add-event-popup-button:hover {
+    border: 2px solid rgb(35, 190, 190);
+    background-color: var(--clickable-background-color);
+    cursor: pointer;
+}
+
+.input-incorrect{
+    background-color: rgb(238, 118, 118) !important;
 }
 
 
