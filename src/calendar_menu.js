@@ -293,11 +293,21 @@ function AddEventPopUpTime({previousTime = {hour: 0, minute: 0}, setPreviousTime
 
 function ChooseColorPalate({selectedColor, setSelectedColor}) {
     let colors = ["#9fc0f5", "#4332d9", "#ae99e0", "#320699", "#c979bf", "#8a0e79", "#cf5f66", "#9e0812", "#93db7f", "#26820d", "#7adedc", "#0da3a1"];
+    let textColor = "black";
+    let borderSize = "2px";
+    if(["#9fc0f5", "#ae99e0", "#c979bf", "#cf5f66", "#93db7f", "#7adedc"].indexOf(selectedColor) === -1) {
+        textColor = "white";
+        borderSize = "3px";
+    }
 
     let returnArr = colors.map((color, index) => {
+        let hoverClass = "hover-black"
+        if(["#9fc0f5", "#ae99e0", "#c979bf", "#cf5f66", "#93db7f", "#7adedc"].indexOf(color) === -1) {
+            hoverClass = "hover-white";
+        }
         return(
             <div className='color-palate' key={'color-palate-container-' + index}>
-                <div style={{"backgroundColor" : color, "border" : color === selectedColor ? "3px solid white" : ""}} className='color-palate-color' onClick={() => setSelectedColor(color)}></div>
+                <div style={{"backgroundColor" : color, "border" : color === selectedColor ? borderSize + " solid " + textColor : ""}} className={'color-palate-color ' + hoverClass} onClick={() => setSelectedColor(color)}></div>
             </div>
         )
     });
@@ -547,6 +557,8 @@ function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch, currentColors
             }
             let dayOne = new Date(dateOneInput);
             let dayTwo = new Date(dateTwoInput);
+            finalObj["startDate"] = dayOne.getMonth() + 1 + " " + dayOne.getDate() + " " + dayOne.getFullYear();
+            finalObj["endDate"] = dayTwo.getMonth() + 1 + " " + dayTwo.getDate() + " " + dayTwo.getFullYear();
             finalObj["startTime"] = dayOne.getMonth() + 1 + " " + dayOne.getDate() + " " + dayOne.getFullYear() + " " + curTimeOne;
             finalObj["endTime"] = dayTwo.getMonth() + 1 + " " + dayTwo.getDate() + " " + dayTwo.getFullYear() + " " + curTimeTwo;
             finalObj["rawStartDate"] = dateOneInput;
