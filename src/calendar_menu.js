@@ -725,7 +725,6 @@ function ColorChooser({curentUnwantedColors, dispatch, currentColors}) {
                 dispatch(removeUndesiredColor(index));
             }
         }
-        console.log(curentUnwantedColors);
     }
 
     let returnArr = colors.map((color, index) => {

@@ -156,11 +156,17 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
             textColor = "date-today";
         }
 
-        let eventsToday = [...currentEvents].filter((event) => filterEvents(event, new Date(monthNow + 1 + " " + dayNow + " " + yearNow), currentUnwantedColors) && !(new Date(event.startTime).getDate() !== new Date(event.endTime).getDate())).sort((a, b) => {
+        let eventsToday = [...currentEvents].filter((event) => filterEvents(event, new Date(monthNow + 1 + " " + dayNow + " " + yearNow), currentUnwantedColors) && !(new Date(event.startDate).getTime() !== new Date(event.endDate).getTime())).sort((a, b) => {
             return (new Date(a.startTime).getHours() * 60 + new Date(a.startTime).getMinutes()) - (new Date(b.startTime).getHours() * 60 + new Date(b.startTime).getMinutes())
-        })
+        }).map((event) => {
+            let objNow = {"weekAndDay" : getWeek(event)}
+            let returnedObj = Object.assign(objNow, event)
+            return returnedObj;
+        });
 
-        weekAddition.push({"year" : yearNow, "month" : monthNow, "day" : dayNow, "textColor" : textColor, "eventsToday" : eventsToday, "numberOfEvents" : eventsToday.length});
+        let numberOfEvents = [...currentEvents].filter((event) => filterEvents(event, new Date(monthNow + 1 + " " + dayNow + " " + yearNow), currentUnwantedColors) && (new Date(event.startDate).getTime() !== new Date(event.endDate).getTime())).length + eventsToday.length
+
+        weekAddition.push({"year" : yearNow, "month" : monthNow, "day" : dayNow, "textColor" : textColor, "eventsToday" : eventsToday, "numberOfEvents" : numberOfEvents});
 
         if(weekAddition.length === 7) {
             calendarArray.push(weekAddition);
@@ -201,9 +207,13 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
         return value.eventsToday.map((event, index) => {
             let eventTime = new Date(event.startTime);
             eventTime = getHourAndMinutes(eventTime.getHours(), eventTime.getMinutes());
+            let textColor = "black";
+            if(["#9fc0f5", "#ae99e0", "#c979bf", "#cf5f66", "#93db7f", "#7adedc"].indexOf(event.color) === -1) {
+                textColor = "white";
+            }
             return (
-                <div className='calendar-body-month-day-events' key={'calendar-body-month-day-events-' + index}>
-                    <div className="calendar-body-month-day-events-color" style={{"backgroundColor": event.color}}></div>
+                <div className='calendar-body-month-day-events' key={'calendar-body-month-day-events-' + index} style={{"backgroundColor": event.color, "color" : textColor}}>
+                    {/* <div className="calendar-body-month-day-events-color" style={{"backgroundColor": event.color}}></div> */}
                     <div className='calendar-body-month-day-events-time'>{eventTime}</div>
                     <div className='calendar-body-month-day-events-title'>{event.title}</div>
                 </div>
@@ -212,8 +222,12 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
     }
 
     const ReturnEvents = ({item, index}) => {
-        let calendarSpotsLeft = [4,4,4,4,4,4,4];
-        let returnVar = longEvents.map((event, i) => {
+        let itemCleansed = item.map((value) => {
+            return value.eventsToday;
+        }).filter((event) => event.length !== 0);
+        
+        let calendarSpotsLeft = [[true, true, true, true, true, true, true], [true, true, true, true, true, true, true], [true, true, true, true, true, true, true], [true, true, true, true, true, true, true]];
+        let returnVar = longEvents.concat(...itemCleansed).map((event, i) => {
             if(event.weekAndDay.eventStartWeek <= index && event.weekAndDay.eventEndWeek >= index) {
                 let startRow = 1;
                 let endRow = 8;
@@ -230,36 +244,77 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                 if(event.weekAndDay.eventEndWeek === index) {
                     endRow = event.weekAndDay.eventEndDay + 2;
                 }
-                for(let i = startRow - 1; i < endRow - 1; i++) {
-                    calendarSpotsLeft[i]--;
+
+                let row = -1;
+                for(let j = 0; j < calendarSpotsLeft.length; j++) {
+                    let isAble = true;
+                    for(let h = startRow - 1; h < endRow - 1; h++) {
+                        if(!calendarSpotsLeft[j][h]) isAble = false; 
+                    }
+                    if(isAble) {
+                        row = j;
+                        for(let h = startRow - 1; h < endRow - 1; h++) {
+                            calendarSpotsLeft[j][h] = false; 
+                        }
+                        break;
+                    }
+                }
+                if(eventStartTime.getTime() === eventEndTime.getTime()) {
+                    eventTime = getHourAndMinutes(new Date(event.startTime).getHours(), new Date(event.startTime).getMinutes())
                 }
 
-                if(calendarSpotsLeft[startRow - 1] >= 0) return(
-                    <div className='calendar-body-month-week-long-events' key={'calendar-body-month-week-long-events-' + i} style={{"gridColumn" : startRow + "/" + endRow, "backgroundColor" : event.color, "top" : ((3 - calendarSpotsLeft[startRow - 1]) * 20) + "px", "color" : textColor}}>
+                if(row > -1) return(
+                    <div className='calendar-body-month-week-events' key={'calendar-body-month-week-events-' + i} style={{"gridColumn" : startRow + "/" + endRow, "backgroundColor" : event.color, "top" : (row * 20) + "px", "color" : textColor}}>
                         <div className='calendar-body-month-day-events-time'>{eventTime}</div>
                         <div className='calendar-body-month-day-events-title'>{event.title}</div>
                     </div>
                 )
             }
-        }).concat(item.map((value, index) => {
+        })
+        
+        // item.map((value, index) => {
+        //     let numEvents = value.numberOfEvents;
+        //     if(numEvents > 4) {
+        //         numEvents = "View More (" + numEvents + ")";
+        //     } else {
+        //         numEvents = "";
+        //     }
+        //     calendarSpotsLeft[index]--;
+        //     if(calendarSpotsLeft[index] >= 0) return (
+        //         <React.Fragment key={'calendar-body-month-day-events-container-' + index}>
+        //             <div className='calendar-body-month-day-events-container' style={{"gridColumn" : (index + 1) + "/" + (index + 2), "top" : ((3 - calendarSpotsLeft[index]) * 20) + "px"}}>
+        //                 <ReturnValueEvents value={value} />
+        //             </div>
+        //             <div className='calendar-body-month-day-events-number'>{numEvents}</div>
+        //         </React.Fragment>
+        //     );
+        // })
+
+        //     if(numEvents > 4) {
+        //         numEvents = "View More (" + numEvents + ")";
+        //     } else {
+        //         numEvents = "";
+        //     }
+
+        let numEventsVar = item.map((value) => {
             let numEvents = value.numberOfEvents;
             if(numEvents > 4) {
                 numEvents = "View More (" + numEvents + ")";
             } else {
                 numEvents = "";
             }
-            calendarSpotsLeft[index]--;
-            if(calendarSpotsLeft[index] >= 0) return (
-                <React.Fragment key={'calendar-body-month-day-events-container-' + index}>
-                    <div className='calendar-body-month-day-events-container' style={{"gridColumn" : (index + 1) + "/" + (index + 2), "top" : ((3 - calendarSpotsLeft[index]) * 20) + "px"}}>
-                        <ReturnValueEvents value={value} />
-                    </div>
-                    <div className='calendar-body-month-day-events-number'>{numEvents}</div>
-                </React.Fragment>
-            );
-        }))
+            if(numEvents !== "") return (<div className='calendar-body-month-day-events-number calendar-body-month-day-events-number-hover'>{numEvents}</div>);
+            else return(<div className='calendar-body-month-day-events-number'>{numEvents}</div>)
+        })
 
-        return returnVar;
+        return (
+                <React.Fragment>
+                    <div className='calendar-body-month-week-events-container'>
+                        {returnVar}
+                    </div>
+                    {numEventsVar}
+                </React.Fragment>
+                );
     }
 
     const returnValue = returnCalendar.concat(calendarArray.map((item, index) =>

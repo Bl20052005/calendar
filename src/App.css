@@ -800,7 +800,7 @@ body {
     overflow: hidden;
     align-content: space-between;
     grid-template-columns: repeat(7, 1fr);
-    grid-template-rows: auto auto 18px;
+    grid-template-rows: 1fr 13px;
 }
 
 .calendar-body-month-week-top-group-container {
@@ -822,7 +822,7 @@ body {
 }
 
 .calendar-body-month-day-container {
-    grid-row: 2 / 3;
+    grid-row: 1 / 3;
 }
 
 .calendar-body-month-day-values {
@@ -865,10 +865,11 @@ body {
 .calendar-body-month-day-events-container {
     position: relative;
     grid-row: 1 / 2;
-    max-width: 85%;
+    width: 94%;
     justify-self: center;
     height: 100%;
     overflow: hidden;
+    border-radius: 10px;
 }
 
 .calendar-body-month-day-events-container::-webkit-scrollbar {
@@ -886,15 +887,22 @@ body {
 
 .calendar-body-month-day-events {
     position: relative;
-    width: 100%;
+    width: 90%;
     display: flex;
+    margin-top: 3px;
     flex-direction: row;
     justify-content: flex-start;
     font-size: 11px;
     gap: 4px;
-    padding: 3px 0px;
+    padding: 3px 0px 3px 5px;
     white-space: nowrap;
     overflow: hidden;
+    border-radius: 10px 10px 10px 10px;
+    box-shadow: 2px 2px 4px rgb(71, 73, 73);
+}
+
+.calendar-body-month-day-events:hover {
+    cursor: move;
 }
 
 .calendar-body-month-day-events-color {
@@ -912,9 +920,21 @@ body {
     justify-content: center;
     align-items: center;
     font-weight: bold;
+    border-radius: 10px;
+    width: 90%;
+    justify-self: center;
 }
 
-.calendar-body-month-week-long-events {
+.calendar-body-month-day-events-number-hover {
+    transition: background-color 0.2s;
+}
+
+.calendar-body-month-day-events-number-hover:hover {
+    background-color: var(--clickable-background-color);
+    cursor: pointer;
+}
+
+.calendar-body-month-week-events {
     position: relative;
     grid-row: 1 / 2;
     font-size: 12px;
@@ -929,4 +949,18 @@ body {
     border-radius: 10px;
     width: calc(100% - 20px);
     justify-self: center;
+    box-shadow: 2px 2px 4px rgb(71, 73, 73);
+}
+
+.calendar-body-month-week-long-events:hover {
+    cursor: move;
+}
+
+.calendar-body-month-week-events-container {
+    grid-column: 1 / 8;
+    grid-row: 1 / 2;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    height: 100%;
+    overflow: hidden;
 }

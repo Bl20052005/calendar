@@ -87,12 +87,79 @@ function HeaderDescription({currentDate, dispatch}) {
             display = convertMonths[currentDate.month] + " " + currentDate.day + ", " + currentDate.year;
     }
 
+    const changeDateEnablerMinus = () => {
+        if(currentDate.month === 0) {
+            return {
+                    year: currentDate.year - 1,
+                    month: 11,
+                    day: 1
+                }
+        } else {
+            return {
+                    year: currentDate.year,
+                    month: currentDate.month - 1,
+                    day: 1
+                }
+            }
+        }
+
+    const changeDateEnablerPlus = () => {
+        if(currentDate.month === 11) {
+            return {
+                year: currentDate.year + 1,
+                month: 0,
+                day: 1
+            }
+        } 
+        else {
+            return {
+                year: currentDate.year,
+                month: currentDate.month + 1,
+                day: 1
+            }
+        }
+    }
+
+    const changeCalendarDatePlus = () => {
+        switch(currentDate.specifics) {
+            case "month":
+                return changeDateEnablerPlus();
+                break;
+            case "year":
+
+                break;
+            case "week":
+
+                break;
+            case "day":
+
+                break;
+        }
+    }
+
+    const changeCalendarDateMinus = () => {
+        switch(currentDate.specifics) {
+            case "month":
+                return changeDateEnablerMinus();
+                break;
+            case "year":
+
+                break;
+            case "week":
+
+                break;
+            case "day":
+
+                break;
+        }
+    }
+
     return(
         <div className='header-description-container'>
-            <div className='header-description-arrow-left'>
+            <div className='header-description-arrow-left' onClick={() => dispatch(changeDate(changeCalendarDateMinus()))}>
                 <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"/></svg>
             </div>
-            <div className='header-description-arrow-right'>
+            <div className='header-description-arrow-right' onClick={() => dispatch(changeDate(changeCalendarDatePlus()))}>
                 <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 320 512"><path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/></svg>
             </div>
             <div className='header-description-title'>{display}</div>
