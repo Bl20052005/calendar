@@ -13,7 +13,7 @@ export const eventSlice = createSlice({
             state.events.splice(action.payload, 1);
         },
         changeEvent: (state, action) => {
-            state.events.splice(action.payload[0], 1, action.payload[1])
+            state.events.splice(action.payload.index, 1, action.payload.value)
         }
     }
 })

@@ -3,7 +3,8 @@ import { useState, useEffect, useRef } from "react";
 import { addEvent, removeEvent, changeEvent } from './eventSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import { changeDate } from './dateSlice';
-import { addUndesiredColor, removeUndesiredColor, addTotalColor, removeTotalColor } from './colorSlice';
+import { addUndesiredColor, removeUndesiredColor, addTotalColorNumber, addTotalColor, removeTotalColor } from './colorSlice';
+import { changeSingleCalendarEvent, changeCalendarEvent } from './calendarEventSlice';
 import { current } from '@reduxjs/toolkit';
 
 // const curDate = useSelector((state) => state.calendar.date);
@@ -319,7 +320,7 @@ function ChooseColorPalate({selectedColor, setSelectedColor}) {
     )
 }
 
-function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch, currentColors}) {
+function AddEventPopUp({dispatch, currentColors, currentCalendarDate}) {
 
     const getTimeIn15MinuteIntervals = (hour, minute, wantedFunction) => {
         let returnStr = "";
@@ -359,24 +360,35 @@ function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch, currentColors
 
     const convertMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-    const [curDateOne, setCurDateOne] = useState({"year": currentDateOne.getFullYear(), "month": currentDateOne.getMonth(), "day": currentDateOne.getDate()});
-    const [curDateTwo, setCurDateTwo] = useState({"year": currentDateTwo.getFullYear(), "month": currentDateTwo.getMonth(), "day": currentDateTwo.getDate()});
-    const [dateOneInput, setDateOneInput] = useState(convertMonths[currentDateOne.getMonth()] + " " + currentDateOne.getDate() + ", " + currentDateOne.getFullYear());
-    const [dateTwoInput, setDateTwoInput] = useState(convertMonths[currentDateTwo.getMonth()] + " " + currentDateTwo.getDate() + ", " + currentDateTwo.getFullYear());
-    const [curLocation, setCurLocation] = useState("");
-    const [focusCalendarVisibleOne, setFocusCalendarVisibleOne] = useState("visibility-hidden");
-    const [focusCalendarVisibleTwo, setFocusCalendarVisibleTwo] = useState("visibility-hidden");
-    const [focusTimeVisibleOne, setFocusTimeVisibleOne] = useState("visibility-hidden");
-    const [focusTimeVisibleTwo, setFocusTimeVisibleTwo] = useState("visibility-hidden");
-    const [previousTime, setPreviousTime] = useState({hour: currentDateOne.getHours() + Math.floor((Math.ceil(currentDateOne.getMinutes() / 15) * 15) / 60), minute: (Math.ceil(currentDateOne.getMinutes() / 15) * 15) % 60});
-    const [curTimeOne, setCurTimeOne] = useState(getTimeIn15MinuteIntervals(currentDateOne.getHours(), currentDateOne.getMinutes()));
-    const [curTimeTwo, setCurTimeTwo] = useState(getTimeIn15MinuteIntervals(currentDateTwo.getHours(), currentDateTwo.getMinutes()));
-    const [isMouseDown, setIsMouseDown] = useState(false);
-    const [originalCoords, setOriginalCoords] = useState([0,0]);
-    const [selectedColor, setSelectedColor] = useState("#9fc0f5");
-    const [curTitle, setCurTitle] = useState("");
-    const [curDescription, setCurDescription] = useState("");
-    const [wrongInputs, setWrongInputs] = useState({"time1" : "", "time2" : "", "date1" : "", "date2": ""});
+    const buildFunction = (key) => {
+        return function(value) {
+            return dispatch(changeSingleCalendarEvent({"key" : key, "value" : value}))
+        }
+    }
+
+    const [curDateOne, setCurDateOne] = [currentCalendarDate.curDateOne, buildFunction("curDateOne")];
+    const [curDateTwo, setCurDateTwo] = [currentCalendarDate.curDateTwo, buildFunction("curDateTwo")];
+    const [dateOneInput, setDateOneInput] = [currentCalendarDate.dateOneInput, buildFunction("dateOneInput")];
+    const [dateTwoInput, setDateTwoInput] = [currentCalendarDate.dateTwoInput, buildFunction("dateTwoInput")];
+    const [curLocation, setCurLocation] = [currentCalendarDate.curLocation, buildFunction("curLocation")];
+    const [focusCalendarVisibleOne, setFocusCalendarVisibleOne] = [currentCalendarDate.focusCalendarVisibleOne, buildFunction("focusCalendarVisibleOne")];
+    const [focusCalendarVisibleTwo, setFocusCalendarVisibleTwo] = [currentCalendarDate.focusCalendarVisibleTwo, buildFunction("focusCalendarVisibleTwo")];
+    const [focusTimeVisibleOne, setFocusTimeVisibleOne] = [currentCalendarDate.focusTimeVisibleOne, buildFunction("focusTimeVisibleOne")];
+    const [focusTimeVisibleTwo, setFocusTimeVisibleTwo] = [currentCalendarDate.focusTimeVisibleTwo, buildFunction("focusTimeVisibleTwo")];
+    const [previousTime, setPreviousTime] = [currentCalendarDate.previousTime, buildFunction("previousTime")];
+    const [curTimeOne, setCurTimeOne] = [currentCalendarDate.curTimeOne, buildFunction("curTimeOne")];
+    const [curTimeTwo, setCurTimeTwo] = [currentCalendarDate.curTimeTwo, buildFunction("curTimeTwo")];
+    const [curTimeDisabled, setCurTimeDisabled] = [currentCalendarDate.curTimeDisabled, buildFunction("curTimeDisabled")];
+    const [isMouseDown, setIsMouseDown] = [currentCalendarDate.isMouseDown, buildFunction("isMouseDown")];
+    const [originalCoords, setOriginalCoords] = [currentCalendarDate.originalCoords, buildFunction("originalCoords")];
+    const [selectedColor, setSelectedColor] = [currentCalendarDate.selectedColor, buildFunction("selectedColor")];
+    const [curTitle, setCurTitle] = [currentCalendarDate.curTitle, buildFunction("curTitle")];
+    const [curDescription, setCurDescription] = [currentCalendarDate.curDescription, buildFunction("curDescription")];
+    const [wrongInputs, setWrongInputs] = [currentCalendarDate.wrongInputs, buildFunction("wrongInputs")];
+    const [isThisVisible, setIsThisVisible] = [currentCalendarDate.isThisVisible, buildFunction("isThisVisible")];
+    const [originalColor, setOriginalColor] = [currentCalendarDate.originalColor, buildFunction("originalColor")];
+    const [isAllDay, setIsAllDay] = [currentCalendarDate.isAllDay, buildFunction("isAllDay")];
+    const [tempTime, setTempTime] = useState({"time1" : "", "time2" : ""});
 
     const resetAll = () => {
         setCurDateOne({"year": currentDateOne.getFullYear(), "month": currentDateOne.getMonth(), "day": currentDateOne.getDate()});
@@ -397,6 +409,9 @@ function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch, currentColors
         setCurTitle("");
         setCurDescription("");
         setWrongInputs({"time1" : "", "time2" : "", "date1" : "", "date2": ""});
+        setCurTimeDisabled({"one" : "", "two": ""});
+        setIsAllDay({"one" : false, "two": false});
+        dispatch(changeSingleCalendarEvent({"key" : "functionWanted", "value" : "add"}))
     }
 
     const ref1 = useRef();
@@ -513,6 +528,16 @@ function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch, currentColors
             }
         }
 
+        if(finalObj.time1 === "input-incorrect" || finalObj.time2 === "input-incorrect") {
+            let dayOne = new Date(dateOneInput)
+            let dayTwo = new Date(dateTwoInput)
+            dayOne = new Date(dayOne.getMonth() + 1 + " " + dayOne.getDate() + " " + dayOne.getFullYear());
+            dayTwo = new Date(dayTwo.getMonth() + 1 + " " + dayTwo.getDate() + " " + dayTwo.getFullYear());
+            if(dayOne.getTime() > dayTwo.getTime()) {
+                finalObj["date1"] = "input-incorrect";
+            }
+        }
+
         setWrongInputs(finalObj);
 
     }, [curTimeOne, curTimeTwo, dateOneInput, dateTwoInput]);
@@ -548,8 +573,16 @@ function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch, currentColors
     }
 
     const handleClickEventSave = () => {
-        if(wrongInputs.time1 !== "input-incorrect" && wrongInputs.time2 !== "input-incorrect" && wrongInputs.date1 !== "input-incorrect" && wrongInputs.date2 !== "input-incorrect") {
+        const handleSubmit = () => {
             let finalObj = {};
+            let TimeOne = "";
+            let TimeTwo = "";
+            if(!isAllDay.one) {
+                TimeOne = curTimeOne;
+            }
+            if(!isAllDay.two) {
+                TimeTwo = curTimeTwo;
+            }
             if(curTitle === "") {
                 finalObj["title"] = "[No Title]";
             } else {
@@ -559,8 +592,8 @@ function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch, currentColors
             let dayTwo = new Date(dateTwoInput);
             finalObj["startDate"] = dayOne.getMonth() + 1 + " " + dayOne.getDate() + " " + dayOne.getFullYear();
             finalObj["endDate"] = dayTwo.getMonth() + 1 + " " + dayTwo.getDate() + " " + dayTwo.getFullYear();
-            finalObj["startTime"] = dayOne.getMonth() + 1 + " " + dayOne.getDate() + " " + dayOne.getFullYear() + " " + curTimeOne;
-            finalObj["endTime"] = dayTwo.getMonth() + 1 + " " + dayTwo.getDate() + " " + dayTwo.getFullYear() + " " + curTimeTwo;
+            finalObj["startTime"] = dayOne.getMonth() + 1 + " " + dayOne.getDate() + " " + dayOne.getFullYear() + " " + TimeOne;
+            finalObj["endTime"] = dayTwo.getMonth() + 1 + " " + dayTwo.getDate() + " " + dayTwo.getFullYear() + " " + TimeTwo;
             finalObj["rawStartDate"] = dateOneInput;
             finalObj["rawStartTime"] = curTimeOne;
             finalObj["rawEndDate"] = dateTwoInput;
@@ -568,8 +601,22 @@ function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch, currentColors
             finalObj["color"] = selectedColor;
             finalObj["location"] = curLocation;
             finalObj["description"] = curDescription;
+            finalObj["curDateOne"] = curDateOne;
+            finalObj["curDateTwo"] = curDateTwo;
+            finalObj["previousTime"] = previousTime;
+            finalObj["isAllDay"] = isAllDay;
+            finalObj["curTimeDisabled"] = curTimeDisabled;
 
-            dispatch(addEvent(finalObj));
+            if(currentCalendarDate.functionWanted === "edit") {
+                dispatch(changeEvent({"index" : currentCalendarDate.editingIndex, "value" : finalObj}));
+                dispatch(changeSingleCalendarEvent({"key" : "functionWanted", "value" : "add"}));
+                if(currentCalendarDate.selectedColor !== originalColor) dispatch(removeTotalColor(originalColor));
+                setOriginalColor(currentCalendarDate.selectedColor);
+            } else {
+                dispatch(addEvent(finalObj));
+                dispatch(addTotalColorNumber(currentCalendarDate.selectedColor));
+            }
+            
 
             if(currentColors.indexOf(selectedColor) === -1) {
                 dispatch(addTotalColor(selectedColor));
@@ -577,7 +624,85 @@ function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch, currentColors
 
             handleClickEventExit();
         }
+
+        if((wrongInputs.time1 !== "input-incorrect" || isAllDay.one) && (wrongInputs.time2 !== "input-incorrect" || isAllDay.two) && wrongInputs.date1 !== "input-incorrect" && wrongInputs.date2 !== "input-incorrect") {
+            handleSubmit();
+        }
     }
+
+    const handleAllDayChangeOne = (e) => {
+        if(e.target.checked) {
+            if(curDateOne.year === curDateTwo.year && curDateOne.month === curDateTwo.month && curDateOne.day === curDateTwo.day) {
+                setCurTimeDisabled({"one" : "input-disabled", "two" : "input-disabled"});
+                setCurTimeOne("--:--");
+                setCurTimeTwo("--:--");
+                setTempTime({"time1" : curTimeOne, "time2" : curTimeTwo});
+                setIsAllDay({"one" : true, "two": true});
+            } else {
+                setCurTimeDisabled({"one" : "input-disabled", "two" : curTimeDisabled.two});
+                setTempTime({"time1" : curTimeOne, "time2" : tempTime.time2});
+                setCurTimeOne("--:--");
+                setIsAllDay({"one" : true, "two": isAllDay.two});
+            }
+        } else {
+            if(curDateOne.year === curDateTwo.year && curDateOne.month === curDateTwo.month && curDateOne.day === curDateTwo.day) {
+                setCurTimeDisabled({"one" : "", "two" : ""});
+                setIsAllDay({"one" : false, "two": false});
+                setCurTimeOne(tempTime.time1);
+                setCurTimeTwo(tempTime.time2);
+            } else {
+                setCurTimeDisabled({"one" : "", "two" : curTimeDisabled.two});
+                setIsAllDay({"one" : "", "two": isAllDay.two});
+                setCurTimeOne(tempTime.time1);
+            }
+        }
+    }
+
+    const handleAllDayChangeTwo = (e) => {
+        if(e.target.checked) {
+            if(curDateOne.year === curDateTwo.year && curDateOne.month === curDateTwo.month && curDateOne.day === curDateTwo.day) {
+                setCurTimeDisabled({"one" : "input-disabled", "two" : "input-disabled"});
+                setTempTime({"time1" : curTimeOne, "time2" : curTimeTwo});
+                setCurTimeOne("--:--");
+                setCurTimeTwo("--:--");
+                setIsAllDay({"one" : true, "two": true});
+            } else {
+                setTempTime({"time1" : tempTime.time1, "time2" : curTimeTwo});
+                setCurTimeDisabled({"one" : curTimeDisabled.one, "two" : "input-disabled"});
+                setCurTimeTwo("--:--");
+                setIsAllDay({"one" : isAllDay.one, "two": true});
+            }
+        } else {
+            if(curDateOne.year === curDateTwo.year && curDateOne.month === curDateTwo.month && curDateOne.day === curDateTwo.day) {
+                setCurTimeDisabled({"one" : "", "two" : ""});
+                setIsAllDay({"one" : false, "two": false});
+                setCurTimeOne(tempTime.time1);
+                setCurTimeTwo(tempTime.time2);
+            } else {
+                setCurTimeDisabled({"one" : curTimeDisabled.one, "two" : ""});
+                setIsAllDay({"one" : isAllDay.one, "two": false});
+                setCurTimeTwo(tempTime.time2);
+            }
+        }
+    }
+
+    useEffect(() => {
+        if(curDateOne.year === curDateTwo.year && curDateOne.month === curDateTwo.month && curDateOne.day === curDateTwo.day && isAllDay.two) {
+            setCurTimeDisabled({"one" : "input-disabled", "two" : "input-disabled"});
+            setCurTimeOne("--:--");
+            setCurTimeTwo("--:--");
+            setIsAllDay({"one" : true, "two": true});
+        }
+    }, [dateOneInput]);
+
+    useEffect(() => {
+        if(curDateOne.year === curDateTwo.year && curDateOne.month === curDateTwo.month && curDateOne.day === curDateTwo.day && isAllDay.one) {
+            setCurTimeDisabled({"one" : "input-disabled", "two" : "input-disabled"});
+            setCurTimeOne("--:--");
+            setCurTimeTwo("--:--");
+            setIsAllDay({"one" : true, "two": true});
+        }
+    }, [dateTwoInput]);
 
     return(
         <div className={'add-event-popup add-event-popup-position ' + isThisVisible}>
@@ -597,8 +722,12 @@ function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch, currentColors
                     </div>
                     <div>at</div>
                     <div className='add-event-popup-time-sub3-ref' ref={ref3}>
-                        <input type="text" className={'add-event-popup-time-time ' + wrongInputs.time1} name="add-event-popup-time-time" value={curTimeOne} onChange={(e) => setCurTimeOne(e.target.value)} onFocus={() => setFocusTimeVisibleOne("visibility-visible")}></input>
+                        <input type="text" className={'add-event-popup-time-time '  + curTimeDisabled.one + " " + wrongInputs.time1} name="add-event-popup-time-time" value={curTimeOne} onChange={(e) => setCurTimeOne(e.target.value)} onFocus={() => setFocusTimeVisibleOne("visibility-visible")}></input>
                         <AddEventPopUpTime previousTime={{hour: 0, minute: 0}} setPreviousTime={setPreviousTime} setCurTime={setCurTimeOne} isVisible={focusTimeVisibleOne} curTime={curTimeOne}/>
+                    </div>
+                    <div className='add-event-popup-all-day-selection'>
+                    <input type="checkbox" className='add-event-popup-all-day-selection-checkbox' name="add-event-popup-all-day-selection-1" checked={isAllDay.one} onChange={(e) => handleAllDayChangeOne(e)}></input>
+                        <div className='add-event-popup-all-day-selection-text'>All Day</div>
                     </div>
                 </div>
                 <div className='add-event-popup-time-to'>to</div>
@@ -609,8 +738,12 @@ function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch, currentColors
                 </div>
                     <div>at</div>
                     <div className='add-event-popup-time-sub4-ref' ref={ref4}>
-                        <input type="text" className={'add-event-popup-time-time ' + wrongInputs.time2} name="add-event-popup-time-time" value={curTimeTwo} onChange={(e) => setCurTimeTwo(e.target.value)} onFocus={() => setFocusTimeVisibleTwo("visibility-visible")}></input>
+                        <input type="text" className={'add-event-popup-time-time ' + curTimeDisabled.two + " " + wrongInputs.time2} name="add-event-popup-time-time" value={curTimeTwo} onChange={(e) => setCurTimeTwo(e.target.value)} onFocus={() => setFocusTimeVisibleTwo("visibility-visible")}></input>
                         <AddEventPopUpTime previousTime={curDateOne.year === curDateTwo.year && curDateOne.month === curDateTwo.month && curDateOne.day === curDateTwo.day ? previousTime : {hour: 0, minute: 0}} setCurTime={setCurTimeTwo} isVisible={focusTimeVisibleTwo} curTime={curTimeTwo}/>
+                    </div>
+                    <div className='add-event-popup-all-day-selection' >
+                    <input type="checkbox" className='add-event-popup-all-day-selection-checkbox' name="add-event-popup-all-day-selection-1" checked={isAllDay.two} onChange={(e) => handleAllDayChangeTwo(e)}></input>
+                        <div className='add-event-popup-all-day-selection-text'>All Day</div>
                     </div>
                 </div>
             </div>
@@ -642,9 +775,9 @@ function AddEventPopUp({isThisVisible, setIsThisVisible, dispatch, currentColors
     );
 }
 
-function AddEvent({setAddEventPopUpVisible}) {
+function AddEvent({dispatch}) {
     return(
-        <div className='add-event-container' onClick={() => setAddEventPopUpVisible("visibility-visible")}>
+        <div className='add-event-container' onClick={() => dispatch(changeSingleCalendarEvent({"key" : "isThisVisible", "value" : "visibility-visible"}))}>
             <div className='add-event'>
                 <div className='add-event-add-sign'>
                     <svg xmlns="http://www.w3.org/2000/svg" height="25px" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
@@ -656,7 +789,10 @@ function AddEvent({setAddEventPopUpVisible}) {
 }
 
 function TodayEvents({currentEvents, curentUnwantedColors}) {
-    const getHourAndMinutes = (hour, minute) => {
+    const getHourAndMinutes = (hour, minute, isAllDay) => {
+        if(isAllDay) {
+            return "All Day";
+        }
         let returnStr = "";
 
         let condensedHour = ((hour + 11) % 12 + 1);
@@ -686,13 +822,14 @@ function TodayEvents({currentEvents, curentUnwantedColors}) {
     let newDate = new Date();
 
     //const currentEvents = [["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"],["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"],["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"],["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"]];
-    const currentEventsJSX = [...currentEvents].filter((event) => filterEvents(event, newDate.getFullYear(), newDate.getMonth(), newDate.getDate(), curentUnwantedColors)).sort((a, b) => {
+    const currentEventsAllDay = [...currentEvents].filter((event) => event.isAllDay.one && filterEvents(event, newDate.getFullYear(), newDate.getMonth(), newDate.getDate(), curentUnwantedColors))
+    const currentEventsJSX = [...currentEvents].filter((event) => !event.isAllDay.one && filterEvents(event, newDate.getFullYear(), newDate.getMonth(), newDate.getDate(), curentUnwantedColors)).sort((a, b) => {
         return (new Date(a.startTime).getHours() * 60 + new Date(a.startTime).getMinutes()) - (new Date(b.startTime).getHours() * 60 + new Date(b.startTime).getMinutes())
-    }).map((item, index) =>
+    }).concat(...currentEventsAllDay).map((item, index) =>
         <div className='today-events-item-container' key={"today-events-" + index}>
             <div className='today-events-item'>
                 <div className="today-events-item-color" style={{"backgroundColor": item.color}}></div>
-                <div className="today-events-item-time">{getHourAndMinutes(new Date(item.startTime).getHours(), new Date(item.startTime).getMinutes())}</div>
+                <div className="today-events-item-time">{getHourAndMinutes(new Date(item.startTime).getHours(), new Date(item.startTime).getMinutes(), item.isAllDay.one)}</div>
                 <div className='today-events-item-name'>{item.title}</div>
             </div>
             <div className='today-events-divider-line'></div>
@@ -765,12 +902,13 @@ function Menu() {
     const currentDate = useSelector((state) => state.date);
     const curentUnwantedColors = useSelector((state) => state.color.undesiredColors);
     const currentColors = useSelector((state) => state.color.totalColors);
+    const currentCalendarDate = useSelector((state) => state.calendarEvent.events);
     const dispatch = useDispatch();
     const [addEventPopUpVisible, setAddEventPopUpVisible] = useState("visibility-hidden");
     return(
         <div className="calendar-menu">
-            <AddEvent setAddEventPopUpVisible={setAddEventPopUpVisible}/>
-            <AddEventPopUp isThisVisible={addEventPopUpVisible} setIsThisVisible={setAddEventPopUpVisible} dispatch={dispatch} currentColors={currentColors}/>
+            <AddEvent dispatch={dispatch}/>
+            <AddEventPopUp dispatch={dispatch} currentColors={currentColors} currentCalendarDate={currentCalendarDate}/>
             <div className='calendar-menu-divider-line'></div>
             <BaseCalendar currentDate={currentDate} dispatch={dispatch}/>
             <div className='calendar-menu-divider-line'></div>
@@ -780,5 +918,7 @@ function Menu() {
         </div>
     )
 }
+
+export { AddEventPopUp };
 
 export default Menu;

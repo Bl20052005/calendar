@@ -58,7 +58,6 @@ body {
 
 .header-dropdown-container {
     position: relative;
-    top: 78px;
     width: 120px;
     font-size: 20px;
     z-index: 2;
@@ -87,6 +86,7 @@ body {
 }
 
 .header-dropdown-select {
+    position: absolute;
     background-color: aliceblue;
     margin-top: 5px;
     box-shadow: -3px 3px 5px rgb(110, 110, 110);
@@ -248,15 +248,15 @@ body {
     justify-content: flex-start;
 }
 
-.today-events::-webkit-scrollbar, .color-chooser-main::-webkit-scrollbar, .calendar-menu::-webkit-scrollbar {
+.today-events::-webkit-scrollbar, .color-chooser-main::-webkit-scrollbar, .calendar-menu::-webkit-scrollbar, .popup-preview-event-description::-webkit-scrollbar {
     width: 5px;
 }
 
-.today-events::-webkit-scrollbar-track, .color-chooser-main::-webkit-scrollbar-track, .calendar-menu::-webkit-scrollbar-track {
+.today-events::-webkit-scrollbar-track, .color-chooser-main::-webkit-scrollbar-track, .calendar-menu::-webkit-scrollbar-track, .popup-preview-event-description::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.today-events::-webkit-scrollbar-thumb, .color-chooser-main::-webkit-scrollbar-thumb, .calendar-menu::-webkit-scrollbar-thumb {
+.today-events::-webkit-scrollbar-thumb, .color-chooser-main::-webkit-scrollbar-thumb, .calendar-menu::-webkit-scrollbar-thumb, .popup-preview-event-description::-webkit-scrollbar-thumb {
     background: var(--clickable-hover-background-color);
     border-radius: 4px;
 }
@@ -671,8 +671,20 @@ body {
     cursor: pointer;
 }
 
+.add-event-popup-all-day-selection {
+    display: flex;
+    font-size: 14px;
+    gap: 7px;
+    align-items: center;
+}
+
 .input-incorrect{
     background-color: rgb(238, 118, 118) !important;
+}
+
+.input-disabled {
+    background-color: rgb(211, 211, 211) !important;
+    pointer-events: none;
 }
 
 .color-chooser-container {
@@ -794,13 +806,13 @@ body {
 
 .calendar-body-month-week-group-events {
     grid-column: 1 / 8;
-    grid-row: 3 / 4;
+    grid-row: 3 / 5;
     display: grid;
     height: auto;
     overflow: hidden;
     align-content: space-between;
     grid-template-columns: repeat(7, 1fr);
-    grid-template-rows: 1fr 13px;
+    grid-template-rows: 1fr 17px;
 }
 
 .calendar-body-month-week-top-group-container {
@@ -822,7 +834,10 @@ body {
 }
 
 .calendar-body-month-day-container {
-    grid-row: 1 / 3;
+    grid-row: 1 / 4;
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: 35px auto;
 }
 
 .calendar-body-month-day-values {
@@ -922,7 +937,9 @@ body {
     font-weight: bold;
     border-radius: 10px;
     width: 90%;
+    height: 14px;
     justify-self: center;
+    margin-top: 2px;
 }
 
 .calendar-body-month-day-events-number-hover {
@@ -952,8 +969,8 @@ body {
     box-shadow: 2px 2px 4px rgb(71, 73, 73);
 }
 
-.calendar-body-month-week-long-events:hover {
-    cursor: move;
+.calendar-body-month-week-events:hover {
+    cursor: pointer;
 }
 
 .calendar-body-month-week-events-container {
@@ -963,4 +980,98 @@ body {
     grid-template-columns: repeat(7, 1fr);
     height: 100%;
     overflow: hidden;
+}
+
+.popup-preview-container {
+    position: absolute;
+    background-color: rgb(182, 238, 238);
+    padding: 15px;
+    border-radius: 20px;
+    box-shadow: 0px 0px 20px 2px rgb(136, 146, 146, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 200px;
+    max-width: 350px;
+    max-height: 200px;
+}
+
+.popup-preview-icons:hover {
+    cursor: pointer;
+}
+
+.popup-preview-menu {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 20px;
+}
+
+.popup-preview-event {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.popup-preview-event-main {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+}
+
+.popup-preview-event-color {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+}
+
+.popup-preview-event-main-sub {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+    max-width: calc(100% - 35px);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.popup-preview-event-title {
+    font-size: 25px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.popup-preview-event-time {
+    font-size: 15px;
+}
+
+.popup-preview-event-description-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+    max-width: 100%;
+    text-overflow: ellipsis;
+}
+
+.popup-preview-event-description-notes {
+    width: 100%;
+    text-align: center;
+}
+
+.popup-preview-event-description {
+    width: 100%;
+    max-height: 55px;
+    align-self: center;
+    overflow: auto;
+}
+
+.popup-preview-event-description-box {
+    padding: 5px;
+    border: 1px solid black;
+    border-radius: 15px;
+    max-height: 55px;
+    display: flex;
+    justify-content: center;
 }
