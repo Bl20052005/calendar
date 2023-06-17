@@ -5,9 +5,11 @@ import { changeDate } from './dateSlice';
 import { addEvent, removeEvent, changeEvent } from './eventSlice';
 import { changeSingleCalendarEvent, changeCalendarEvent } from './calendarEventSlice';
 import { removeTotalColor } from './colorSlice';
+import { mouseDown, mouseMove, mouseUp } from './currentAddition';
+import { current } from '@reduxjs/toolkit';
 
 
-function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispatch, setCurEvent, setIsVisible, setTopAndLeft}) {
+function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispatch, setCurEvent, setIsVisible, currentAddition, currentAdditionIsMouseDown}) {
     const convertWeeks = [["Sunday", "S", "Sun"], ["Monday", "M", "Mon"], ["Tuesday", "T", "Tue"], ["Wednesday", "W", "Wed"], ["Thursday", "Th", "Thu"], ["Friday", "F", "Fri"], ["Saturday", "Sa", "Sat"]];
     const convertMonths = ["Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"];
     let daysInMonths = [];
@@ -54,6 +56,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
         let eventDateStart = new Date(event.startDate);
         let startDate = new Date(start);
         let endDate = new Date(end);
+        
 
         if(eventDateEnd.getTime() < startDate.getTime()) {
             return false;
@@ -67,12 +70,13 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
     }
 
     const startEndDates = (start, end) => {
-        let yearNow = curYear;
+        let yearStart = curYear;
+        let yearEnd = curYear;
         let monthStart = curMonth;
         let monthEnd = curMonth;
 
         if(start < 0) {
-            if(curMonth === 0) yearNow -= 1;
+            if(curMonth === 0) yearStart -= 1;
             monthStart = (12 + monthStart - 1) % 12;
             start = daysInMonths[monthStart] + start + 1;
         }
@@ -82,12 +86,12 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
         }
         
         if(end > daysInMonths[monthEnd]) {
-            if(curMonth === 11) yearNow += 1;
+            if(curMonth === 11) yearEnd += 1;
             monthEnd = (monthEnd + 1) % 12;
             end = end - daysInMonths[curMonth];
         }
 
-        return([new Date(monthStart + 1 + " " + start + " " + yearNow), new Date(monthEnd + 1 + " " + end + " " + yearNow)])
+        return([new Date(monthStart + 1 + " " + start + " " + yearStart), new Date(monthEnd + 1 + " " + end + " " + yearEnd)])
     }
 
     const getWeek = (event) => {
@@ -96,7 +100,6 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
         let eventEndWeekDay = new Date(event.endDate);
         let startWeek = Math.floor(((eventStartWeekDay.getTime() - start.getTime()) / 86400000) / 7);
         let endWeek = Math.floor(((eventEndWeekDay.getTime() - start.getTime()) / 86400000) / 7);
-
         return {"eventStartWeek" : startWeek, "eventStartDay" : eventStartWeekDay.getDay(), "eventEndWeek" : endWeek, "eventEndDay" : eventEndWeekDay.getDay()};
     }
 
@@ -272,10 +275,14 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                         break;
                     }
                 }
+
                 if(eventStartTime.getTime() === eventEndTime.getTime()) {
                     if(!event.isAllDay.one) eventTime = getHourAndMinutes(new Date(event.startTime).getHours(), new Date(event.startTime).getMinutes())
                     else eventTime = "All Day,";
                 }
+
+                let extraClasses = "";
+                if(currentAdditionIsMouseDown) extraClasses += " pointerEvents-none";
 
                 const handleEventsOnClick = () => {
                     let calendarLayout = document.querySelector(".calendar-body-month").getBoundingClientRect();
@@ -327,7 +334,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                 }
 
                 if(row > -1) return(
-                    <div className='calendar-body-month-week-events' key={'calendar-body-month-week-events-' + i} style={{"gridColumn" : startRow + "/" + endRow, "backgroundColor" : event.color, "top" : (row * 20) + "px", "color" : textColor}} onClick={() => handleEventsOnClick()}>
+                    <div className={'calendar-body-month-week-events' + extraClasses} key={'calendar-body-month-week-events-' + i} style={{"gridColumn" : startRow + "/" + endRow, "backgroundColor" : event.color, "top" : (row * 20) + "px", "color" : textColor}} onClick={() => handleEventsOnClick()}>
                         <div className='calendar-body-month-day-events-time'>{eventTime}</div>
                         <div className='calendar-body-month-day-events-title'>{event.title}</div>
                     </div>
@@ -380,14 +387,132 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                 );
     }
 
+    useEffect(() => {
+        const handleOnMouseUp = () => {
+            let eventNow = {...currentEvents[currentEvents.length-1]};
+            dispatch(mouseUp({"month" : eventNow["curDateTwo"].month, "day": eventNow["curDateTwo"].day, "year" : eventNow["curDateTwo"].year}));
+            let EditingObj = {
+                "curDateOne" : eventNow["curDateOne"],
+                "curDateTwo" : eventNow["curDateTwo"],
+                "dateOneInput" : eventNow["rawStartDate"],
+                "dateTwoInput" : eventNow["rawEndDate"],
+                "curLocation" : "",
+                "focusCalendarVisibleOne" : "visibility-hidden",
+                "focusCalendarVisibleTwo" : "visibility-hidden",
+                "focusTimeVisibleOne" : "visibility-hidden",
+                "focusTimeVisibleTwo" : "visibility-hidden",
+                "previousTime" : {},
+                "curTimeOne" : "--:--",
+                "curTimeTwo" : "--:--",
+                "curTimeDisabled": {"one" : "input-disabled", "two" : "input-disabled"},
+                "isMouseDown" : false,
+                "originalCoords" : [0,0],
+                "selectedColor" : "#9fc0f5",
+                "curTitle" : "",
+                "curDescription" : "",
+                "wrongInputs" : {"time1" : "", "time2" : "", "date1" : "", "date2": ""},
+                "isThisVisible" : "visibility-visible",
+                "functionWanted" : "edit",
+                "editingIndex" : currentEvents.length - 1,
+                "originalColor" : "#9fc0f5",
+                "isAllDay" : {"one" : true, "two": true},
+            }
+            dispatch(changeCalendarEvent(EditingObj));
+        }
+
+        if(currentAdditionIsMouseDown) {
+            window.addEventListener("mouseup", handleOnMouseUp);
+
+            const cleanUpListener = () => {
+                window.removeEventListener("mouseup", handleOnMouseUp);
+            }
+            return cleanUpListener;
+        }
+
+    })
+
     const returnValue = returnCalendar.concat(calendarArray.map((item, index) =>
                     <div className='calendar-body-month-week-group' key={"calendar-body-month-week-" + index}>
                         <div className='calendar-body-month-week-group-events'>
                             <ReturnEvents item={item} index={index} />
                         </div>
                         {item.map((value, i) => {
+
+                            const convertMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+                            
+                            const handleOnMouseDown = () => {
+                                dispatch(mouseDown({"start" : {"month" : value.month, "day": value.day, "year" : value.year}, "end" : {"month" : value.month, "day": value.day, "year" : value.year}}));
+                                let finalObj = {};
+                                finalObj["title"] = "[No Title]";
+                                finalObj["startDate"] = value.month + 1 + " " + value.day + " " + value.year;
+                                finalObj["endDate"] = value.month + 1 + " " + value.day + " " + value.year;
+                                finalObj["startTime"] = value.month + 1 + " " + value.day + " " + value.year;
+                                finalObj["endTime"] = value.month + 1 + " " + value.day + " " + value.year;
+                                finalObj["rawStartDate"] = convertMonths[value.month] + " " + value.day + ", " + value.year;
+                                finalObj["rawStartTime"] = "";
+                                finalObj["rawEndDate"] = convertMonths[value.month] + " " + value.day + ", " + value.year;
+                                finalObj["rawEndTime"] = "";
+                                finalObj["color"] = "#9fc0f5";
+                                finalObj["location"] = "";
+                                finalObj["description"] = "";
+                                finalObj["curDateOne"] = {"year": value.year, "month": value.month, "day": value.day};
+                                finalObj["curDateTwo"] = {"year": value.year, "month": value.month, "day": value.day};
+                                finalObj["previousTime"] = {};
+                                finalObj["isAllDay"] = {"one" : true, "two": true};
+                                finalObj["curTimeDisabled"] = {"one" : "input-disabled", "two" : "input-disabled"};
+                                dispatch(addEvent(finalObj));
+                            }
+
+                            const handleOnMouseMove = () => {
+                                let startTime = new Date(currentAddition.start.month + 1 + " " + currentAddition.start.day + " " + currentAddition.start.year).getTime();
+                                let endTime = new Date(value.month + 1 + " " + value.day + " " + value.year).getTime();
+                                if(currentAdditionIsMouseDown && endTime >= startTime) {
+                                    dispatch(mouseMove({"month" : value.month, "day": value.day, "year" : value.year}));
+                                    let eventNow = {...currentEvents[currentEvents.length-1]};
+                                    eventNow["endDate"] = value.month + 1 + " " + value.day + " " + value.year;
+                                    eventNow["endTime"] = value.month + 1 + " " + value.day + " " + value.year;
+                                    eventNow["rawEndDate"] = convertMonths[value.month] + " " + value.day + ", " + value.year;
+                                    eventNow["curDateTwo"] = {"year": value.year, "month": value.month, "day": value.day};
+                                    dispatch(changeEvent({"index" : currentEvents.length-1, "value" : eventNow}));
+                                }
+
+                            }
+
+                            // const handleOnMouseUp = () => {
+                            //     dispatch(mouseUp({"month" : value.month, "day": value.day, "year" : value.year}));
+                            //     // let eventNow = {...currentEvents[currentEvents.length-1]};
+                            //     // let EditingObj = {
+                            //     //     "curDateOne" : eventNow["curDateOne"],
+                            //     //     "curDateTwo" : eventNow["curDateTwo"],
+                            //     //     "dateOneInput" : eventNow["rawStartDate"],
+                            //     //     "dateTwoInput" : eventNow["rawEndDate"],
+                            //     //     "curLocation" : "",
+                            //     //     "focusCalendarVisibleOne" : "visibility-hidden",
+                            //     //     "focusCalendarVisibleTwo" : "visibility-hidden",
+                            //     //     "focusTimeVisibleOne" : "visibility-hidden",
+                            //     //     "focusTimeVisibleTwo" : "visibility-hidden",
+                            //     //     "previousTime" : {},
+                            //     //     "curTimeOne" : "--:--",
+                            //     //     "curTimeTwo" : "--:--",
+                            //     //     "curTimeDisabled": {"one" : "input-disabled", "two" : "input-disabled"},
+                            //     //     "isMouseDown" : false,
+                            //     //     "originalCoords" : [0,0],
+                            //     //     "selectedColor" : "#9fc0f5",
+                            //     //     "curTitle" : "",
+                            //     //     "curDescription" : "",
+                            //     //     "wrongInputs" : {"time1" : "", "time2" : "", "date1" : "", "date2": ""},
+                            //     //     "isThisVisible" : "visibility-visible",
+                            //     //     "functionWanted" : "edit",
+                            //     //     "editingIndex" : currentEvents.length - 1,
+                            //     //     "originalColor" : "#9fc0f5",
+                            //     //     "isAllDay" : {"one" : true, "two": true},
+                            //     // }
+                            //     // dispatch(changeCalendarEvent(EditingObj));
+                            // }
+
                             return (
-                                <div className="calendar-body-month-day-container" key={"calendar-body-month-day-container-" + i} onClick={() => console.log(value)} style={{"gridColumn" : (i + 1) + " / " + (i + 2)}}>
+                                <div className="calendar-body-month-day-container" key={"calendar-body-month-day-container-" + i} onMouseDown={() => handleOnMouseDown()} onMouseMove={() => handleOnMouseMove()} style={{"gridColumn" : (i + 1) + " / " + (i + 2)}}>
                                     <div className="calendar-body-month-day-values">
                                         <div className={"calendar-body-month-day " + value.textColor}>{value.day}</div>
                                     </div>
@@ -412,7 +537,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
     )
 }
 
-function PopupPreview({isVisible, setIsVisible, event, dispatch, topAndLeft}) {
+function PopupPreview({isVisible, setIsVisible, event, dispatch}) {
 
     const getHourAndMinutes = (hour, minute) => {
         let returnStr = "";
@@ -532,14 +657,15 @@ function BodyMonth() {
     const currentDate = useSelector((state) => state.date);
     const currentEvents = useSelector((state) => state.event.events);
     const currentUnwantedColors = useSelector((state) => state.color.undesiredColors);
+    const currentAddition = useSelector((state) => state.currentAddition.currentEvent);
+    const currentAdditionIsMouseDown = useSelector((state) => state.currentAddition.isMouseDown);
     const dispatch = useDispatch();
     const [isVisible, setIsVisible] = useState("visibility-hidden");
     const [curEvent, setCurEvent] = useState({});
-    const [topAndLeft, setTopAndLeft] = useState("", "");
     return(
         <div className="calendar-body-month-container">
-            <CalendarBody currentDate={currentDate} currentEvents={currentEvents} currentUnwantedColors={currentUnwantedColors} dispatch={dispatch} setCurEvent={setCurEvent} setIsVisible={setIsVisible} setTopAndLeft={setTopAndLeft}/>
-            <PopupPreview isVisible={isVisible} setIsVisible={setIsVisible} event={curEvent} dispatch={dispatch} topAndLeft={topAndLeft}/>
+            <CalendarBody currentDate={currentDate} currentEvents={currentEvents} currentUnwantedColors={currentUnwantedColors} dispatch={dispatch} setCurEvent={setCurEvent} setIsVisible={setIsVisible} currentAddition={currentAddition} currentAdditionIsMouseDown={currentAdditionIsMouseDown}/>
+            <PopupPreview isVisible={isVisible} setIsVisible={setIsVisible} event={curEvent} dispatch={dispatch}/>
         </div>
     )
 }

@@ -24,6 +24,10 @@ body {
     min-height: 100vh;
 }
 
+.pointerEvents-none {
+    pointer-events: none;
+}
+
 .calendar-header {
     width: 100%;
     min-width: 950px;
@@ -831,6 +835,7 @@ body {
 .calendar-body-month-text {
     width: 100%;
     text-align: center;
+    user-select: none;
 }
 
 .calendar-body-month-day-container {
@@ -847,6 +852,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    user-select: none;
 }
 
 .calendar-body-month-divider-line-vertical {
@@ -898,6 +904,14 @@ body {
 .calendar-body-month-day-events-container::-webkit-scrollbar-thumb {
     background: var(--division-color);
     border-radius: 4px;
+}
+
+.calendar-body-month-day-events-time {
+    user-select: none;
+}
+
+.calendar-body-month-day-events-title {
+    user-select: none;
 }
 
 .calendar-body-month-day-events {

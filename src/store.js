@@ -3,6 +3,7 @@ import eventReducer from './eventSlice';
 import dateReducer from './dateSlice';
 import colorReducer from './colorSlice';
 import calendarEventReducer from './calendarEventSlice';
+import currentAdditionReducer from './currentAddition';
 
 export default configureStore({
   reducer: {
@@ -10,5 +11,6 @@ export default configureStore({
     date: dateReducer,
     color: colorReducer,
     calendarEvent: calendarEventReducer,
+    currentAddition: currentAdditionReducer,
   },
 });
