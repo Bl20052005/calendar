@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { changeDate } from './dateSlice';
 import { addUndesiredColor, removeUndesiredColor, addTotalColorNumber, addTotalColor, removeTotalColor } from './colorSlice';
 import { changeSingleCalendarEvent, changeCalendarEvent } from './calendarEventSlice';
+import { setEditing } from './currentAddition';
 import { current } from '@reduxjs/toolkit';
 
 // const curDate = useSelector((state) => state.calendar.date);
@@ -320,7 +321,7 @@ function ChooseColorPalate({selectedColor, setSelectedColor}) {
     )
 }
 
-function AddEventPopUp({dispatch, currentColors, currentCalendarDate}) {
+function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEvents}) {
 
     const getTimeIn15MinuteIntervals = (hour, minute, wantedFunction) => {
         let returnStr = "";
@@ -411,7 +412,8 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate}) {
         setWrongInputs({"time1" : "", "time2" : "", "date1" : "", "date2": ""});
         setCurTimeDisabled({"one" : "", "two": ""});
         setIsAllDay({"one" : false, "two": false});
-        dispatch(changeSingleCalendarEvent({"key" : "functionWanted", "value" : "add"}))
+        dispatch(changeSingleCalendarEvent({"key" : "functionWanted", "value" : "add"}));
+        setTempTime({"time1" : "", "time2" : ""});
     }
 
     const ref1 = useRef();
@@ -569,7 +571,17 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate}) {
         let effectedClass = document.querySelector('.add-event-popup');
         effectedClass.style.top = "calc((100% - 585px) / 2)";
         effectedClass.style.left = "calc((100% - 430px) / 2)";
+        dispatch(setEditing(false));
         resetAll();
+    }
+
+    const handleCancelClick = () => {
+        if(currentCalendarDate.functionWanted === "edit-delete") {
+            dispatch(removeEvent(currentEvents.length - 1));
+            handleClickEventExit();
+        } else {
+            handleClickEventExit();
+        }
     }
 
     const handleClickEventSave = () => {
@@ -607,7 +619,7 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate}) {
             finalObj["isAllDay"] = isAllDay;
             finalObj["curTimeDisabled"] = curTimeDisabled;
 
-            if(currentCalendarDate.functionWanted === "edit") {
+            if(currentCalendarDate.functionWanted === "edit" || currentCalendarDate.functionWanted === "edit-delete") {
                 dispatch(changeEvent({"index" : currentCalendarDate.editingIndex, "value" : finalObj}));
                 dispatch(changeSingleCalendarEvent({"key" : "functionWanted", "value" : "add"}));
                 if(currentCalendarDate.selectedColor !== originalColor) dispatch(removeTotalColor(originalColor));
@@ -707,7 +719,7 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate}) {
     return(
         <div className={'add-event-popup add-event-popup-position ' + isThisVisible}>
             <div className='add-event-popup-move' onMouseDown={(e) => handleMoveMouseDown(e)} onMouseUp={(e) => handleMoveMouseUp(e)}>
-                <svg className='add-event-popup-exit' onClick={() => handleClickEventExit()} xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+                <svg className='add-event-popup-exit' onClick={() => handleCancelClick()} xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
             </div>
             <input type="text" className='add-event-popup-title' name="add-event-popup-title" placeholder='Enter title here' value={curTitle} onChange={(e) => setCurTitle(e.target.value)}></input>
             <div className='add-event-popup-time-container'>
@@ -768,7 +780,7 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate}) {
             <input type="text" className='add-event-popup-location' name="add-event-popup-location" value={curLocation} onChange={(e) => setCurLocation(e.target.value)}></input>
             <div className='add-event-popup-save'>
                 <div className='add-event-popup-button' onClick={() => handleClickEventSave()}>Save</div>
-                <div className='add-event-popup-button' onClick={() => handleClickEventExit()}>Cancel</div>
+                <div className='add-event-popup-button' onClick={() => handleCancelClick()}>Cancel</div>
             </div>
             
         </div>
@@ -908,7 +920,7 @@ function Menu() {
     return(
         <div className="calendar-menu">
             <AddEvent dispatch={dispatch}/>
-            <AddEventPopUp dispatch={dispatch} currentColors={currentColors} currentCalendarDate={currentCalendarDate}/>
+            <AddEventPopUp dispatch={dispatch} currentColors={currentColors} currentCalendarDate={currentCalendarDate} currentEvents={currentEvents}/>
             <div className='calendar-menu-divider-line'></div>
             <BaseCalendar currentDate={currentDate} dispatch={dispatch}/>
             <div className='calendar-menu-divider-line'></div>

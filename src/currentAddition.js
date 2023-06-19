@@ -8,6 +8,7 @@ export const currentAdditionSlice = createSlice({
             "end" : ""
         },
         isMouseDown: false,
+        isCurrentlyEditing: false,
     },
     reducers: {
         mouseDown : (state, action) => {
@@ -24,10 +25,14 @@ export const currentAdditionSlice = createSlice({
         mouseUp : (state, action) => {
             state.currentEvent = {"start" : state.currentEvent.start, "end" : action.payload};
             state.isMouseDown = false;
+        },
+
+        setEditing : (state, action) => {
+            state.isCurrentlyEditing = action.payload;
         }
     }
 })
 
-export const { mouseDown, mouseMove, mouseUp } = currentAdditionSlice.actions;
+export const { mouseDown, mouseMove, mouseUp, setEditing } = currentAdditionSlice.actions;
 
 export default currentAdditionSlice.reducer;

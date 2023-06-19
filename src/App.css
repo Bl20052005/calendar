@@ -785,6 +785,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    user-select: none;
 }
 
 .calendar-body-month {
@@ -826,7 +827,6 @@ body {
 
 .calendar-body-month-day-container, .calendar-body-month-week-top-group {
     display: flex;
-    width: calc(100% / 7);
     height: 100%;
     text-align: center;
     width: 100%;
@@ -908,10 +908,12 @@ body {
 
 .calendar-body-month-day-events-time {
     user-select: none;
+    pointer-events: none;
 }
 
 .calendar-body-month-day-events-title {
     user-select: none;
+    pointer-events: none;
 }
 
 .calendar-body-month-day-events {
