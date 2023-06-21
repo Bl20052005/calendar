@@ -5,6 +5,7 @@ import colorReducer from './colorSlice';
 import calendarEventReducer from './calendarEventSlice';
 import currentAdditionReducer from './currentAddition';
 import moveEventReducer from './moveEvent';
+import viewAllReducer from './viewAllSlice';
 
 export default configureStore({
   reducer: {
@@ -14,5 +15,6 @@ export default configureStore({
     calendarEvent: calendarEventReducer,
     currentAddition: currentAdditionReducer,
     moveEvent : moveEventReducer,
+    viewAll : viewAllReducer,
   },
 });

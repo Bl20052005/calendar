@@ -5,6 +5,7 @@ export const moveEventSlice = createSlice({
     initialState: {
         index: -1,
         isMoving: false,
+        hasBeenMoving: false,
     },
     reducers: {
         changeIndex : (state, action) => {
@@ -14,9 +15,13 @@ export const moveEventSlice = createSlice({
         changeisMoving : (state, action) => {
             state.isMoving = action.payload;
         },
+
+        changeHasBeenMoving : (state, action) => {
+            state.hasBeenMoving = action.payload;
+        },
     }
 })
 
-export const { changeIndex, changeisMoving } = moveEventSlice.actions;
+export const { changeIndex, changeisMoving, changeHasBeenMoving } = moveEventSlice.actions;
 
 export default moveEventSlice.reducer;

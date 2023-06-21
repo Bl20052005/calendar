@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { addEvent, removeEvent, changeEvent } from './eventSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import { changeDate } from './dateSlice';
-import { addUndesiredColor, removeUndesiredColor, addTotalColorNumber, addTotalColor, removeTotalColor } from './colorSlice';
+import { addUndesiredColor, removeUndesiredColor, addTotalColorNumber, addTotalColor, removeTotalColor, changeTotalColorLabel, changeTotalColorIsLocked } from './colorSlice';
 import { changeSingleCalendarEvent, changeCalendarEvent } from './calendarEventSlice';
 import { setEditing } from './currentAddition';
 import { current } from '@reduxjs/toolkit';
@@ -619,10 +619,19 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
             finalObj["isAllDay"] = isAllDay;
             finalObj["curTimeDisabled"] = curTimeDisabled;
 
-            if(currentCalendarDate.functionWanted === "edit" || currentCalendarDate.functionWanted === "edit-delete") {
+            if(currentCalendarDate.functionWanted === "edit-delete") {
                 dispatch(changeEvent({"index" : currentCalendarDate.editingIndex, "value" : finalObj}));
                 dispatch(changeSingleCalendarEvent({"key" : "functionWanted", "value" : "add"}));
-                if(currentCalendarDate.selectedColor !== originalColor) dispatch(removeTotalColor(originalColor));
+                dispatch(addTotalColorNumber(currentCalendarDate.selectedColor));
+            } else if(currentCalendarDate.functionWanted === "edit") {
+                dispatch(changeEvent({"index" : currentCalendarDate.editingIndex, "value" : finalObj}));
+                dispatch(changeSingleCalendarEvent({"key" : "functionWanted", "value" : "add"}));
+                console.log(originalColor)
+                console.log(currentCalendarDate.selectedColor)
+                if(currentCalendarDate.selectedColor !== originalColor) {
+                    dispatch(removeTotalColor(originalColor));
+                    dispatch(addTotalColorNumber(currentCalendarDate.selectedColor));
+                }
                 setOriginalColor(currentCalendarDate.selectedColor);
             } else {
                 dispatch(addEvent(finalObj));
@@ -721,7 +730,7 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
             <div className='add-event-popup-move' onMouseDown={(e) => handleMoveMouseDown(e)} onMouseUp={(e) => handleMoveMouseUp(e)}>
                 <svg className='add-event-popup-exit' onClick={() => handleCancelClick()} xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
             </div>
-            <input type="text" className='add-event-popup-title' name="add-event-popup-title" placeholder='Enter title here' value={curTitle} onChange={(e) => setCurTitle(e.target.value)}></input>
+            <input type="text" className='add-event-popup-title' name="add-event-popup-title" placeholder='Enter title here' value={curTitle} onChange={(e) => setCurTitle(e.target.value)} autoComplete="off"></input>
             <div className='add-event-popup-time-container'>
             <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 512 512"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"/></svg>
                 <div className='add-event-popup-texts'>Time</div>
@@ -729,12 +738,12 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
             <div className='add-event-popup-time'>
                 <div className='add-event-popup-time-sub'>
                     <div className='add-event-popup-time-sub1-ref' ref={ref1}>
-                        <input type="text" className={'add-event-popup-time-date ' + wrongInputs.date1} placeholder='Enter date here' name="add-event-popup-time-date-1" value={dateOneInput} onChange={handleSetCurDateOne} onFocus={() => setFocusCalendarVisibleOne("visibility-visible")}></input>
+                        <input type="text" className={'add-event-popup-time-date ' + wrongInputs.date1} placeholder='Enter date here' name="add-event-popup-time-date-1" value={dateOneInput} onChange={handleSetCurDateOne} onFocus={() => setFocusCalendarVisibleOne("visibility-visible")} autoComplete="off"></input>
                         <AddEventPopupCalendar currentDate={curDateOne} setCurrentDate={setCurDateOne} setDateInput={setDateOneInput} focusCalendarVisible={focusCalendarVisibleOne}/>
                     </div>
                     <div>at</div>
                     <div className='add-event-popup-time-sub3-ref' ref={ref3}>
-                        <input type="text" className={'add-event-popup-time-time '  + curTimeDisabled.one + " " + wrongInputs.time1} name="add-event-popup-time-time" value={curTimeOne} onChange={(e) => setCurTimeOne(e.target.value)} onFocus={() => setFocusTimeVisibleOne("visibility-visible")}></input>
+                        <input type="text" className={'add-event-popup-time-time '  + curTimeDisabled.one + " " + wrongInputs.time1} name="add-event-popup-time-time" value={curTimeOne} onChange={(e) => setCurTimeOne(e.target.value)} onFocus={() => setFocusTimeVisibleOne("visibility-visible")} autoComplete="off"></input>
                         <AddEventPopUpTime previousTime={{hour: 0, minute: 0}} setPreviousTime={setPreviousTime} setCurTime={setCurTimeOne} isVisible={focusTimeVisibleOne} curTime={curTimeOne}/>
                     </div>
                     <div className='add-event-popup-all-day-selection'>
@@ -745,12 +754,12 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
                 <div className='add-event-popup-time-to'>to</div>
                 <div className='add-event-popup-time-sub'>
                 <div className='add-event-popup-time-sub2-ref' ref={ref2}>
-                    <input type="text" className={'add-event-popup-time-date ' + wrongInputs.date2} placeholder='Enter date here' name="add-event-popup-time-date-1" value={dateTwoInput} onChange={handleSetCurDateTwo} onFocus={() => setFocusCalendarVisibleTwo("visibility-visible")}></input>
+                    <input type="text" className={'add-event-popup-time-date ' + wrongInputs.date2} placeholder='Enter date here' name="add-event-popup-time-date-1" value={dateTwoInput} onChange={handleSetCurDateTwo} onFocus={() => setFocusCalendarVisibleTwo("visibility-visible")} autoComplete="off"></input>
                     <AddEventPopupCalendar currentDate={curDateTwo} setCurrentDate={setCurDateTwo} setDateInput={setDateTwoInput} focusCalendarVisible={focusCalendarVisibleTwo}/>
                 </div>
                     <div>at</div>
                     <div className='add-event-popup-time-sub4-ref' ref={ref4}>
-                        <input type="text" className={'add-event-popup-time-time ' + curTimeDisabled.two + " " + wrongInputs.time2} name="add-event-popup-time-time" value={curTimeTwo} onChange={(e) => setCurTimeTwo(e.target.value)} onFocus={() => setFocusTimeVisibleTwo("visibility-visible")}></input>
+                        <input type="text" className={'add-event-popup-time-time ' + curTimeDisabled.two + " " + wrongInputs.time2} name="add-event-popup-time-time" value={curTimeTwo} onChange={(e) => setCurTimeTwo(e.target.value)} onFocus={() => setFocusTimeVisibleTwo("visibility-visible")} autoComplete="off"></input>
                         <AddEventPopUpTime previousTime={curDateOne.year === curDateTwo.year && curDateOne.month === curDateTwo.month && curDateOne.day === curDateTwo.day ? previousTime : {hour: 0, minute: 0}} setCurTime={setCurTimeTwo} isVisible={focusTimeVisibleTwo} curTime={curTimeTwo}/>
                     </div>
                     <div className='add-event-popup-all-day-selection' >
@@ -777,7 +786,7 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
                 <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 384 512"><path d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/></svg>
                 <div className='add-event-popup-texts'>Location</div>
             </div>
-            <input type="text" className='add-event-popup-location' name="add-event-popup-location" value={curLocation} onChange={(e) => setCurLocation(e.target.value)}></input>
+            <input type="text" className='add-event-popup-location' name="add-event-popup-location" value={curLocation} onChange={(e) => setCurLocation(e.target.value)} autoComplete="off"></input>
             <div className='add-event-popup-save'>
                 <div className='add-event-popup-button' onClick={() => handleClickEventSave()}>Save</div>
                 <div className='add-event-popup-button' onClick={() => handleCancelClick()}>Cancel</div>
@@ -789,8 +798,8 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
 
 function AddEvent({dispatch}) {
     return(
-        <div className='add-event-container' onClick={() => dispatch(changeSingleCalendarEvent({"key" : "isThisVisible", "value" : "visibility-visible"}))}>
-            <div className='add-event'>
+        <div className='add-event-container'>
+            <div className='add-event' onClick={() => dispatch(changeSingleCalendarEvent({"key" : "isThisVisible", "value" : "visibility-visible"}))}>
                 <div className='add-event-add-sign'>
                     <svg xmlns="http://www.w3.org/2000/svg" height="25px" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
                 </div>
@@ -831,22 +840,51 @@ function TodayEvents({currentEvents, curentUnwantedColors}) {
         curentUnwantedColors.indexOf(event.color) === -1);
     }
 
+    const filterEventsLong = (event, currentUnwantedColors) => {
+        let eventDateEnd = new Date(event.endDate).getTime();
+        let eventDateStart = new Date(event.startDate).getTime();
+        let newDate = new Date();
+        newDate = new Date(newDate.getMonth() + 1 + " " + newDate.getDate() + " " + newDate.getFullYear()).getTime();
+        
+
+        if(eventDateEnd < newDate) {
+            return false;
+        }
+
+        if(eventDateStart > newDate) {
+            return false;
+        }
+
+        return currentUnwantedColors.indexOf(event.color) === -1 && eventDateEnd !== eventDateStart && eventDateStart !== newDate;
+    }
+
     let newDate = new Date();
 
     //const currentEvents = [["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"],["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"],["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"],["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"]];
     const currentEventsAllDay = [...currentEvents].filter((event) => event.isAllDay.one && filterEvents(event, newDate.getFullYear(), newDate.getMonth(), newDate.getDate(), curentUnwantedColors))
+    const currentEventsLong = [...currentEvents].filter((event) => filterEventsLong(event, curentUnwantedColors));
     const currentEventsJSX = [...currentEvents].filter((event) => !event.isAllDay.one && filterEvents(event, newDate.getFullYear(), newDate.getMonth(), newDate.getDate(), curentUnwantedColors)).sort((a, b) => {
         return (new Date(a.startTime).getHours() * 60 + new Date(a.startTime).getMinutes()) - (new Date(b.startTime).getHours() * 60 + new Date(b.startTime).getMinutes())
-    }).concat(...currentEventsAllDay).map((item, index) =>
-        <div className='today-events-item-container' key={"today-events-" + index}>
+    }).concat(...currentEventsAllDay).concat(...currentEventsLong).map((item, index) => {
+        let eventDateEnd = new Date(item.endDate).getTime();
+        let eventDateStart = new Date(item.startDate).getTime();
+        let newDate = new Date();
+        newDate = new Date(newDate.getMonth() + 1 + " " + newDate.getDate() + " " + newDate.getFullYear()).getTime();
+        let eventTime = "All Day";
+        if(eventDateStart === newDate) {
+            eventTime = getHourAndMinutes(new Date(item.startTime).getHours(), new Date(item.startTime).getMinutes(), item.isAllDay.one)
+        } else if(eventDateEnd === newDate) {
+            eventTime = getHourAndMinutes(new Date(item.endTime).getHours(), new Date(item.endTime).getMinutes(), item.isAllDay.two)
+        }
+        return (<div className='today-events-item-container' key={"today-events-" + index}>
             <div className='today-events-item'>
                 <div className="today-events-item-color" style={{"backgroundColor": item.color}}></div>
-                <div className="today-events-item-time">{getHourAndMinutes(new Date(item.startTime).getHours(), new Date(item.startTime).getMinutes(), item.isAllDay.one)}</div>
+                <div className="today-events-item-time">{eventTime}</div>
                 <div className='today-events-item-name'>{item.title}</div>
             </div>
             <div className='today-events-divider-line'></div>
-        </div>
-        );
+        </div>);
+    });
     return(
         <div className='today-events-container'>
             <div className='today-events-text'>Today's Agenda...</div>
@@ -858,7 +896,7 @@ function TodayEvents({currentEvents, curentUnwantedColors}) {
     
 }
 
-function ColorChooser({curentUnwantedColors, dispatch, currentColors}) {
+function ColorChooser({curentUnwantedColors, dispatch, currentColors, currentColorLabels, currentColorIsLocked}) {
     let colors = ["#9fc0f5", "#4332d9", "#ae99e0", "#320699", "#c979bf", "#8a0e79", "#cf5f66", "#9e0812", "#93db7f", "#26820d", "#7adedc", "#0da3a1"];
     colors = colors.filter((color) => {
         return currentColors.indexOf(color) !== -1
@@ -876,12 +914,33 @@ function ColorChooser({curentUnwantedColors, dispatch, currentColors}) {
         }
     }
 
+    const handleColorLabelChange = (e, color) => {
+        dispatch(changeTotalColorLabel({"value" : e.target.value, "color" : color}));
+    }
+
     let returnArr = colors.map((color, index) => {
+
+        let bgColorClass = "";
+
+        let fillColor = "black";
+
+        if(currentColorIsLocked[color]) {
+            bgColorClass = " color-chooser-lock-black";
+            fillColor = "white";
+        }
+
+        const handleChangeIsLocked = () => {
+            dispatch(changeTotalColorIsLocked({"color" : color, "value" : !currentColorIsLocked[color]}));
+        }
+
         return(
             <div className='color-chooser' key={'color-chooser-' + index}>
                 <input type="checkbox" id={"color-chooser-checkbox " + index} name={"color-chooser-checkbox " + index} value={color} defaultChecked={true} onChange={(e) => handleColorCheckboxChange(e, color)}></input>
                 <div style={{"backgroundColor" : color}} className='color-chooser-color'></div>
-                <input type="text" placeholder='Enter label here...' className='color-chooser-label' name={"color-chooser-label-" + index}></input>
+                <input type="text" placeholder='Enter label here...' className='color-chooser-label' name={"color-chooser-label-" + index} value={currentColorLabels[color]} onChange={(e) => handleColorLabelChange(e, color)} disabled={currentColorIsLocked[color]} autoComplete="off"></input>
+                <div className={"color-chooser-lock" + bgColorClass} onClick={() => handleChangeIsLocked()}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="color-chooser-lock-svg" height="15px" fill={fillColor} viewBox="0 0 448 512"><path d="M144 144v48H304V144c0-44.2-35.8-80-80-80s-80 35.8-80 80zM80 192V144C80 64.5 144.5 0 224 0s144 64.5 144 144v48h16c35.3 0 64 28.7 64 64V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V256c0-35.3 28.7-64 64-64H80z"/></svg>
+                </div>
             </div>
         )
     });
@@ -914,9 +973,10 @@ function Menu() {
     const currentDate = useSelector((state) => state.date);
     const curentUnwantedColors = useSelector((state) => state.color.undesiredColors);
     const currentColors = useSelector((state) => state.color.totalColors);
+    const currentColorLabels = useSelector((state) => state.color.totalColorsLabel);
+    const currentColorIsLocked = useSelector((state) => state.color.totalColorsisLocked);
     const currentCalendarDate = useSelector((state) => state.calendarEvent.events);
     const dispatch = useDispatch();
-    const [addEventPopUpVisible, setAddEventPopUpVisible] = useState("visibility-hidden");
     return(
         <div className="calendar-menu">
             <AddEvent dispatch={dispatch}/>
@@ -926,7 +986,7 @@ function Menu() {
             <div className='calendar-menu-divider-line'></div>
             <TodayEvents currentEvents={currentEvents} curentUnwantedColors={curentUnwantedColors}/>
             <div className='calendar-menu-divider-line'></div>
-            <ColorChooser curentUnwantedColors={curentUnwantedColors} dispatch={dispatch} currentColors={currentColors}/>
+            <ColorChooser curentUnwantedColors={curentUnwantedColors} dispatch={dispatch} currentColors={currentColors} currentColorLabels={currentColorLabels} currentColorIsLocked={currentColorIsLocked}/>
         </div>
     )
 }

@@ -19,6 +19,6 @@ export const dateSlice = createSlice({
     }
 })
 
-export const { changeDate } = dateSlice.actions;
+export const { changeDate, setNumberOfWeeks } = dateSlice.actions;
 
 export default dateSlice.reducer;
