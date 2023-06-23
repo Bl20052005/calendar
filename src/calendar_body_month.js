@@ -71,7 +71,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
         return currentUnwantedColors.indexOf(event.color) === -1;
     }
 
-    const startEndDates = (start, end) => {
+    const startEndDates = () => {
 
         const dateHelper = (date) => {
 
@@ -117,7 +117,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
 
         let returnValue = [];
 
-        for(let i = start; i < end + 1; i += 7) {
+        for(let i = firstOfMonth.getDay() * -1; i < daysInMonths[curMonth] + 7 - lastOfMonth.getDay(); i += 7) {
             returnValue.push(dateHelperModified(i));
         }
 
@@ -125,7 +125,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
             return week;
         })
 
-        return([dateHelper(start), dateHelper(end), weekTime])
+        return([dateHelper(firstOfMonth.getDay() * -1), dateHelper(daysInMonths[curMonth] + 7 - lastOfMonth.getDay()), weekTime])
 
         // let yearStart = curYear;
         // let yearEnd = curYear;
@@ -153,7 +153,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
     }
 
     const getWeek = (event) => {
-        const [start, end, weekTime] = startEndDates(firstOfMonth.getDay() * -1, daysInMonths[curMonth] + 7 - lastOfMonth.getDay() - 1)
+        const [start, end, weekTime] = startEndDates()
         let eventStartWeekDay = new Date(event.startDate);
         let eventEndWeekDay = new Date(event.endDate);
         let startWeek = -1;
@@ -198,19 +198,151 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
     //use the array calendarSpotsLeft to see if there are spots left using spotsLeft()
     //finally, if an event has passed all of these, then put week and day onto its object / array and send it off
 
+    const createEventsRepeated = (event, monthStart, monthEnd) => {
+        const roundTime = (time) => {
+            let potentialDST = new Date(time).getHours();
+            if(potentialDST === 23) {
+                return time + 3600000;
+            } else if(potentialDST === 1) {
+                return time - 3600000;
+            }
+            return time;
+        }
+
+        const getReturnedObj = (event, time1, time2) => {
+            let curEvent = {...event};
+            let curEventStart = new Date(time1);
+            let curEventEnd = new Date(time2);
+            let curEventStartStr = (curEventStart.getMonth() + 1 + " " + curEventStart.getDate() + " " + curEventStart.getFullYear());
+            let curEventEndStr = (curEventEnd.getMonth() + 1 + " " + curEventEnd.getDate() + " " + curEventEnd.getFullYear());
+            let curEventStartStrMonth = (convertMonths[curEventStart.getMonth()] + " " + curEventStart.getDate() + ", " + curEventStart.getFullYear());
+            let curEventEndStrMonth = (convertMonths[curEventEnd.getMonth()] + " " + curEventEnd.getDate() + ", " + curEventEnd.getFullYear());
+            let curDateOne = {"year": curEventStart.getFullYear(), "month": curEventStart.getMonth(), "day": curEventStart.getDate()};
+            let curDateTwo = {"year": curEventEnd.getFullYear(), "month": curEventEnd.getMonth(), "day": curEventEnd.getDate()};
+            let objNow = {"startDate" : curEventStartStr, "endDate" : curEventEndStr, "rawStartDate" : curEventStartStrMonth, "rawEndDate" : curEventEndStrMonth, "curDateOne" : curDateOne, "curDateTwo" : curDateTwo};
+            objNow["startTime"] = (curEventStartStr + " " + new Date(curEvent.startTime).getHours() + ":" + new Date(curEvent.startTime).getMinutes())
+            objNow["endTime"] = (curEventEndStr + " " + new Date(curEvent.endTime).getHours() + ":" + new Date(curEvent.endTime).getMinutes())
+            return Object.assign(curEvent, objNow);
+        }
+
+        let returnedArr = [];
+
+        let iterations = -1;
+        let eventStartDate = new Date(event.startDate);
+        let eventEndDate = new Date(event.endDate);
+        let start = roundTime(eventStartDate.getTime());
+        let startWeekday = eventStartDate.getDay();
+
+        if(event.repeatEnding.afterIterations !== null) {
+            iterations = event.repeatEnding.afterIterations;
+        }
+
+        let eventLength = roundTime(eventEndDate.getTime()) - roundTime(eventStartDate.getTime());
+
+        //console.log(eventLength)
+
+        if(roundTime(eventStartDate.getTime()) < monthStart - eventLength) start = monthStart - eventLength;
+
+        let i = new Date(start);
+
+        //console.log(new Date(i.getTime()) + "   " + new Date(monthEnd))
+
+        const addFunction = () => {
+            if(event.repeatSpecifics.day > 0) {
+                if(Math.round((i.getTime() - eventStartDate.getTime()) / 86400000) % event.repeatSpecifics.day === 0) {
+                    //console.log("time1 " + new Date(roundTime(i.getTime())) + " time2 " + new Date(roundTime(roundTime(i.getTime() + eventLength))))
+                    returnedArr.push(getReturnedObj(event, roundTime(i.getTime()), roundTime(i.getTime() + eventLength)));
+                }
+            } else if(event.repeatSpecifics.week > 0) {
+                let curNumDaysPassed = (Math.round((i.getTime() - eventStartDate.getTime()) / 86400000) + startWeekday) % (event.repeatSpecifics.week * 7);
+                if(curNumDaysPassed >= 0 && curNumDaysPassed <= 6) {
+                    if(event.repeatSpecifics.weekdays.length <= 0 && curNumDaysPassed === startWeekday) {
+                        returnedArr.push(getReturnedObj(event, roundTime(i.getTime()), roundTime(i.getTime() + eventLength)));
+                    } else {
+                        if(event.repeatSpecifics.weekdays.indexOf(curNumDaysPassed) !== -1) {
+                            returnedArr.push(getReturnedObj(event, roundTime(i.getTime()), roundTime(i.getTime() + eventLength)));
+                        }
+                    }
+                }
+            } else if(event.repeatSpecifics.month > 0) {
+                let monthDifference = i.getMonth() - eventStartDate.getMonth();
+                if(i.getFullYear() === eventStartDate.getFullYear()) monthDifference = i.getMonth() - eventStartDate.getMonth();
+                else monthDifference = i.getFullYear() - eventStartDate.getFullYear() * 12 + i.getMonth();
+                if(monthDifference % event.repeatSpecifics.month === 0 && i.getDate() === eventStartDate.getDate()) {
+                    returnedArr.push(getReturnedObj(event, roundTime(i.getTime()), roundTime(i.getTime() + eventLength)));
+                }
+            } else if(event.repeatSpecifics.year > 0) {
+                if((i.getFullYear() - eventStartDate.getFullYear()) % event.repeatSpecifics.year === 0 && 
+                i.getMonth() === eventStartDate.getMonth() && i.getDate() === eventStartDate.getDate()) {
+                    returnedArr.push(getReturnedObj(event, roundTime(i.getTime()), roundTime(i.getTime() + eventLength)));
+                }
+            }
+            i.setDate(i.getDate() + 1);
+        }
+
+        if(i.getTime() === monthEnd) {
+            addFunction();
+        }
+
+        while(i.getTime() < monthEnd) {
+            addFunction();
+        }
+
+        // for(let i = start; i < monthEnd; i += 86400000) {
+        //     if(event.repeatSpecifics.day > 0) {
+        //         if((i - eventStartDate) % event.repeatSpecifics.day === 0) {
+        //             console.log("time1 " + new Date(i) + " time2 " + new Date(i + eventLength))
+        //             returnedArr.push(getReturnedObj(event, i, i + eventLength));
+        //         }
+        //     }
+        // }
+
+        return returnedArr;
+    }
+
+    let longEventsRepeated = [...currentEvents].map((event, index) => {
+        let objNow = {"index" : index}
+        let returnedObj = Object.assign(objNow, event)
+        return returnedObj;
+    }).filter((event) => {
+        return (new Date(event.startDate).getTime() !== new Date(event.endDate).getTime()) && event.repeat;
+    }).map((event) => {
+        let [start, end] = startEndDates();
+        return createEventsRepeated(event, new Date(start).getTime(), new Date(end).getTime());
+    }).flat().map((event) => {
+        let objNow = {"weekAndDay" : getWeek(event)}
+        let returnedObj = Object.assign(objNow, event)
+        return returnedObj;
+    });
+
+    //console.log(longEventsRepeated)
+
     let longEvents = [...currentEvents].map((event, index) => {
         let objNow = {"index" : index}
         let returnedObj = Object.assign(objNow, event)
         return returnedObj;
     }).filter((event) => {
-        const [start, end] = startEndDates(firstOfMonth.getDay() * -1, daysInMonths[curMonth] + 7 - lastOfMonth.getDay() - 1);
-        return filterEventsStartEnd(event, start, end, currentUnwantedColors) && (new Date(event.startDate).getTime() !== new Date(event.endDate).getTime());
-    }).sort((a, b) => {
-        return (new Date(a.startTime).getTime()) - (new Date(b.startTime).getTime())
+        return (new Date(event.startDate).getTime() !== new Date(event.endDate).getTime()) && event.repeat;
+    }).map((event) => {
+        let [start, end] = startEndDates();
+        return createEventsRepeated(event, new Date(start).getTime(), new Date(end).getTime());
+    }).flat().map((event) => {
+        let objNow = {"weekAndDay" : getWeek(event)}
+        let returnedObj = Object.assign(objNow, event)
+        return returnedObj;
+    }).concat([...currentEvents].map((event, index) => {
+        let objNow = {"index" : index}
+        let returnedObj = Object.assign(objNow, event)
+        return returnedObj;
+    }).filter((event) => {
+        const [start, end] = startEndDates();
+        return filterEventsStartEnd(event, start, end, currentUnwantedColors) && (new Date(event.startDate).getTime() !== new Date(event.endDate).getTime()) && !event.repeat;
     }).map((event) => {
         let objNow = {"weekAndDay" : getWeek(event)}
         let returnedObj = Object.assign(objNow, event)
         return returnedObj;
+    })).sort((a, b) => {
+        return (new Date(a.startTime).getTime()) - (new Date(b.startTime).getTime())
     });
 
 
@@ -236,18 +368,32 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
             textColor = "date-today";
         }
 
+        //createEventsRepeated
+
         let eventsToday = [...currentEvents].map((event, index) => {
             let objNow = {"index" : index}
             let returnedObj = Object.assign(objNow, event)
             return returnedObj;
         }).filter((event) => {
-            return filterEvents(event, new Date(monthNow + 1 + " " + dayNow + " " + yearNow), currentUnwantedColors) && !(new Date(event.startDate).getTime() !== new Date(event.endDate).getTime())
-        }).sort((a, b) => {
-            return (new Date(a.startTime).getHours() * 60 + new Date(a.startTime).getMinutes()) - (new Date(b.startTime).getHours() * 60 + new Date(b.startTime).getMinutes())
+            return !(new Date(event.startDate).getTime() !== new Date(event.endDate).getTime()) && event.repeat
+        }).map((event) => {
+            return createEventsRepeated(event, new Date(monthNow + 1 + " " + dayNow + " " + yearNow).getTime(), new Date(monthNow + 1 + " " + dayNow + " " + yearNow).getTime());
+        }).flat().map((event) => {
+            let objNow = {"weekAndDay" : getWeek(event)}
+            let returnedObj = Object.assign(objNow, event)
+            return returnedObj;
+        }).concat([...currentEvents].map((event, index) => {
+            let objNow = {"index" : index}
+            let returnedObj = Object.assign(objNow, event)
+            return returnedObj;
+        }).filter((event) => {
+            return filterEvents(event, new Date(monthNow + 1 + " " + dayNow + " " + yearNow), currentUnwantedColors) && !(new Date(event.startDate).getTime() !== new Date(event.endDate).getTime()) && !event.repeat
         }).map((event) => {
             let objNow = {"weekAndDay" : getWeek(event)}
             let returnedObj = Object.assign(objNow, event)
             return returnedObj;
+        })).sort((a, b) => {
+            return (new Date(a.startTime).getHours() * 60 + new Date(a.startTime).getMinutes()) - (new Date(b.startTime).getHours() * 60 + new Date(b.startTime).getMinutes())
         });
 
         let numberOfEvents = [...currentEvents].filter((event) => filterEvents(event, new Date(monthNow + 1 + " " + dayNow + " " + yearNow), currentUnwantedColors) && (new Date(event.startDate).getTime() !== new Date(event.endDate).getTime())).length + eventsToday.length
@@ -520,6 +666,10 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                 "editingIndex" : currentEvents.length - 1,
                 "originalColor" : "#9fc0f5",
                 "isAllDay" : {"one" : true, "two": true},
+                "repeat" : false,
+                "repeatSpecifics" : {"day" : 0, "week" : 0, "month" : 0, "year" : 0, "weekdays" : []},
+                "repeatEnding" : {"never" : false, "onDay" : null, "afterIterations" : null},
+                "repeatExceptions" : {},
             }
             dispatch(changeCalendarEvent(EditingObj));
             dispatch(setEditing(true));
@@ -671,6 +821,10 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                                 finalObj["previousTime"] = {};
                                 finalObj["isAllDay"] = {"one" : true, "two": true};
                                 finalObj["curTimeDisabled"] = {"one" : "input-disabled", "two" : "input-disabled"};
+                                finalObj["repeat"] = false;
+                                finalObj["repeatSpecifics"] = {"day" : 0, "week" : 0, "month" : 0, "year" : 0, "weekdays" : []};
+                                finalObj["repeatEnding"] = {"never" : false, "onDay" : null, "afterIterations" : null};
+                                finalObj["repeatExceptions"] = {};
                                 if(!currentAdditionEditing) {
                                     dispatch(addEvent(finalObj));
                                 }

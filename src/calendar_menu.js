@@ -321,6 +321,164 @@ function ChooseColorPalate({selectedColor, setSelectedColor}) {
     )
 }
 
+function AddEventPopUpRepeatAdvanced({repeat, setRepeat, repeatEnding, setRepeatEnding, repeatSpecifics, setRepeatSpecifics}) {
+
+    const [curNumber, setCurNumber] = useState(1);
+    const [curOption, setCurOption] = useState("week");
+
+    const handleAdvancedNumberChange = (e) => {
+        setCurNumber(e.target.value);
+        let returnedObj = {...repeatSpecifics};
+        returnedObj[curOption] = e.target.value;
+        setRepeatSpecifics(returnedObj);
+    }
+
+    const handleAdvancedOptionChange = (option) => {
+        setCurOption(option);
+        let returnedObj = {...repeatSpecifics};
+        returnedObj[option] = curNumber;
+        setRepeatSpecifics(returnedObj);
+    }
+
+
+    return(
+        <div className='add-event-popup-repeat-advanced-container'>
+            <input className='add-event-popup-repeat-advanced-input' type="number" min={1} onChange={(e) => handleAdvancedNumberChange(e)}></input>
+            <div className='add-event-popup-repeat-advanced-main'>
+                <div className='add-event-popup-repeat-advanced-main-name'>Day</div>
+                <svg className="add-event-popup-repeat-advanced-main-down-arrow" xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M201.4 342.6c12.5 12.5 32.8 12.5 45.3 0l160-160c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 274.7 86.6 137.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l160 160z"/></svg>
+            </div>
+
+            <div className='add-event-popup-repeat-advanced-selector'>
+                <div className='add-event-popup-repeat-advanced-selector-option' onChange={() => handleAdvancedOptionChange("day")}>Day</div>
+                <div className='add-event-popup-repeat-advanced-selector-option' onChange={() => handleAdvancedOptionChange("week")}>Week</div>
+                <div className='add-event-popup-repeat-advanced-selector-option' onChange={() => handleAdvancedOptionChange("month")}>Month</div>
+                <div className='add-event-popup-repeat-advanced-selector-option' onChange={() => handleAdvancedOptionChange("year")}>Year</div>
+            </div>
+
+            <div className='add-event-popup-repeat-optional-week'>
+
+            </div>
+
+            <div className='add-event-popup-repeat-advanced-limit'>
+                <div className='add-event-popup-repeat-advanced-limit-option-never'>Never</div>
+                <div className='add-event-popup-repeat-advanced-limit-option-on-date'>
+                    <div className='add-event-popup-repeat-advanced-limit-option-on-date-text'>On</div>
+                    <input className='add-event-popup-repeat-advanced-limit-option-on-date-input' type="text"></input>
+                </div>
+                <div className='add-event-popup-repeat-advanced-limit-option-after-iterations'>
+                    <div className='add-event-popup-repeat-advanced-limit-option-after-iterations-text'>After</div>
+                    <input className='add-event-popup-repeat-advanced-limit-option-after-iterations-input' type="number"></input>
+                    <div className='add-event-popup-repeat-advanced-limit-option-after-iterations-text'>iterations</div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+function AddEventPopUpRepeat({repeat, setRepeat, repeatEnding, setRepeatEnding, repeatSpecifics, setRepeatSpecifics, isAddEventPopUpRepeatVisible, setIsAddEventPopUpRepeatVisible}) {
+
+    //implementation notes:
+    //add a week selector when selecting "week" that shows M - Sun
+    //the repeat in eventSlice should be a boolean of true or false
+    //there should be an object like {"month", "day", "year", "week"} that specifies how many ___s it will repeat by
+    //for example: month: 2 means repeat every 2 months
+    //seperate arrays for repats and nonrepeats for each month
+    //when a date in repeat is moved out, a "move this or every" should appear
+    //auto end dates, day: 1 year, week: 4 years, month: 10 years, year: never
+    //we extract out every repeat function
+    //use .map((event) => helperFunction(event)) for each repeat
+    //within helper, create a let allEvents
+    //look at the repeat function of day week month year and decide accordingly how many to put
+    //use spread ... operator to return
+    //get start and end dates, iterate through start and end with add date
+
+    let repeatTitle = "None";
+
+    if(repeat) {
+        if(repeatSpecifics.day === 1) {
+            repeatTitle = "Every Day";
+        } else if(repeatSpecifics.week === 1) {
+            repeatTitle = "Every Week";
+        } else if(repeatSpecifics.month === 1) {
+            repeatTitle = "Every Month";
+        } else if(repeatSpecifics.year === 1) {
+            repeatTitle = "Every Year";
+        } else {
+            repeatTitle = "Custom";
+        }
+    }
+
+    const handleRepeatSelectorOnClick = (repeatVal) => {
+        switch (repeatVal) {
+            case "None" :
+                setRepeat(false);
+                break;
+            case "Every Day":
+                setRepeat(true);
+                setRepeatSpecifics({"day" : 1, "week" : 0, "month" : 0, "year" : 0, "weekdays" : []});
+                break;
+            case "Every Week":
+                setRepeat(true);
+                setRepeatSpecifics({"day" : 0, "week" : 1, "month" : 0, "year" : 0, "weekdays" : []});
+                break;
+            case "Every Month":
+                setRepeat(true);
+                setRepeatSpecifics({"day" : 0, "week" : 0, "month" : 1, "year" : 0, "weekdays" : []});
+                break;
+            case "Every Year":
+                setRepeat(true);
+                setRepeatSpecifics({"day" : 0, "week" : 0, "month" : 0, "year" : 1, "weekdays" : []});
+                break;
+        }
+    }
+
+    const ref = useRef();
+
+    useEffect(() => {
+        const HeaderDropdownMenuClicked = (e) => {
+            if(isAddEventPopUpRepeatVisible === "visibility-visible" && ref.current && !ref.current.contains(e.target)) {
+                setIsAddEventPopUpRepeatVisible("visibility-hidden");
+            }
+        }
+
+        document.addEventListener("mouseup", HeaderDropdownMenuClicked);
+
+        return () => {
+            document.removeEventListener("mouseup", HeaderDropdownMenuClicked);
+        }
+    }, [isAddEventPopUpRepeatVisible]);
+
+    const handleOpenRepeatRelector = () => {
+        setIsAddEventPopUpRepeatVisible("visibility-visible");
+    }
+
+    return(
+        <div className='add-event-popup-repeat'>
+            <div className='add-event-popup-repeat-main-container'>
+                <div className='add-event-popup-repeat-title'>Repeat...</div>
+                <div className='add-event-popup-repeat-main' onClick={() => handleOpenRepeatRelector()}>
+                    <div className='add-event-popup-repeat-main-name'>{repeatTitle}</div>
+                    <svg className="add-event-popup-repeat-main-down-arrow" xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M201.4 342.6c12.5 12.5 32.8 12.5 45.3 0l160-160c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 274.7 86.6 137.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l160 160z"/></svg>
+                </div>
+            </div>
+            <div className={'add-event-popup-repeat-selector ' + isAddEventPopUpRepeatVisible} ref={ref}>
+                <div className='add-event-popup-repeat-selector-option' onClick={() => handleRepeatSelectorOnClick("None")}>None</div>
+                <div className='add-event-popup-repeat-selector-option' onClick={() => handleRepeatSelectorOnClick("Every Day")}>Every Day</div>
+                <div className='add-event-popup-repeat-selector-option' onClick={() => handleRepeatSelectorOnClick("Every Week")}>Every Week</div>
+                <div className='add-event-popup-repeat-selector-option' onClick={() => handleRepeatSelectorOnClick("Every Month")}>Every Month</div>
+                <div className='add-event-popup-repeat-selector-option' onClick={() => handleRepeatSelectorOnClick("Every Year")}>Every Year</div>
+                <div className='add-event-popup-repeat-selector-option'>Custom</div>
+            </div>
+            <div className='add-event-popup-repeat-advanced-settings'>
+                <svg className='add-event-popup-repeat-advanced-settings-icon' xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 640 512"><path d="M308.5 135.3c7.1-6.3 9.9-16.2 6.2-25c-2.3-5.3-4.8-10.5-7.6-15.5L304 89.4c-3-5-6.3-9.9-9.8-14.6c-5.7-7.6-15.7-10.1-24.7-7.1l-28.2 9.3c-10.7-8.8-23-16-36.2-20.9L199 27.1c-1.9-9.3-9.1-16.7-18.5-17.8C173.9 8.4 167.2 8 160.4 8h-.7c-6.8 0-13.5 .4-20.1 1.2c-9.4 1.1-16.6 8.6-18.5 17.8L115 56.1c-13.3 5-25.5 12.1-36.2 20.9L50.5 67.8c-9-3-19-.5-24.7 7.1c-3.5 4.7-6.8 9.6-9.9 14.6l-3 5.3c-2.8 5-5.3 10.2-7.6 15.6c-3.7 8.7-.9 18.6 6.2 25l22.2 19.8C32.6 161.9 32 168.9 32 176s.6 14.1 1.7 20.9L11.5 216.7c-7.1 6.3-9.9 16.2-6.2 25c2.3 5.3 4.8 10.5 7.6 15.6l3 5.2c3 5.1 6.3 9.9 9.9 14.6c5.7 7.6 15.7 10.1 24.7 7.1l28.2-9.3c10.7 8.8 23 16 36.2 20.9l6.1 29.1c1.9 9.3 9.1 16.7 18.5 17.8c6.7 .8 13.5 1.2 20.4 1.2s13.7-.4 20.4-1.2c9.4-1.1 16.6-8.6 18.5-17.8l6.1-29.1c13.3-5 25.5-12.1 36.2-20.9l28.2 9.3c9 3 19 .5 24.7-7.1c3.5-4.7 6.8-9.5 9.8-14.6l3.1-5.4c2.8-5 5.3-10.2 7.6-15.5c3.7-8.7 .9-18.6-6.2-25l-22.2-19.8c1.1-6.8 1.7-13.8 1.7-20.9s-.6-14.1-1.7-20.9l22.2-19.8zM112 176a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zM504.7 500.5c6.3 7.1 16.2 9.9 25 6.2c5.3-2.3 10.5-4.8 15.5-7.6l5.4-3.1c5-3 9.9-6.3 14.6-9.8c7.6-5.7 10.1-15.7 7.1-24.7l-9.3-28.2c8.8-10.7 16-23 20.9-36.2l29.1-6.1c9.3-1.9 16.7-9.1 17.8-18.5c.8-6.7 1.2-13.5 1.2-20.4s-.4-13.7-1.2-20.4c-1.1-9.4-8.6-16.6-17.8-18.5L583.9 307c-5-13.3-12.1-25.5-20.9-36.2l9.3-28.2c3-9 .5-19-7.1-24.7c-4.7-3.5-9.6-6.8-14.6-9.9l-5.3-3c-5-2.8-10.2-5.3-15.6-7.6c-8.7-3.7-18.6-.9-25 6.2l-19.8 22.2c-6.8-1.1-13.8-1.7-20.9-1.7s-14.1 .6-20.9 1.7l-19.8-22.2c-6.3-7.1-16.2-9.9-25-6.2c-5.3 2.3-10.5 4.8-15.6 7.6l-5.2 3c-5.1 3-9.9 6.3-14.6 9.9c-7.6 5.7-10.1 15.7-7.1 24.7l9.3 28.2c-8.8 10.7-16 23-20.9 36.2L315.1 313c-9.3 1.9-16.7 9.1-17.8 18.5c-.8 6.7-1.2 13.5-1.2 20.4s.4 13.7 1.2 20.4c1.1 9.4 8.6 16.6 17.8 18.5l29.1 6.1c5 13.3 12.1 25.5 20.9 36.2l-9.3 28.2c-3 9-.5 19 7.1 24.7c4.7 3.5 9.5 6.8 14.6 9.8l5.4 3.1c5 2.8 10.2 5.3 15.5 7.6c8.7 3.7 18.6 .9 25-6.2l19.8-22.2c6.8 1.1 13.8 1.7 20.9 1.7s14.1-.6 20.9-1.7l19.8 22.2zM464 304a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>
+                <div className='add-event-popup-repeat-advanced-settings-text'>Advanced</div>
+            </div>
+            <AddEventPopUpRepeatAdvanced repeat={repeat} setRepeat={setRepeat} repeatEnding={repeatEnding} setRepeatEnding={setRepeatEnding} repeatSpecifics={repeatSpecifics} setRepeatSpecifics={setRepeatSpecifics}/>
+        </div>
+    )
+}
+
 function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEvents}) {
 
     const getTimeIn15MinuteIntervals = (hour, minute, wantedFunction) => {
@@ -390,6 +548,11 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
     const [originalColor, setOriginalColor] = [currentCalendarDate.originalColor, buildFunction("originalColor")];
     const [isAllDay, setIsAllDay] = [currentCalendarDate.isAllDay, buildFunction("isAllDay")];
     const [tempTime, setTempTime] = useState({"time1" : "", "time2" : ""});
+    const [repeat, setRepeat] = [currentCalendarDate.repeat, buildFunction("repeat")];
+    const [repeatSpecifics, setRepeatSpecifics] = [currentCalendarDate.repeatSpecifics, buildFunction("repeatSpecifics")];
+    const [repeatEnding, setRepeatEnding] = [currentCalendarDate.repeatEnding, buildFunction("repeatEnding")];
+    const [repeatExceptions, setRepeatExceptions] = [currentCalendarDate.repeatExceptions, buildFunction("repeatExceptions")];
+    const[isAddEventPopUpRepeatVisible, setIsAddEventPopUpRepeatVisible] = useState("visibility-hidden");
 
     const resetAll = () => {
         setCurDateOne({"year": currentDateOne.getFullYear(), "month": currentDateOne.getMonth(), "day": currentDateOne.getDate()});
@@ -569,7 +732,7 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
     const handleClickEventExit = () => {
         setIsThisVisible("visibility-hidden")
         let effectedClass = document.querySelector('.add-event-popup');
-        effectedClass.style.top = "calc((100% - 585px) / 2)";
+        effectedClass.style.top = "calc((100% - 645px) / 2)";
         effectedClass.style.left = "calc((100% - 430px) / 2)";
         dispatch(setEditing(false));
         resetAll();
@@ -618,6 +781,10 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
             finalObj["previousTime"] = previousTime;
             finalObj["isAllDay"] = isAllDay;
             finalObj["curTimeDisabled"] = curTimeDisabled;
+            finalObj["repeat"] = repeat;
+            finalObj["repeatSpecifics"] = repeatSpecifics;
+            finalObj["repeatEnding"] = repeatEnding;
+            finalObj["repeatExceptions"] = repeatExceptions;
 
             if(currentCalendarDate.functionWanted === "edit-delete") {
                 dispatch(changeEvent({"index" : currentCalendarDate.editingIndex, "value" : finalObj}));
@@ -626,8 +793,6 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
             } else if(currentCalendarDate.functionWanted === "edit") {
                 dispatch(changeEvent({"index" : currentCalendarDate.editingIndex, "value" : finalObj}));
                 dispatch(changeSingleCalendarEvent({"key" : "functionWanted", "value" : "add"}));
-                console.log(originalColor)
-                console.log(currentCalendarDate.selectedColor)
                 if(currentCalendarDate.selectedColor !== originalColor) {
                     dispatch(removeTotalColor(originalColor));
                     dispatch(addTotalColorNumber(currentCalendarDate.selectedColor));
@@ -753,21 +918,22 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
                 </div>
                 <div className='add-event-popup-time-to'>to</div>
                 <div className='add-event-popup-time-sub'>
-                <div className='add-event-popup-time-sub2-ref' ref={ref2}>
-                    <input type="text" className={'add-event-popup-time-date ' + wrongInputs.date2} placeholder='Enter date here' name="add-event-popup-time-date-1" value={dateTwoInput} onChange={handleSetCurDateTwo} onFocus={() => setFocusCalendarVisibleTwo("visibility-visible")} autoComplete="off"></input>
-                    <AddEventPopupCalendar currentDate={curDateTwo} setCurrentDate={setCurDateTwo} setDateInput={setDateTwoInput} focusCalendarVisible={focusCalendarVisibleTwo}/>
-                </div>
+                    <div className='add-event-popup-time-sub2-ref' ref={ref2}>
+                        <input type="text" className={'add-event-popup-time-date ' + wrongInputs.date2} placeholder='Enter date here' name="add-event-popup-time-date-1" value={dateTwoInput} onChange={handleSetCurDateTwo} onFocus={() => setFocusCalendarVisibleTwo("visibility-visible")} autoComplete="off"></input>
+                        <AddEventPopupCalendar currentDate={curDateTwo} setCurrentDate={setCurDateTwo} setDateInput={setDateTwoInput} focusCalendarVisible={focusCalendarVisibleTwo}/>
+                    </div>
                     <div>at</div>
                     <div className='add-event-popup-time-sub4-ref' ref={ref4}>
                         <input type="text" className={'add-event-popup-time-time ' + curTimeDisabled.two + " " + wrongInputs.time2} name="add-event-popup-time-time" value={curTimeTwo} onChange={(e) => setCurTimeTwo(e.target.value)} onFocus={() => setFocusTimeVisibleTwo("visibility-visible")} autoComplete="off"></input>
                         <AddEventPopUpTime previousTime={curDateOne.year === curDateTwo.year && curDateOne.month === curDateTwo.month && curDateOne.day === curDateTwo.day ? previousTime : {hour: 0, minute: 0}} setCurTime={setCurTimeTwo} isVisible={focusTimeVisibleTwo} curTime={curTimeTwo}/>
                     </div>
                     <div className='add-event-popup-all-day-selection' >
-                    <input type="checkbox" className='add-event-popup-all-day-selection-checkbox' name="add-event-popup-all-day-selection-1" checked={isAllDay.two} onChange={(e) => handleAllDayChangeTwo(e)}></input>
+                        <input type="checkbox" className='add-event-popup-all-day-selection-checkbox' name="add-event-popup-all-day-selection-1" checked={isAllDay.two} onChange={(e) => handleAllDayChangeTwo(e)}></input>
                         <div className='add-event-popup-all-day-selection-text'>All Day</div>
                     </div>
                 </div>
             </div>
+            <AddEventPopUpRepeat repeat={repeat} setRepeat={setRepeat} repeatEnding={repeatEnding} setRepeatEnding={setRepeatEnding} repeatSpecifics={repeatSpecifics} setRepeatSpecifics={setRepeatSpecifics} isAddEventPopUpRepeatVisible={isAddEventPopUpRepeatVisible} setIsAddEventPopUpRepeatVisible={setIsAddEventPopUpRepeatVisible}/>
             <div className='add-event-popup-description-container'>
                 <div className='add-event-popup-description-menu'>
                     <div className='add-event-popup-description-menu-line add-event-popup-description-menu-line-1'></div>

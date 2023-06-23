@@ -66,7 +66,10 @@ export const calendarEventSlice = createSlice({
         "editingIndex" : -1,
         "originalColor": "#9fc0f5",
         "isAllDay" : {"one" : false, "two": false},
-        "repeat" : "none",
+        "repeat" : false,
+        "repeatSpecifics" : {"day" : 0, "week" : 0, "month" : 0, "year" : 0, "weekdays" : []},
+        "repeatEnding" : {"never" : false, "onDay" : null, "afterIterations" : null},
+        "repeatExceptions" : {},
         },
     },
     reducers: {
