@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from 'react-redux';
-import { changeDate } from './dateSlice';
+import { changeDate, changeDateSpecifics } from './redux_slices/dateSlice';
 
 function HeaderToggleSideMenu() {
     return(
@@ -22,7 +22,7 @@ function HeaderCalendar() {
     );
 }
 
-function HeaderDropdownMenu() {
+function HeaderDropdownMenu(props) {
 
     const [visible, setVisible] = useState(["hidden", 0]);
 
@@ -42,18 +42,22 @@ function HeaderDropdownMenu() {
         }
     }, [visible]);
 
+    const changeDateSpecificsOnClick = (value) => {
+        props.dispatch(changeDateSpecifics(value));
+    }
+
     return(
         <div className='header-dropdown-container' ref={ref}>
             <div className='dropdown-main' onClick={() => visible[0] === "visible" ? setVisible(["hidden", 0]) : setVisible(["visible", 1])}>
-                <span>Month</span>
+                <span>{props.currentDate.specifics[0].toUpperCase() + props.currentDate.specifics.substring(1)}</span>
                 <svg className="dropdown-main-down-arrow" xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M201.4 342.6c12.5 12.5 32.8 12.5 45.3 0l160-160c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 274.7 86.6 137.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l160 160z"/></svg>
             </div>
             <div className='header-dropdown-select' style={{"visibility": visible[0], "opacity": visible[1]}}>
-                <div className='header-dropdown-select-options'>Day</div>
-                <div className='header-dropdown-select-options'>Week</div>
-                <div className='header-dropdown-select-options'>Month</div>
-                <div className='header-dropdown-select-options'>Year</div>
-                <div className='header-dropdown-select-options'>Schedule</div>
+                <div className='header-dropdown-select-options' onClick={() => changeDateSpecificsOnClick("day")}>Day</div>
+                <div className='header-dropdown-select-options' onClick={() => changeDateSpecificsOnClick("week")}>Week</div>
+                <div className='header-dropdown-select-options' onClick={() => changeDateSpecificsOnClick("month")}>Month</div>
+                <div className='header-dropdown-select-options' onClick={() => changeDateSpecificsOnClick("year")}>Year</div>
+                <div className='header-dropdown-select-options' onClick={() => changeDateSpecificsOnClick("schedule")}>Schedule</div>
             </div>
         </div>
     );
@@ -121,6 +125,7 @@ function HeaderDescription({currentDate, dispatch}) {
     }
 
     const changeCalendarDatePlus = () => {
+        let curDay = new Date(currentDate.year, currentDate.month, currentDate.day);
         switch(currentDate.specifics) {
             case "month":
                 return changeDateEnablerPlus();
@@ -132,12 +137,14 @@ function HeaderDescription({currentDate, dispatch}) {
 
                 break;
             case "day":
-
+                curDay.setDate(curDay.getDate() + 1);
+                return {year: curDay.getFullYear(), month: curDay.getMonth(), day: curDay.getDate()};
                 break;
         }
     }
 
     const changeCalendarDateMinus = () => {
+        let curDay = new Date(currentDate.year, currentDate.month, currentDate.day);
         switch(currentDate.specifics) {
             case "month":
                 return changeDateEnablerMinus();
@@ -149,7 +156,8 @@ function HeaderDescription({currentDate, dispatch}) {
 
                 break;
             case "day":
-
+                curDay.setDate(curDay.getDate() - 1);
+                return {year: curDay.getFullYear(), month: curDay.getMonth(), day: curDay.getDate()};
                 break;
         }
     }
@@ -175,7 +183,7 @@ function Header() {
             <HeaderToggleSideMenu />
             <HeaderCalendar />
             <HeaderDescription currentDate={currentDate} dispatch={dispatch}/>
-            <HeaderDropdownMenu />
+            <HeaderDropdownMenu currentDate={currentDate} dispatch={dispatch}/>
             <HeaderSignIn />
         </div>
     );

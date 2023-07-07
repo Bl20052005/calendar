@@ -16,9 +16,13 @@ export const dateSlice = createSlice({
             state.month = action.payload.month;
             state.day = action.payload.day;
         },
+
+        changeDateSpecifics: (state, action) => {
+            state.specifics = action.payload;
+        }
     }
 })
 
-export const { changeDate, setNumberOfWeeks } = dateSlice.actions;
+export const { changeDate, changeDateSpecifics } = dateSlice.actions;
 
 export default dateSlice.reducer;
