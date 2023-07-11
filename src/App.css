@@ -46,6 +46,7 @@ body {
     justify-content: space-around;
     align-items: center;
     margin-left: 20px;
+    cursor: pointer;
 }
 
 .header-calendar-container {
@@ -59,11 +60,23 @@ body {
     padding-right: 35px;
 }
 
+.header-today {
+    font-size: 20px;
+    background-color: var(--clickable-background-color);
+    padding: 10px;
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+.header-today:hover {
+    background-color: var(--clickable-hover-background-color);
+}
+
 .header-dropdown-container {
     position: relative;
     width: 120px;
     font-size: 20px;
-    z-index: 2;
+    z-index: 4;
 }
 
 .dropdown-main {
@@ -188,15 +201,26 @@ body {
     align-items: center;
     gap: 15px;
     padding-bottom: 10px;
+    transition: transform 0.5s ease-in-out;
+    overflow-x: hidden;
 }
 
-.add-event-container {
-    margin-top: 20px;
-    height: 50px;
+.calendar-menu-spacer {
     width: 100%;
+    height: 75px;
+    min-height: 75px;
+}
+
+.calendar-menu-scroll {
+    overflow: auto;
+    height: 100%;
+    width: 100%;
+    border-right: 1px solid var(--division-color);
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    gap: 15px;
+    overflow-x: hidden;
 }
 
 .add-event {
@@ -209,14 +233,20 @@ body {
     height: 40px;
     font-size: 25px;
     background-color: var(--clickable-background-color);
-    transition: background-color 0.5s;
+    transition: background-color 0.5s, border-radius 0.5s, width 0.5s, left 0.5s ease-in-out, top 0.5s ease-in-out;
     border-radius: 25px;
     cursor: pointer;
+    overflow: hidden;
+    position: fixed;
+    top: 95px;
+    left: 70px;
+    z-index: 3;
 }
 
 .calendar-menu-divider-line {
     width: 100%;
     height: 1px;
+    min-height: 1px;
     background-color: var(--division-color);
 }
 
@@ -251,15 +281,15 @@ body {
     justify-content: flex-start;
 }
 
-.today-events::-webkit-scrollbar, .color-chooser-main::-webkit-scrollbar, .calendar-menu::-webkit-scrollbar, .popup-preview-event-description::-webkit-scrollbar, .popup-view-all-events-container::-webkit-scrollbar {
+.today-events::-webkit-scrollbar, .color-chooser-main::-webkit-scrollbar, .calendar-menu-scroll::-webkit-scrollbar, .popup-preview-event-description::-webkit-scrollbar, .popup-view-all-events-container::-webkit-scrollbar {
     width: 5px;
 }
 
-.today-events::-webkit-scrollbar-track, .color-chooser-main::-webkit-scrollbar-track, .calendar-menu::-webkit-scrollbar-track, .popup-preview-event-description::-webkit-scrollbar-track, .popup-view-all-events-container::-webkit-scrollbar-track {
+.today-events::-webkit-scrollbar-track, .color-chooser-main::-webkit-scrollbar-track, .calendar-menu-scroll::-webkit-scrollbar-track, .popup-preview-event-description::-webkit-scrollbar-track, .popup-view-all-events-container::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.today-events::-webkit-scrollbar-thumb, .color-chooser-main::-webkit-scrollbar-thumb, .calendar-menu::-webkit-scrollbar-thumb, .popup-preview-event-description::-webkit-scrollbar-thumb, .popup-view-all-events-container::-webkit-scrollbar-thumb {
+.today-events::-webkit-scrollbar-thumb, .color-chooser-main::-webkit-scrollbar-thumb, .calendar-menu-scroll::-webkit-scrollbar-thumb, .popup-preview-event-description::-webkit-scrollbar-thumb, .popup-view-all-events-container::-webkit-scrollbar-thumb {
     background: var(--clickable-hover-background-color);
     border-radius: 4px;
 }
@@ -421,7 +451,7 @@ body {
     position: fixed;
     width: 400px;
     height: 600px;
-    z-index: 3;
+    z-index: 5;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -519,7 +549,7 @@ body {
     border: 1px solid var(--division-color);
     top: 78px;
     left: 15%;
-    z-index: 3;
+    z-index: 4;
     width: 100px;
     display: flex;
     flex-direction: column;
@@ -993,6 +1023,7 @@ body {
     position: absolute;
     top: 71px;
     left: 281px;
+    transition: left 0.5s ease-in-out, width 0.5s ease-in-out;
 }
 
 
@@ -1241,7 +1272,7 @@ body {
     min-width: 200px;
     max-width: 350px;
     max-height: 200px;
-    z-index: 2;
+    z-index: 3;
 }
 
 .popup-preview-icons:hover {

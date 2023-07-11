@@ -178,7 +178,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
             let returnedObj = Object.assign(objNow, event)
             return returnedObj;
         }).filter((event) => {
-            return !(new Date(event.startDate).getTime() !== new Date(event.endDate).getTime()) && event.repeat
+            return !(new Date(event.startDate).getTime() !== new Date(event.endDate).getTime()) && event.repeat && currentUnwantedColors.indexOf(event.color) === -1;
         }).map((event) => {
             return createEventsRepeated(event, new Date(monthNow + 1 + " " + dayNow + " " + yearNow).getTime(), new Date(monthNow + 1 + " " + dayNow + " " + yearNow).getTime());
         }).flat().map((event) => {

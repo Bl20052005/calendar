@@ -6,6 +6,7 @@ export const moveEventSlice = createSlice({
         index: -1,
         isMoving: false,
         hasBeenMoving: false,
+        initialTime: ""
     },
     reducers: {
         changeIndex : (state, action) => {
@@ -19,9 +20,13 @@ export const moveEventSlice = createSlice({
         changeHasBeenMoving : (state, action) => {
             state.hasBeenMoving = action.payload;
         },
+
+        setInitialTime : (state, action) => {
+            state.initialTime = action.payload;
+        }
     }
 })
 
-export const { changeIndex, changeisMoving, changeHasBeenMoving } = moveEventSlice.actions;
+export const { changeIndex, changeisMoving, changeHasBeenMoving, setInitialTime } = moveEventSlice.actions;
 
 export default moveEventSlice.reducer;

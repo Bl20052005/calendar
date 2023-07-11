@@ -1,0 +1,130 @@
+.calendar-body-week-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    user-select: none;
+}
+
+.calendar-body-week {
+    position: relative;
+    width: 95%;
+    height: 95%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.calendar-body-week-sub {
+    position: relative;
+    width: calc((100% - 46px) / 7);
+    height: 100%;
+}
+
+.calendar-body-week-sub-0 {
+    margin-left: 40px;
+}
+
+.calendar-body-week-label-line-vertical {
+    position: absolute;
+    top: 0px;
+    left: -0.5px;
+    height: 100%;
+    width: 1px;
+    background-color: var(--division-color);
+}
+
+.calendar-body-week-label-line-vertical-0 {
+    display: none;
+}
+
+.calendar-body-week-main-container {
+    height: calc(100% - 125px);
+    width: 100%;
+    overflow: auto;
+}
+
+.calendar-body-week-main {
+    position: absolute;
+    display: grid;
+    grid-template-columns: 40px repeat(7, 1fr);
+    top: calc(75px);
+    left: 0%;
+    width: calc(100%);
+    height: calc(100% - 125px);
+    padding: 0;
+    overflow: auto;
+    scrollbar-width: thin;
+}
+
+.calendar-body-week-day-labels-0 {
+    grid-column: 2 / 3;
+}
+
+.calendar-body-week-main::-webkit-scrollbar {
+    width: 6px;
+}
+
+.calendar-body-week-main::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.calendar-body-week-main::-webkit-scrollbar-thumb {
+    background: var(--clickable-hover-background-color);
+    border-radius: 4px;
+}
+
+.calendar-body-week-time {
+    position: absolute;
+    width: 100%;
+}
+
+.calendar-body-week-time-label {
+    display: flex;
+    gap: 5px;
+    width: 100%;
+    height: 50px;
+    font-size: 13px;
+}
+
+.calendar-body-events, .calendar-body-day-label-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.calendar-body-day-label-container {
+    width: 100%;
+}
+
+.calendar-body-week-day-labels {
+    width: 100%;
+    height: 100%;
+}
+
+.calendar-body-week-label {
+    width: 100%;
+    height: 50px;
+    display: flex;
+    z-index: 1;
+}
+
+.calendar-body-week-day-labels {
+    position: relative;
+}
+
+.calendar-body-week-events-container {
+    position: relative;
+    height: 1200px;
+}
+
+.calendar-body-week-label-red-line-container {
+    position: absolute;
+    width: calc(100% + 5px);
+    left: -6px;
+    z-index: 3;
+    pointer-events: none;
+}

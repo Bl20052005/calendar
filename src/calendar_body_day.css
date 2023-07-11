@@ -49,11 +49,49 @@
     overflow-y: auto;
 }
 
+.calendar-body-day-main-container::-webkit-scrollbar, .calendar-body-day-all-day-events-container::-webkit-scrollbar {
+    width: 5px;
+}
+
+.calendar-body-day-main-container::-webkit-scrollbar-track, .calendar-body-day-all-day-events-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.calendar-body-day-main-container::-webkit-scrollbar-thumb, .calendar-body-day-all-day-events-container::-webkit-scrollbar-thumb {
+    background: var(--clickable-hover-background-color);
+    border-radius: 4px;
+}
+
 .calendar-body-day-label-container {
     width: 100%;
     font-size: 13px;
     display: flex;
     flex-direction: column;
+    position: relative;
+}
+
+.calendar-body-label-red-line-container {
+    position: absolute;
+    width: 100%;
+    left: 37px;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.calendar-body-label-red-line-dot {
+    border-radius: 50px;
+    background-color: rgb(223, 26, 0);
+    width: 13px;
+    height: 13px;
+}
+
+.calendar-body-label-red-line {
+    background-color: rgb(223, 26, 0);
+    width: 100%;
+    height: 2px;
+    position: absolute;
+    top: 5px;
+    box-shadow: 1px 1px 1px rgb(223, 26, 0);
 }
 
 .calendar-body-day-label-line-vertical {
@@ -100,12 +138,21 @@
 }
 
 .calendar-body-events {
+    position: relative;
     width: 100%;
     height: 100%;
 }
 
 .calendar-body-event-container {
     position: absolute;
+    border: 1px solid white;
+    border-radius: 10px;
+    display: flex;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.calendar-body-all-day-event-container {
     border: 1px solid white;
     border-radius: 10px;
     display: flex;
@@ -120,11 +167,23 @@
     white-space: nowrap;
 }
 
+.calendar-body-all-day-event-description {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    font-size: 13.5px;
+    margin-left: 5px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
 .calendar-body-event-time, .calendar-body-event-title {
     pointer-events: none;
 }
 
 .calendar-body-day-all-day-events-container {
+    margin-top: 2px;
     width: 100%;
     height: 50px;
+    overflow: auto;
 }

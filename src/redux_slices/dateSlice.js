@@ -19,10 +19,10 @@ export const dateSlice = createSlice({
 
         changeDateSpecifics: (state, action) => {
             state.specifics = action.payload;
-        }
+        },
     }
 })
 
-export const { changeDate, changeDateSpecifics } = dateSlice.actions;
+export const { changeDate, changeDateSpecifics, setRedLine } = dateSlice.actions;
 
 export default dateSlice.reducer;

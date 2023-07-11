@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useEffect, useRef } from "react";
 import { addEvent, removeEvent, changeEvent } from './redux_slices/eventSlice';
 import { useSelector, useDispatch } from 'react-redux';
-import { changeDate } from './redux_slices/dateSlice';
+import { changeDate, changeDateSpecifics } from './redux_slices/dateSlice';
 import { addUndesiredColor, removeUndesiredColor, addTotalColorNumber, addTotalColor, removeTotalColor, changeTotalColorLabel, changeTotalColorIsLocked } from './redux_slices/colorSlice';
 import { changeSingleCalendarEvent, changeCalendarEvent } from './redux_slices/calendarEventSlice';
 import { setEditing } from './redux_slices/currentAddition';
@@ -203,6 +203,7 @@ function BaseCalendar({currentDate, dispatch}) {
                            
                             const handleOnClick = () => {
                                 dispatch(changeDate({"month" : value[0], "day" : value[1], "year": value[3]}));
+                                dispatch(changeDateSpecifics("day"))
                             }
                             return <div onClick={() => handleOnClick()} className={"base-calendar-day " + value[2]} key={"base-calendar-day-" + index}>{value[1]}</div>
                         })}
@@ -1096,14 +1097,13 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
 
 function AddEvent({dispatch}) {
     return(
-        <div className='add-event-container'>
-            <div className='add-event' onClick={() => dispatch(changeSingleCalendarEvent({"key" : "isThisVisible", "value" : "visibility-visible"}))}>
-                <div className='add-event-add-sign'>
-                    <svg xmlns="http://www.w3.org/2000/svg" height="25px" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
-                </div>
-                <div className='add-event-text'>Event</div>
+        <div className='add-event' onClick={() => dispatch(changeSingleCalendarEvent({"key" : "isThisVisible", "value" : "visibility-visible"}))}>
+            <div className='add-event-add-sign'>
+                <svg xmlns="http://www.w3.org/2000/svg" height="25px" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
             </div>
+            <div className='add-event-text'>Event</div>
         </div>
+
     )
 }
 
@@ -1276,16 +1276,22 @@ function Menu() {
     const currentCalendarDate = useSelector((state) => state.calendarEvent.events);
     const dispatch = useDispatch();
     return(
-        <div className="calendar-menu">
+        <React.Fragment>
             <AddEvent dispatch={dispatch}/>
             <AddEventPopUp dispatch={dispatch} currentColors={currentColors} currentCalendarDate={currentCalendarDate} currentEvents={currentEvents}/>
-            <div className='calendar-menu-divider-line'></div>
-            <BaseCalendar currentDate={currentDate} dispatch={dispatch}/>
-            <div className='calendar-menu-divider-line'></div>
-            <TodayEvents currentEvents={currentEvents} curentUnwantedColors={curentUnwantedColors}/>
-            <div className='calendar-menu-divider-line'></div>
-            <ColorChooser curentUnwantedColors={curentUnwantedColors} dispatch={dispatch} currentColors={currentColors} currentColorLabels={currentColorLabels} currentColorIsLocked={currentColorIsLocked}/>
-        </div>
+            <div className="calendar-menu">
+                <div className='calendar-menu-spacer'></div>
+                <div className='calendar-menu-divider-line'></div>
+                <div className="calendar-menu-scroll">
+                    <BaseCalendar currentDate={currentDate} dispatch={dispatch}/>
+                    <div className='calendar-menu-divider-line'></div>
+                    <TodayEvents currentEvents={currentEvents} curentUnwantedColors={curentUnwantedColors}/>
+                    <div className='calendar-menu-divider-line'></div>
+                    <ColorChooser curentUnwantedColors={curentUnwantedColors} dispatch={dispatch} currentColors={currentColors} currentColorLabels={currentColorLabels} currentColorIsLocked={currentColorIsLocked}/>
+                </div>  
+            </div>
+        </React.Fragment>
+
     )
 }
 

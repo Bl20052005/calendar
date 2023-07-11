@@ -3,9 +3,32 @@ import { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 import { changeDate, changeDateSpecifics } from './redux_slices/dateSlice';
 
-function HeaderToggleSideMenu() {
+function HeaderToggleSideMenu({menuHidden, setMenuHidden}) {
+    const handleHeaderMenuOnClick = () => {
+        let menu = document.querySelector('.calendar-menu');
+        let body = document.querySelector('.calendar-body-container');
+        let addEvent = document.querySelector('.add-event');
+        let addEventText = document.querySelector('.add-event-text');
+        if(!menuHidden) {
+            menu.style.transform = "translateX(-100%)";
+            body.style.left = "0px";
+            body.style.width = "100%";
+            addEvent.style.left = "10px";
+            addEvent.style.top = "80px";
+            addEvent.style.width = "40px";
+            addEventText.style.display = "none";
+            setMenuHidden(true);
+        } else {
+            menu.style.transform = "";
+            body.style = "";
+            addEvent.style = "";
+            addEventText.style = "";
+            setMenuHidden(false);
+        }
+
+    }
     return(
-        <div className='toggle-header-menu-container'>
+        <div className='toggle-header-menu-container' onClick={() => handleHeaderMenuOnClick()}>
             <div className='toggle-header-menu-line'></div>
             <div className='toggle-header-menu-line'></div>
             <div className='toggle-header-menu-line'></div>
@@ -35,10 +58,10 @@ function HeaderDropdownMenu(props) {
             }
         }
 
-        document.addEventListener("mousedown", HeaderDropdownMenuClicked);
+        document.addEventListener("click", HeaderDropdownMenuClicked);
 
         return () => {
-            document.removeEventListener("mousedown", HeaderDropdownMenuClicked);
+            document.removeEventListener("click", HeaderDropdownMenuClicked);
         }
     }, [visible]);
 
@@ -47,8 +70,8 @@ function HeaderDropdownMenu(props) {
     }
 
     return(
-        <div className='header-dropdown-container' ref={ref}>
-            <div className='dropdown-main' onClick={() => visible[0] === "visible" ? setVisible(["hidden", 0]) : setVisible(["visible", 1])}>
+        <div className='header-dropdown-container'>
+            <div className='dropdown-main' onClick={() => visible[0] === "visible" ? setVisible(["hidden", 0]) : setVisible(["visible", 1])} ref={ref}>
                 <span>{props.currentDate.specifics[0].toUpperCase() + props.currentDate.specifics.substring(1)}</span>
                 <svg className="dropdown-main-down-arrow" xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M201.4 342.6c12.5 12.5 32.8 12.5 45.3 0l160-160c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 274.7 86.6 137.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l160 160z"/></svg>
             </div>
@@ -85,10 +108,20 @@ function HeaderDescription({currentDate, dispatch}) {
             display = currentDate.year;
             break;
         case "week":
-            display = convertMonths[currentDate.month] + ", " + currentDate.year;
+            let curDay = new Date(currentDate.year, currentDate.month, currentDate.day);
+            let dayOne = new Date(curDay.getFullYear(), curDay.getMonth(), curDay.getDate() - curDay.getDay());
+            let dayTwo = new Date(curDay.getFullYear(), curDay.getMonth(), curDay.getDate() + 6 - curDay.getDay());
+            if(dayOne.getFullYear() !== dayTwo.getFullYear()) {
+                display = convertMonths[dayOne.getMonth()].substring(0, 3) + " " + dayOne.getDate() + ", " + (dayOne.getFullYear() % 100) + " - " + convertMonths[dayTwo.getMonth()].substring(0, 3) + " " + dayTwo.getDate() + ", " + (dayTwo.getFullYear() % 100);
+            } else if(dayOne.getMonth() !== dayTwo.getMonth()) {
+                display = convertMonths[dayOne.getMonth()].substring(0, 3) + " " + dayOne.getDate() + " - " + convertMonths[dayTwo.getMonth()].substring(0, 3) + " " + dayTwo.getDate() + ", " + dayTwo.getFullYear();
+            } else {
+                display = convertMonths[dayOne.getMonth()].substring(0, 3) + " " + dayOne.getDate() + " - " + dayTwo.getDate() + ", " + dayTwo.getFullYear();
+            }
             break;
         case "day":
             display = convertMonths[currentDate.month] + " " + currentDate.day + ", " + currentDate.year;
+            break;
     }
 
     const changeDateEnablerMinus = () => {
@@ -131,10 +164,11 @@ function HeaderDescription({currentDate, dispatch}) {
                 return changeDateEnablerPlus();
                 break;
             case "year":
-
+                return {year: currentDate.year + 1, month: 0, day: 1};
                 break;
             case "week":
-
+                curDay.setDate(curDay.getDate() + 7);
+                return {year: curDay.getFullYear(), month: curDay.getMonth(), day: curDay.getDate()};
                 break;
             case "day":
                 curDay.setDate(curDay.getDate() + 1);
@@ -150,10 +184,11 @@ function HeaderDescription({currentDate, dispatch}) {
                 return changeDateEnablerMinus();
                 break;
             case "year":
-
+                return {year: currentDate.year - 1, month: 0, day: 1};
                 break;
             case "week":
-
+                curDay.setDate(curDay.getDate() - 7);
+                return {year: curDay.getFullYear(), month: curDay.getMonth(), day: curDay.getDate()};
                 break;
             case "day":
                 curDay.setDate(curDay.getDate() - 1);
@@ -175,13 +210,22 @@ function HeaderDescription({currentDate, dispatch}) {
     );
 }
 
+function HeaderToday({dispatch}) {
+    let curDay = new Date();
+    return(
+        <div className='header-today' onClick={() => dispatch(changeDate({year: curDay.getFullYear(), month: curDay.getMonth(), day: curDay.getDate()}))}>Today</div>
+    )
+}
+
 function Header() {
     const currentDate = useSelector((state) => state.date);
     const dispatch = useDispatch();
+    const [menuHidden, setMenuHidden] = useState(false);
     return(
         <div className="calendar-header">
-            <HeaderToggleSideMenu />
+            <HeaderToggleSideMenu menuHidden={menuHidden} setMenuHidden={setMenuHidden}/>
             <HeaderCalendar />
+            <HeaderToday dispatch={dispatch} />
             <HeaderDescription currentDate={currentDate} dispatch={dispatch}/>
             <HeaderDropdownMenu currentDate={currentDate} dispatch={dispatch}/>
             <HeaderSignIn />

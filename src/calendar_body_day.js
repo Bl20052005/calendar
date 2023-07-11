@@ -3,10 +3,9 @@ import "./calendar_body_day.css";
 import { useState, useEffect, useRef } from "react";
 import { addEvent, removeEvent, changeEvent } from './redux_slices/eventSlice';
 import { useSelector, useDispatch } from 'react-redux';
-import { changeDate } from './redux_slices/dateSlice';
-import { addUndesiredColor, removeUndesiredColor, addTotalColorNumber, addTotalColor, removeTotalColor, changeTotalColorLabel, changeTotalColorIsLocked } from './redux_slices/colorSlice';
 import { changeSingleCalendarEvent, changeCalendarEvent } from './redux_slices/calendarEventSlice';
 import { mouseDown, mouseMove, mouseUp, setEditing } from './redux_slices/currentAddition';
+import { changeIndex, changeisMoving, changeHasBeenMoving, setInitialTime } from './redux_slices/moveEvent';
 import createEventsRepeated from './calendar_body_useful_functions/create_repeating_events';
 import filterEventsStartEnd from './calendar_body_useful_functions/filter_events_start_end';
 import getHourAndMinutes from './calendar_body_useful_functions/get_hours_and_minutes';
@@ -14,6 +13,11 @@ import PopupPreview from './calendar_body_month_components/popup_preview';
 
 const convertWeeks = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const convertMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+//some noticable bugs:
+//stacking calendar dates to the max (ie. 1 hr, 30 min, 15 min) will cause the last few to glitch
+//repeats are not working as intended when dragged
+
 
 function getHourStr(hour) {
     let returnStr = "";
@@ -48,7 +52,7 @@ function getDisplayTime(currentEvents, currentDate, index) {
             returnStr = start + " - " + end;
         }
     } else if(eventStartDate.getTime() < curDay.getTime()) {
-        if(event.isAllDay.one) returnStr = convertMonths[eventStartTime.getMonth()] + " " + eventStartTime.getDate() + " - " + convertMonths[eventEndTime.getMonth()] + " " + eventEndTime.getDate() + getHourAndMinutes(eventEndTime.getHours(), eventEndTime.getMinutes());
+        if(event.isAllDay.one) returnStr = convertMonths[eventStartTime.getMonth()] + " " + eventStartTime.getDate() + " - " + convertMonths[eventEndTime.getMonth()] + " " + eventEndTime.getDate() + " " + getHourAndMinutes(eventEndTime.getHours(), eventEndTime.getMinutes());
         else returnStr = convertMonths[eventStartTime.getMonth()] + " " + eventStartTime.getDate() + ", " + getHourAndMinutes(eventStartTime.getHours(), eventStartTime.getMinutes()) + " - " + convertMonths[eventEndTime.getMonth()] + " " + eventEndTime.getDate() + ", " + getHourAndMinutes(eventEndTime.getHours(), eventEndTime.getMinutes());
     } else if(eventEndDate.getTime() > curDay.getTime()) {
         if(event.isAllDay.two) returnStr = convertMonths[eventStartTime.getMonth()] + " " + eventStartTime.getDate() + " " +  + getHourAndMinutes(eventStartTime.getHours(), eventStartTime.getMinutes()) + " - " + convertMonths[eventEndTime.getMonth()] + " " + eventEndTime.getDate();
@@ -113,8 +117,6 @@ function CalendarBodyEvents(props) {
         return changeLongObjectStartTimes(event);
     });
 
-    //console.log(eventsToday)
-
     let returnEventsLeftArray = [];
     let planeIndex = 0;
     let pushIndex = 0;
@@ -161,8 +163,6 @@ function CalendarBodyEvents(props) {
         let numerator = returnEventsLeftArray[event.start][1];
         let extend = false;
         let numOfTabs = 0;
-        let shrinkFactor = 1;
-        let fractionFactor = 1;
 
         if(index < ReturnedEventsStartEnd.length - 1 && ReturnedEventsStartEnd[index + 1].start < Math.min(event.start + 45, event.end)) {
             if(event.start !== ReturnedEventsStartEnd[index + 1].start) {
@@ -180,69 +180,18 @@ function CalendarBodyEvents(props) {
 
         if(numOfTabs > 19) numOfTabs = 19;
 
-        //console.log(numOfTabs)
-
-        let chain = [0];
-        let longestChain = [];
-        let shrink = [];
-
-        for(let i = 1; i < ReturnedEventsStartEnd.length; i++) {
-            let prevElem = ReturnedEventsStartEnd[i - 1];
-            let curElem = ReturnedEventsStartEnd[i];
-            if(chain.length === 0 || curElem.start < Math.min(prevElem.start + 45, prevElem.end)) {
-                chain.push(i);
-            } else {
-                if(chain.indexOf(index) === -1) {
-                    chain = [];
-                } else {
-                    break;
-                }
-            }
-            // if(curElem.start <= event.end && curElem.end >= event.start) {
-
-            // }
-        }
-
-        for(let i = 1; i < ReturnedEventsStartEnd.length; i++) {
-            let prevElem = ReturnedEventsStartEnd[i - 1];
-            let curElem = ReturnedEventsStartEnd[i];
-            let tempChain = [0];
-            if(tempChain.length === 0 || curElem.start < Math.min(prevElem.start + 45, prevElem.end)) {
-                tempChain.push(i); 
-            } else {
-                for(let j = 1; j < chain.length; j++) {
-                    if(tempChain.indexOf(chain[i]) !== -1) {
-                        if(tempChain.length > longestChain.length) {
-                            longestChain = tempChain;
-                        }
-                    }
-                }
-                tempChain = [];
-            }
-            // if(curElem.start <= event.end && curElem.end >= event.start) {
-
-            // }
-        }
-
-        // console.log("chain " + chain)
-        // console.log(longestChain)
-
         if(index > 0 && event.start < Math.min(ReturnedEventsStartEnd[index - 1].start + 45, ReturnedEventsStartEnd[index - 1].end)) {
             for(let i = ReturnedEventsStartEnd[planeIndex].start; i < event.end; i++) {
                 returnEventsLeftArray[i][0] = returnEventsLeftArray[ReturnedEventsStartEnd[planeIndex].start][0];
                 returnEventsLeftArray[i][1] = index - planeIndex + 1;
             }
             numerator = index - planeIndex;
-            // if(event.start !== ReturnedEventsStartEnd[planeIndex].start) {
-            //     extend = true;
-            // }
             for(let i = planeIndex; i < index; i++) {
                 eventsArray[i]["denominator"] = index - planeIndex + 1;
             }
             eventsArray.push({"index" : index, "numerator" : numerator, "denominator" : index - planeIndex + 1, "tabs" : numOfTabs, "division" : eventsArray[planeIndex].division, "divisionStart" : eventsArray[planeIndex].divisionStart})
         } else if(index > 0 && event.start >= Math.min(ReturnedEventsStartEnd[planeIndex].start + 45, ReturnedEventsStartEnd[planeIndex].end)
         && event.start < ReturnedEventsStartEnd[planeIndex].end) {
-            //console.log(returnEventsLeftArray[ReturnedEventsStartEnd[index - 1].start][0])
             for(let i = event.start; i < event.end; i++) {
                 returnEventsLeftArray[i][0] = returnEventsLeftArray[ReturnedEventsStartEnd[index - 1].start][0] + 1;
                 returnEventsLeftArray[i][1] = 1;
@@ -271,7 +220,6 @@ function CalendarBodyEvents(props) {
                     subtract++;
                 }
                 if(event.start < ReturnedEventsStartEnd[i].end) {
-                    //console.log(event)
                     divisionStart = i - pushIndex + 1 - subtract;
                 }
             }
@@ -322,7 +270,7 @@ function CalendarBodyEvents(props) {
             returnWidth *= 1.5;
         }
 
-        return {...event, "start" : event.start / 1440 * 100, "end" : event.end / 1440 * 100, "left" : returnLeft, "width" : returnWidth, "duration" : event.end - event.start}
+        return {...event, "start" : event.start / 1440 * 100, "end" : event.end / 1440 * 100, "left" : returnLeft, "width" : returnWidth, "duration" : event.end - event.start, "startMinutes" : event.start}
     }).sort((a, b) => a.left - b.left)
 
     //console.log(ReturnedEventsLeft)
@@ -333,6 +281,7 @@ function CalendarBodyEvents(props) {
         let direction = "column";
         let textColor = "black";
         let gap = "1px";
+        let pointerEvents = "";
         if(["#9fc0f5", "#ae99e0", "#c979bf", "#cf5f66", "#93db7f", "#7adedc"].indexOf(event.color) === -1) {
             textColor = "white";
         }
@@ -341,32 +290,69 @@ function CalendarBodyEvents(props) {
             gap = "10px";
         }
 
-        const handleEventOnClick = (e) => {
-            props.setCurEvent({...props.currentEvents[event.index], "index" : event.index});
-            let calendarBodyEvents = document.querySelector('.calendar-body-events').getBoundingClientRect();
-            let popupPreview = document.querySelector('.popup-preview-container');
-            let translateX = "translateX(-50%)";
-            let translateY = "translateY(2%)";
-            console.log(calendarBodyEvents.right - e.clientX)
-            if(calendarBodyEvents.right - e.clientX <= 190) {
-                translateX = "translateX(-102%)"
-            } else if(e.clientX - calendarBodyEvents.left <= 180) {
-                translateX = ""
-            }
+        if(props.currentAddition.isMouseDown || props.currentMoveEvent.hasBeenMoving) {
+            pointerEvents = "none";
+        }
+        
 
-            if(calendarBodyEvents.bottom - e.clientY <= 230) {
-                translateY = "translateY(-102%)";
-            } else if(e.clientY - calendarBodyEvents.top <= 230) {
-                translateY = "translateY(2%)";
-            } else {
-                translateY = "translateY(2%)";
+        const handleEventOnMouseUp = (e) => {
+            if(!props.currentMoveEvent.isMoving) {
+                props.setCurEvent({...props.currentEvents[event.index], "index" : event.index});
+                let calendarBodyEvents = {};
+                if(props.currentDate.specifics === "day") calendarBodyEvents = document.querySelector('.calendar-body-day').getBoundingClientRect();
+                if(props.currentDate.specifics === "week") calendarBodyEvents = document.querySelector('.calendar-body-week-container').getBoundingClientRect();
+                let popupPreview = document.querySelector('.popup-preview-container');
+                let translateX = "translateX(-50%)";
+                let translateY = "translateY(5%)";
+                if(calendarBodyEvents.right - e.clientX <= 190) {
+                    translateX = "translateX(-100%)"
+                } else if(e.clientX - calendarBodyEvents.left <= 180) {
+                    translateX = ""
+                }
+    
+                if(calendarBodyEvents.bottom - e.clientY <= 230) {
+                    translateY = "translateY(-105%)";
+                } 
+                popupPreview.style.top = (e.clientY - calendarBodyEvents.top) / calendarBodyEvents.height * 100 + "%";
+                popupPreview.style.left = (e.clientX - calendarBodyEvents.left) / calendarBodyEvents.width * 100 + "%";
+                popupPreview.style.zIndex = "4";
+                popupPreview.style.transform = translateX + " " + translateY;
+                props.setIsVisible("visibility-visible");
+                props.setCurReference(e.target);
             }
-            popupPreview.style.top = (e.clientY - calendarBodyEvents.top) + "px";
-            popupPreview.style.left = (e.clientX - calendarBodyEvents.left) + "px";
-            popupPreview.style.zIndex = "3";
-            popupPreview.style.transform = translateX + " " + translateY;
-            props.setIsVisible("visibility-visible");
+        }
+
+        const handleEventsOnMouseDown = (e) => {
+            let startTime = new Date(props.currentEvents[event.index]["startTime"]).getTime()
+            let curTime = e.clientY - e.target.getBoundingClientRect().top;
+            curTime = Math.floor(curTime / 12.5) * 15;
+            if(startTime < new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day).getTime()) {
+                curTime = ((new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day, 0, curTime).getTime() - startTime) / 60000 + (new Date(event.startTime).getHours() * 60 + new Date(event.startTime).getMinutes()))
+            }
+            
+            //console.log(curTime)
+            props.dispatch(setInitialTime(curTime));
             props.setCurReference(e.target);
+            props.dispatch(changeIndex(event.index));
+            props.dispatch(changeisMoving(true));
+        }
+
+        //console.log(pointerEvents)
+
+        const handleEventOnMouseMove = (e) => {
+            if(props.currentMoveEvent.isMoving) {
+                let startTime = new Date(props.currentEvents[event.index]["startTime"]).getTime()
+                let curTime = e.clientY - e.target.getBoundingClientRect().top;
+                curTime = Math.floor(curTime / 12.5) * 15;
+                if(startTime < new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day).getTime()) {
+                    curTime = ((new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day, 0, curTime).getTime() - startTime) / 60000 + (new Date(event.startTime).getHours() * 60 + new Date(event.startTime).getMinutes()))
+                    // if(event.repeat) curTime = ((new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day, 0, curTime).getTime() - startTime) / 60000)
+                }
+                if(curTime !== props.currentMoveEvent.initialTime) {
+                    props.dispatch(changeHasBeenMoving(true));
+                }
+            }
+            
         }
 
         return (<div className='calendar-body-event-container' key={'calendar-body-event-container-' + index} style={{
@@ -374,7 +360,8 @@ function CalendarBodyEvents(props) {
             "height" : "calc(" + event.end + "% - " + event.start + "% - 2px)", 
             "left" : event.left + "%", 
             "width" : "calc(" + event.width + "%" + " - 2px)",
-            "backgroundColor": event.color}} onClick={(e) => handleEventOnClick(e)}>
+            "backgroundColor": event.color,
+            pointerEvents}} onClick={(e) => handleEventOnMouseUp(e)} onMouseDown={(e) => handleEventsOnMouseDown(e)} onMouseMove={(e) => handleEventOnMouseMove(e)}>
                 <div className='calendar-body-event-description' style={{
                 "flexDirection" : direction,
                 "fontSize" : fontSize,
@@ -387,8 +374,6 @@ function CalendarBodyEvents(props) {
             </div>)
     })
 
-    //console.log(ReturnedEventsLeft)
-
     return(
         <div className='calendar-body-events'>
             {ReturnedEvents}
@@ -396,7 +381,8 @@ function CalendarBodyEvents(props) {
     )
 }
 
-function CalendarBodyLabels(props) {
+function CalendarBodyLabelsTime(props) {
+
     let timeArray = [];
 
     for(let i = 0; i < 24; i++) {
@@ -421,6 +407,76 @@ function CalendarBodyLabels(props) {
     
         return returnStr;
     }
+
+    useEffect(() => {
+        const handleOnMouseUp = () => {
+            let eventNow = {...props.currentEvents[props.currentEvents.length-1]};
+            let startTime = new Date(eventNow["startTime"]);
+            let endTime = new Date(eventNow["endTime"]);
+
+            props.dispatch(mouseUp({"month" : eventNow["curDateTwo"].month, "day": eventNow["curDateTwo"].day, "year" : eventNow["curDateTwo"].year}));
+            let EditingObj = {
+                "curDateOne" : eventNow["curDateOne"],
+                "curDateTwo" : eventNow["curDateTwo"],
+                "dateOneInput" : eventNow["rawStartDate"],
+                "dateTwoInput" : eventNow["rawEndDate"],
+                "curLocation" : "",
+                "focusCalendarVisibleOne" : "visibility-hidden",
+                "focusCalendarVisibleTwo" : "visibility-hidden",
+                "focusTimeVisibleOne" : "visibility-hidden",
+                "focusTimeVisibleTwo" : "visibility-hidden",
+                "previousTime" : {},
+                "curTimeOne" : getHourAndMinutes(startTime.getHours(), startTime.getMinutes()),
+                "curTimeTwo" : getHourAndMinutes(endTime.getHours(), endTime.getMinutes()),
+                "curTimeDisabled": {"one" : "", "two" : ""},
+                "isMouseDown" : false,
+                "originalCoords" : [0,0],
+                "selectedColor" : "#9fc0f5",
+                "curTitle" : "",
+                "curDescription" : "",
+                "wrongInputs" : {"time1" : "", "time2" : "", "date1" : "", "date2": ""},
+                "isThisVisible" : "visibility-visible",
+                "functionWanted" : "edit-delete",
+                "editingIndex" : props.currentEvents.length - 1,
+                "originalColor" : "#9fc0f5",
+                "isAllDay" : {"one" : false, "two": false},
+                "repeat" : false,
+                "repeatSpecifics" : {"day" : 0, "week" : 0, "month" : 0, "year" : 0, "weekdays" : []},
+                "repeatEnding" : {"never" : false, "onDay" : null, "afterIterations" : null},
+                "repeatExceptions" : {},
+            }
+            props.dispatch(changeCalendarEvent(EditingObj));
+            props.dispatch(setEditing(true));
+        }
+
+        if(props.currentAddition.isMouseDown) {
+            window.addEventListener("mouseup", handleOnMouseUp);
+
+            const cleanUpListener = () => {
+                window.removeEventListener("mouseup", handleOnMouseUp);
+            }
+            return cleanUpListener;
+        }
+
+    });
+
+    useEffect(() => {
+        const handleOnMouseUp = () => {
+            props.dispatch(changeIndex(-1));
+            props.dispatch(changeisMoving(false));
+            props.dispatch(changeHasBeenMoving(false));
+        }
+
+        if(props.currentMoveEvent.isMoving) {
+            window.addEventListener("mouseup", handleOnMouseUp);
+
+            const cleanUpListener = () => {
+                window.removeEventListener("mouseup", handleOnMouseUp);
+            }
+            return cleanUpListener;
+        }
+
+    });
 
     let timeArrayJSX = timeArray.map((time, index) => {
         const handleOnMouseDown = (e) => {
@@ -452,41 +508,7 @@ function CalendarBodyLabels(props) {
             let finalHrOne = getHourAndMinutes(hour, minute)
             let finalHrTwo = getHourAndMinutes(hourTwo, minuteTwo)
 
-            // let EditingObj = {
-            //     "curDateOne" : curDate,
-            //     "curDateTwo" : curDateTwo,
-            //     "dateOneInput" : convertMonths[props.currentDate.month] + " " + props.currentDate.day + ", " + props.currentDate.year,
-            //     "dateTwoInput" : convertMonths[datePlusOne.getMonth()] + " " + datePlusOne.getDate() + ", " + datePlusOne.getFullYear(),
-            //     "curLocation" : "",
-            //     "focusCalendarVisibleOne" : "visibility-hidden",
-            //     "focusCalendarVisibleTwo" : "visibility-hidden",
-            //     "focusTimeVisibleOne" : "visibility-hidden",
-            //     "focusTimeVisibleTwo" : "visibility-hidden",
-            //     "previousTime" : {},
-            //     "curTimeOne" : finalHrOne,
-            //     "curTimeTwo" : finalHrTwo,
-            //     "curTimeDisabled": {"one" : "", "two" : ""},
-            //     "isMouseDown" : false,
-            //     "originalCoords" : [0,0],
-            //     "selectedColor" : "#9fc0f5",
-            //     "curTitle" : "",
-            //     "curDescription" : "",
-            //     "wrongInputs" : {"time1" : "", "time2" : "", "date1" : "", "date2": ""},
-            //     "isThisVisible" : "visibility-visible",
-            //     "functionWanted" : "edit-delete",
-            //     "editingIndex" : props.currentEvents.length - 1,
-            //     "originalColor" : "#9fc0f5",
-            //     "isAllDay" : {"one" : false, "two": false},
-            //     "repeat" : false,
-            //     "repeatSpecifics" : {"day" : 0, "week" : 0, "month" : 0, "year" : 0, "weekdays" : []},
-            //     "repeatEnding" : {"never" : false, "onDay" : null, "afterIterations" : null},
-            //     "repeatExceptions" : {},
-            // }
-
-            // props.dispatch(changeCalendarEvent(EditingObj));
-            // props.dispatch(setEditing(true));
-
-            props.dispatch(mouseDown({"start" : {...curDate, "time" : finalHrOne}, "end" : {...curDateTwo, "time" : finalHrTwo}}));
+            props.dispatch(mouseDown({"start" : {...curDate, "time" : {hour, minute}}, "end" : {...curDateTwo, "time" : {hourTwo, minuteTwo}}}));
             let finalObj = {};
             finalObj["title"] = "[No Title]";
             finalObj["startDate"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year;
@@ -509,14 +531,33 @@ function CalendarBodyLabels(props) {
             finalObj["repeatSpecifics"] = {"day" : 0, "week" : 0, "month" : 0, "year" : 0, "weekdays" : []};
             finalObj["repeatEnding"] = {"never" : false, "onDay" : null, "afterIterations" : null};
             finalObj["repeatExceptions"] = {};
-            if(!props.currentAdditionEditing) {
+            if(!props.currentAddition.isCurrentlyEditing) {
                 props.dispatch(addEvent(finalObj));
             }
-            else {
-                //handleChangeEvent(currentEvents.length-1);
-            }
+        }
 
-            // console.log(hour + ":" + minute)
+        const handleChangeEventMove = (currentIndex, hour, minute, curDate) => {
+            let curEvent = {...props.currentEvents[currentIndex]};
+            let timeDifference = new Date(curEvent["endTime"]).getTime() - new Date(curEvent["startTime"]).getTime();
+            let startTime = new Date(curDate.year, curDate.month, curDate.day, hour, minute - props.currentMoveEvent.initialTime);
+            let endTime = new Date(curDate.year, curDate.month, curDate.day, hour, minute - props.currentMoveEvent.initialTime, 0, timeDifference);
+            let startDateStr = startTime.getMonth() + 1 + " " + startTime.getDate() + " " + startTime.getFullYear();
+            let endDateStr = endTime.getMonth() + 1 + " " + endTime.getDate() + " " + endTime.getFullYear();
+            let startTimeStr = getHourAndMinutes(startTime.getHours(), startTime.getMinutes());
+            let endTimeStr = getHourAndMinutes(endTime.getHours(), endTime.getMinutes());
+            curEvent["curDateOne"] = {"month": startTime.getMonth(), "day": startTime.getDate(), "year": startTime.getFullYear()};
+            curEvent["startTime"] = startDateStr + " " + startTimeStr;
+            curEvent["startDate"] = startDateStr;
+            curEvent["rawStartTime"] = startTimeStr;
+            curEvent["rawStartDate"] = convertMonths[startTime.getMonth()] + " " + startTime.getDate() + ", " + startTime.getFullYear();
+            curEvent["curDateTwo"] = {"month": endTime.getMonth(), "day": endTime.getDate(), "year": endTime.getFullYear()};
+            curEvent["endTime"] = endDateStr + " " + endTimeStr;
+            curEvent["endDate"] = endDateStr;
+            curEvent["rawEndTime"] = endTimeStr;
+            curEvent["rawEndDate"] = convertMonths[endTime.getMonth()] + " " + endTime.getDate() + ", " + endTime.getFullYear();
+            curEvent["curTimeDisabled"] = {one: '', two: ''};
+            curEvent["isAllDay"] =  {one: false, two: false}
+            props.dispatch(changeEvent({"index" : currentIndex, "value" : curEvent}));
         }
 
         const handleOnMouseMove = (e) => {
@@ -531,43 +572,227 @@ function CalendarBodyLabels(props) {
                 minute = curTime * 15;
             }
 
+            if(minute === -15) {
+                minute = 0;
+            }
+
             let finalHr = getHourAndMinutes(hour, minute);
             let curDate = {"month" : props.currentDate.month, "day" : props.currentDate.day, "year" : props.currentDate.year};
 
-            if(props.currentAdditionIsMouseDown) {
-                //dispatch(mouseMove({"month" : value.month, "day": value.day, "year" : value.year}));
+            if(props.currentAddition.isMouseDown) {
                 let eventNow = {...props.currentEvents[props.currentEvents.length-1]};
-                eventNow["endDate"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year;
-                eventNow["endTime"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year + " " + finalHr;
-                eventNow["rawEndDate"] = convertMonths[curDate.month] + " " + curDate.day + ", " + curDate.year;
-                eventNow["curDateTwo"] = curDate;
-                if(!props.currentAdditionEditing) props.dispatch(changeEvent({"index" : props.currentEvents.length-1, "value" : eventNow}));
+                let dayNow = new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day).getTime();
+                let startDate = new Date(props.currentAddition.currentEvent.start.year, props.currentAddition.currentEvent.start.month, props.currentAddition.currentEvent.start.day).getTime();
+                if(dayNow > startDate) {
+                    eventNow["startDate"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year;
+                    eventNow["startTime"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year + " " + getHourAndMinutes(props.currentAddition.currentEvent.start.time.hour, props.currentAddition.currentEvent.start.time.minute);
+                    eventNow["rawStartDate"] = convertMonths[props.currentAddition.currentEvent.start.month] + " " + props.currentAddition.currentEvent.start.day + ", " + props.currentAddition.currentEvent.start.year;
+                    eventNow["curDateOne"] = curDate;
+                    eventNow["endDate"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year;
+                    eventNow["endTime"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year + " " + finalHr;
+                    eventNow["rawEndDate"] = convertMonths[curDate.month] + " " + curDate.day + ", " + curDate.year;
+                    eventNow["curDateTwo"] = curDate;
+                } else if(dayNow < startDate) {
+                    eventNow["startDate"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year;
+                    eventNow["startTime"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year + " " + finalHr;
+                    eventNow["rawStartDate"] = convertMonths[curDate.month] + " " + curDate.day + ", " + curDate.year;
+                    eventNow["curDateOne"] = curDate;
+                    eventNow["endDate"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year;
+                    eventNow["endTime"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year + " " + getHourAndMinutes(props.currentAddition.currentEvent.start.time.hour, props.currentAddition.currentEvent.start.time.minute);
+                    eventNow["rawEndDate"] = convertMonths[props.currentAddition.currentEvent.start.month] + " " + props.currentAddition.currentEvent.start.day + ", " + props.currentAddition.currentEvent.start.year;
+                    eventNow["curDateTwo"] = curDate;
+                } else if(dayNow === startDate) {
+                    if(props.currentAddition.currentEvent.start.time.hour * 60 + props.currentAddition.currentEvent.start.time.minute < hour * 60 + minute) {
+                        eventNow["startDate"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year;
+                        eventNow["startTime"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year + " " + getHourAndMinutes(props.currentAddition.currentEvent.start.time.hour, props.currentAddition.currentEvent.start.time.minute);
+                        eventNow["rawStartDate"] = convertMonths[props.currentAddition.currentEvent.start.month] + " " + props.currentAddition.currentEvent.start.day + ", " + props.currentAddition.currentEvent.start.year;
+                        eventNow["curDateOne"] = curDate;
+                        eventNow["endDate"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year;
+                        eventNow["endTime"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year + " " + finalHr;
+                        eventNow["rawEndDate"] = convertMonths[curDate.month] + " " + curDate.day + ", " + curDate.year;
+                        eventNow["curDateTwo"] = curDate;
+                    } else if(props.currentAddition.currentEvent.start.time.hour * 60 + props.currentAddition.currentEvent.start.time.minute > hour * 60 + minute) {
+                        eventNow["startDate"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year;
+                        eventNow["startTime"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year + " " + finalHr;
+                        eventNow["rawStartDate"] = convertMonths[curDate.month] + " " + curDate.day + ", " + curDate.year;
+                        eventNow["curDateOne"] = curDate;
+                        eventNow["endDate"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year;
+                        eventNow["endTime"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year + " " + getHourAndMinutes(props.currentAddition.currentEvent.start.time.hour, props.currentAddition.currentEvent.start.time.minute);
+                        eventNow["rawEndDate"] = convertMonths[props.currentAddition.currentEvent.start.month] + " " + props.currentAddition.currentEvent.start.day + ", " + props.currentAddition.currentEvent.start.year;
+                        eventNow["curDateTwo"] = curDate;
+                    }
+                }
+                
+                if(!props.currentAddition.isCurrentlyEditing) props.dispatch(changeEvent({"index" : props.currentEvents.length-1, "value" : eventNow}));
             }
 
-            // if(props.currentMoveEvent.isMoving) {
-            //     handleChangeEventMove(props.currentMoveEvent.index);
-            //     props.dispatch(changeHasBeenMoving(true));
-            //     setIsVisible("visibility-hidden");
-            // }
+            if(props.currentMoveEvent.isMoving) {
+                handleChangeEventMove(props.currentMoveEvent.index, hour, minute, curDate);
+            }
         }
 
-
-        return(
-            <div className='calendar-body-day-label' key={'calendar-body-day-label-text-' + index} 
-            onMouseDown={(e) => handleOnMouseDown(e)}
-            onMouseMove={(e) => handleOnMouseMove(e)}>
-                <div className='calendar-body-day-label-text'>{getHourStr(time)}</div>
-                <div className='calendar-body-day-label-line-vertical'></div>
-                <div className='calendar-body-day-label-line-horizontal'></div>
-            </div>
-        )
+        if(props.currentDate.specifics === "day") {
+            return(
+                <div className='calendar-body-day-label' key={'calendar-body-day-label-' + index} 
+                onMouseDown={(e) => handleOnMouseDown(e)}
+                onMouseMove={(e) => handleOnMouseMove(e)}>
+                    <div className='calendar-body-day-label-text'>{getHourStr(time)}</div>
+                    <div className='calendar-body-day-label-line-vertical'></div>
+                    <div className='calendar-body-day-label-line-horizontal'></div>
+                </div>
+            )
+        } else if(props.currentDate.specifics === "week") {
+            return(
+                <div className='calendar-body-week-label' key={'calendar-body-week-label-' + index} 
+                onMouseDown={(e) => handleOnMouseDown(e)}
+                onMouseMove={(e) => handleOnMouseMove(e)}></div>
+            )
+        }
+        
     });
 
     return(
-        <div className='calendar-body-day-label-container'>
+        <React.Fragment>
             {timeArrayJSX}
+        </React.Fragment>
+    );
+}
+
+function CalendarBodyLabels(props) {
+    const [today, setToday] = useState(new Date());
+    let redLine = [];
+
+    useEffect(() => {
+        const func = setInterval(() => {
+            let today = new Date();
+            setToday(today);
+        }, 1000)
+
+        return () => clearInterval(func);
+    }, [])
+
+    if(today.getDate() === props.currentDate.day && today.getMonth() === props.currentDate.month && today.getFullYear() === props.currentDate.year) {
+        let redLineClass = "calendar-body-label-red-line-container"
+        if(props.currentDate.specifics === "week") redLineClass = "calendar-body-week-label-red-line-container"
+        redLine = <div className={redLineClass}
+            style={{"top" : (today.getHours() * 60 + today.getMinutes()) / 1440 * 100 + "%"}}>
+                <div className="calendar-body-label-red-line-dot"></div>
+                <div className="calendar-body-label-red-line"></div>
+            </div>
+    }
+
+    return(
+        <div className='calendar-body-day-label-container'>
+            {redLine}
+            <CalendarBodyLabelsTime {...props}/>
         </div>
     );
+}
+
+function CalendarBodyAllDay(props) {
+    let curDate = props.currentDate;
+
+    const isLongEventAllDay = (event) => {
+        if(new Date(event.startDate).getTime() < new Date(curDate.year, curDate.month, curDate.day).getTime() && new Date(event.endDate).getTime() > new Date(curDate.year, curDate.month, curDate.day).getTime()) {
+            return false;
+        }
+        if(new Date(event.startDate).getTime() === new Date(curDate.year, curDate.month, curDate.day).getTime() && event.isAllDay.one) {
+            return false;
+        }
+        if(new Date(event.endDate).getTime() === new Date(curDate.year, curDate.month, curDate.day).getTime() && event.isAllDay.two) {
+            return false;
+        }
+        return true;
+    }
+
+    let eventsToday = [...props.currentEvents].map((event, index) => {
+        return {...event, "index" : index};
+    }).filter((event) => {
+        return event.repeat;
+    }).map((event) => {
+        return createEventsRepeated(event, new Date(curDate.year, curDate.month, curDate.day).getTime(), new Date(curDate.year, curDate.month, curDate.day + 1).getTime());
+    }).flat().filter((event) => {
+        return filterEventsStartEnd(event, new Date(curDate.year, curDate.month, curDate.day), new Date(curDate.year, curDate.month, curDate.day), props.currentUnwantedColors);
+    }).concat([...props.currentEvents].map((event, index) => {
+        return {...event, "index" : index};
+    }).filter((event) => {
+        return !event.repeat && filterEventsStartEnd(event, new Date(curDate.year, curDate.month, curDate.day), new Date(curDate.year, curDate.month, curDate.day), props.currentUnwantedColors);
+    })).filter((event) => {
+        return !isLongEventAllDay(event);
+    })
+
+    const ReturnedEvents = eventsToday.map((event, index) => {
+
+        let textColor = "black";
+        let pointerEvents = "";
+        if(["#9fc0f5", "#ae99e0", "#c979bf", "#cf5f66", "#93db7f", "#7adedc"].indexOf(event.color) === -1) {
+            textColor = "white";
+        }
+
+        if(props.currentAddition.isMouseDown) {
+            pointerEvents = "none";
+        }
+
+        let eventStartTime = new Date(event.startDate);
+        let eventEndTime = new Date(event.endDate);
+        let eventTime = convertMonths[eventStartTime.getMonth()] + " " + eventStartTime.getDate() + " - " + convertMonths[eventEndTime.getMonth()] + " " + eventEndTime.getDate();
+        if(eventStartTime.getTime() === eventEndTime.getTime()) eventTime = "All Day"
+
+        const handleEventOnClick = (e) => {
+            props.setCurEvent({...props.currentEvents[event.index], "index" : event.index});
+            let calendarBodyEvents = {};
+            if(props.currentDate.specifics === "day") calendarBodyEvents = document.querySelector('.calendar-body-day').getBoundingClientRect();
+            if(props.currentDate.specifics === "week") calendarBodyEvents = document.querySelector('.calendar-body-week-container').getBoundingClientRect();
+            let popupPreview = document.querySelector('.popup-preview-container');
+            let translateX = "translateX(-50%)";
+            let translateY = "translateY(5%)";
+            console.log(calendarBodyEvents.right - e.clientX)
+            if(calendarBodyEvents.right - e.clientX <= 190) {
+                translateX = "translateX(-100%)"
+            } else if(e.clientX - calendarBodyEvents.left <= 180) {
+                translateX = ""
+            }
+
+            if(calendarBodyEvents.bottom - e.clientY <= 230) {
+                translateY = "translateY(-105%)";
+            } 
+
+            popupPreview.style.top = (e.clientY - calendarBodyEvents.top) / calendarBodyEvents.height * 100 + "%";
+            popupPreview.style.left = (e.clientX - calendarBodyEvents.left) / calendarBodyEvents.width * 100 + "%";
+            popupPreview.style.zIndex = "4";
+            popupPreview.style.transform = translateX + " " + translateY;
+            props.setIsVisible("visibility-visible");
+            props.setCurReference(e.target);
+        }
+
+        return (<div className='calendar-body-all-day-event-container' key={'calendar-body-all-day-event-container-' + index} style={{
+            "backgroundColor": event.color,
+            "color" : textColor,
+            pointerEvents}} onClick={(e) => handleEventOnClick(e)}>
+                <div className='calendar-body-all-day-event-description'>
+                    <div className='calendar-body-event-time'>{eventTime}</div>
+                    <div className='calendar-body-event-title'>{event.title}</div>
+                </div>
+            </div>)
+    });
+
+    return(
+        <div className='calendar-body-day-all-day-events-container'>
+            {ReturnedEvents}
+        </div>
+    )
+}
+
+function CalendarBodyHeader({currentDate}) {
+    return(
+        <div className='calendar-body-day-date-container'>
+            <div className="calendar-body-day-date-weekday">{convertWeeks[new Date(currentDate.year, currentDate.month, currentDate.day).getDay()]}</div>
+            <div className="calendar-body-day-date-date">
+                <div className="calendar-body-day-date-month">{convertMonths[currentDate.month]}</div>
+                <div className="calendar-body-day-date-day">{currentDate.day}</div>
+            </div>
+        </div>
+    )
 }
 
 function CalendarBody(props) {
@@ -578,28 +803,21 @@ function CalendarBody(props) {
 
     return(
         <div className="calendar-body-day">
-            <div className='calendar-body-day-date-container'>
-                <div className="calendar-body-day-date-weekday">{convertWeeks[new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day).getDay()]}</div>
-                <div className="calendar-body-day-date-date">
-                    <div className="calendar-body-day-date-month">{convertMonths[props.currentDate.month]}</div>
-                    <div className="calendar-body-day-date-day">{props.currentDate.day}</div>
-                </div>
-            </div>
+            <CalendarBodyHeader currentDate={props.currentDate}/>
+
+            <PopupPreview isVisible={isVisible} setIsVisible={setIsVisible} event={curEvent} dispatch={props.dispatch} setCurReference={setCurReference} currentEvents={props.currentEvents}/>
 
             <div className='calendar-body-day-main-container'>
                 
                 <CalendarBodyLabels {...props} />
 
                 <div className='calendar-body-day-events-container'>
-                    <PopupPreview isVisible={isVisible} setIsVisible={setIsVisible} event={curEvent} dispatch={props.dispatch} setCurReference={setCurReference} currentEvents={props.currentEvents}/>
                     <CalendarBodyEvents {...props} setIsVisible={setIsVisible} setCurEvent={setCurEvent} setCurReference={setCurReference}/>
                 </div>
 
             </div>
 
-            <div className='calendar-body-day-all-day-events-container'>
-
-            </div>
+            <CalendarBodyAllDay {...props} setIsVisible={setIsVisible} setCurEvent={setCurEvent} setCurReference={setCurReference}/>
         </div>
     )
 }
@@ -609,17 +827,16 @@ function BodyDay() {
     const currentDate = useSelector((state) => state.date);
     const currentEvents = useSelector((state) => state.event.events);
     const currentUnwantedColors = useSelector((state) => state.color.undesiredColors);
-    // const currentAddition = useSelector((state) => state.currentAddition.currentEvent);
-    const currentAdditionIsMouseDown = useSelector((state) => state.currentAddition.isMouseDown);
-    const currentAdditionEditing = useSelector((state) => state.currentAddition.isCurrentlyEditing);
-    // const currentMoveEvent = useSelector((state) => state.moveEvent);
-    // const currentViewAll = useSelector((state) => state.viewAll.contents);
+    const currentAddition = useSelector((state) => state.currentAddition);
+    const currentMoveEvent = useSelector((state) => state.moveEvent);
     const dispatch = useDispatch();
     return(
         <div className="calendar-body-day-container">
-            <CalendarBody currentDate={currentDate} currentEvents={currentEvents} currentUnwantedColors={currentUnwantedColors} dispatch={dispatch} currentAdditionEditing={currentAdditionEditing} currentAdditionIsMouseDown={currentAdditionIsMouseDown}/>
+            <CalendarBody currentDate={currentDate} currentEvents={currentEvents} currentUnwantedColors={currentUnwantedColors} dispatch={dispatch} currentAddition={currentAddition} currentMoveEvent={currentMoveEvent}/>
         </div>
     )
 }
+
+export { CalendarBodyEvents, CalendarBodyAllDay, CalendarBodyHeader, CalendarBodyLabels };
 
 export default BodyDay;
