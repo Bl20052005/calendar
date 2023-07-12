@@ -1,3 +1,78 @@
+@media only screen and (max-width: 600px) {
+    .header-calendar-container {
+        display: none;
+    }
+
+    .calendar-header {
+        font-size: 16px;
+    }
+
+    .header-description-title {
+        display: none;
+    }
+
+    .dropdown-main {
+        width: 90px;
+        height: 40px;
+    }
+
+    .header-signIn-container {
+        width: auto;
+        margin-left: 5px;
+    }
+
+    .header-signIn-profile-pic {
+        display: none;
+    }
+}
+
+@media only screen and (max-width: 1000px) and (min-width: 600px) {
+    .header-calendar-container {
+        display: none;
+    }
+
+    .calendar-header {
+        font-size: 16px;
+    }
+
+    .header-description-title {
+        font-size: 18px;
+    }
+
+    .dropdown-main {
+        width: 90px;
+        height: 40px;
+    }
+
+    .header-signIn-container {
+        width: calc(100% - 460px);
+    }
+}
+
+@media only screen and (min-width: 1001px) {
+    .header-calendar-container {
+        display: flex;
+    }
+
+    .calendar-header {
+        gap: 20px;
+        font-size: 20px;
+    }
+
+    .header-description-title {
+        font-size: 23px;
+    }
+
+    .dropdown-main {
+        width: 120px;
+        height: 40px;
+    }
+
+    .header-signIn-container {
+        width: calc(100% - 460px);
+    }
+}
+
 :root {
     --body-background-color: rgb(227, 243, 243);
     --division-color: rgb(135, 196, 196);
@@ -29,13 +104,11 @@ body {
 
 .calendar-header {
     width: 100%;
-    min-width: 950px;
     height: 70px;
     border-bottom: 1px solid var(--division-color);
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 20px;
 }
 
 .toggle-header-menu-container {
@@ -50,7 +123,6 @@ body {
 }
 
 .header-calendar-container {
-    display: flex;
     flex-direction: row;
     align-items: center;
     gap: 20px;
@@ -61,7 +133,6 @@ body {
 }
 
 .header-today {
-    font-size: 20px;
     background-color: var(--clickable-background-color);
     padding: 10px;
     border-radius: 15px;
@@ -75,13 +146,10 @@ body {
 .header-dropdown-container {
     position: relative;
     width: 120px;
-    font-size: 20px;
     z-index: 4;
 }
 
 .dropdown-main {
-    width: 120px;
-    height: 40px;
     background-color: var(--clickable-background-color);
     display: flex;
     flex-direction: row;
@@ -129,8 +197,6 @@ body {
     gap: 10px;
     align-items: center;
     justify-content: flex-end;
-    font-size: 20px;
-    width: calc(100% - 460px);
 }
 
 .toggle-header-menu-line {
@@ -151,6 +217,8 @@ body {
     padding: 10px;
     border-radius: 15px;
     transition: background-color 0.2s;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .header-signIn-text:hover {
@@ -184,7 +252,6 @@ body {
 
 .header-description-title {
     white-space: nowrap;
-    font-size: 23px;
 }
 
 
@@ -390,6 +457,22 @@ body {
     justify-content: center;
     border-radius: 50%;
     transition: background-color 0.5s;
+}
+
+.base-calendar-title-month {
+    cursor: pointer;
+}
+
+.base-calendar-title-month:hover {
+    text-decoration: underline;
+}
+
+.base-calendar-title-year {
+    cursor: pointer;
+}
+
+.base-calendar-title-year:hover {
+    text-decoration: underline;
 }
 
 .add-event-popup-calendar-week-group, .base-calendar-week-group {
@@ -1023,7 +1106,6 @@ body {
     position: absolute;
     top: 71px;
     left: 281px;
-    transition: left 0.5s ease-in-out, width 0.5s ease-in-out;
 }
 
 

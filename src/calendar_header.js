@@ -9,20 +9,34 @@ function HeaderToggleSideMenu({menuHidden, setMenuHidden}) {
         let body = document.querySelector('.calendar-body-container');
         let addEvent = document.querySelector('.add-event');
         let addEventText = document.querySelector('.add-event-text');
+        let menuContainer = document.querySelector('.toggle-header-menu-container')
         if(!menuHidden) {
             menu.style.transform = "translateX(-100%)";
             body.style.left = "0px";
             body.style.width = "100%";
+            body.style.transition = "left 0.5s ease-in-out, width 0.5s ease-in-out";
             addEvent.style.left = "10px";
             addEvent.style.top = "80px";
             addEvent.style.width = "40px";
             addEventText.style.display = "none";
+            menuContainer.style.pointerEvents = "none";
+            setTimeout(() => {
+                menuContainer.style.pointerEvents = "";
+                body.style.transition = "";
+            }, 500)
             setMenuHidden(true);
         } else {
             menu.style.transform = "";
-            body.style = "";
+            body.style.left = "";
+            body.style.width = "";
+            body.style.transition = "left 0.5s ease-in-out, width 0.5s ease-in-out";
             addEvent.style = "";
             addEventText.style = "";
+            menuContainer.style.pointerEvents = "none";
+            setTimeout(() => {
+                body.style = "";
+                menuContainer.style.pointerEvents = "";
+            }, 500)
             setMenuHidden(false);
         }
 

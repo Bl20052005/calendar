@@ -87,9 +87,9 @@ function BodyYear() {
 
     let yearArray = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 
-    let returnValue = yearArray.map((month) => {
+    let returnValue = yearArray.map((month, index) => {
         return(
-            <BodyYearMonth currentDate={{"year" : currentDate.year, "month" : month}} dispatch={dispatch}/>
+            <BodyYearMonth currentDate={{"year" : currentDate.year, "month" : month}} dispatch={dispatch} key={"body-year-month-" + index}/>
         )
     })
 

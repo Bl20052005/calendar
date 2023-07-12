@@ -5,7 +5,7 @@ import { addEvent, removeEvent, changeEvent } from './redux_slices/eventSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import { changeSingleCalendarEvent, changeCalendarEvent } from './redux_slices/calendarEventSlice';
 import { mouseDown, mouseMove, mouseUp, setEditing } from './redux_slices/currentAddition';
-import { changeIndex, changeisMoving, changeHasBeenMoving, setInitialTime } from './redux_slices/moveEvent';
+import { changeIndex, changeisMoving, changeHasBeenMoving, setInitialTime, changeEventType } from './redux_slices/moveEvent';
 import createEventsRepeated from './calendar_body_useful_functions/create_repeating_events';
 import filterEventsStartEnd from './calendar_body_useful_functions/filter_events_start_end';
 import getHourAndMinutes from './calendar_body_useful_functions/get_hours_and_minutes';
@@ -332,6 +332,7 @@ function CalendarBodyEvents(props) {
             
             //console.log(curTime)
             props.dispatch(setInitialTime(curTime));
+            props.dispatch(changeEventType("day"));
             props.setCurReference(e.target);
             props.dispatch(changeIndex(event.index));
             props.dispatch(changeisMoving(true));
@@ -439,7 +440,7 @@ function CalendarBodyLabelsTime(props) {
                 "functionWanted" : "edit-delete",
                 "editingIndex" : props.currentEvents.length - 1,
                 "originalColor" : "#9fc0f5",
-                "isAllDay" : {"one" : false, "two": false},
+                "isAllDay" : {"one" : eventNow.isAllDay.one, "two": eventNow.isAllDay.two},
                 "repeat" : false,
                 "repeatSpecifics" : {"day" : 0, "week" : 0, "month" : 0, "year" : 0, "weekdays" : []},
                 "repeatEnding" : {"never" : false, "onDay" : null, "afterIterations" : null},
@@ -475,7 +476,6 @@ function CalendarBodyLabelsTime(props) {
             }
             return cleanUpListener;
         }
-
     });
 
     let timeArrayJSX = timeArray.map((time, index) => {
@@ -489,6 +489,10 @@ function CalendarBodyLabelsTime(props) {
                 minute = 45;
             } else {
                 minute = curTime * 15;
+            }
+
+            if(minute === -15) {
+                minute = 0;
             }
 
             let minuteTwo = (minute + 15) % 60;
@@ -557,7 +561,7 @@ function CalendarBodyLabelsTime(props) {
             curEvent["rawEndDate"] = convertMonths[endTime.getMonth()] + " " + endTime.getDate() + ", " + endTime.getFullYear();
             curEvent["curTimeDisabled"] = {one: '', two: ''};
             curEvent["isAllDay"] =  {one: false, two: false}
-            props.dispatch(changeEvent({"index" : currentIndex, "value" : curEvent}));
+            if(props.currentMoveEvent.eventType !== "all day") props.dispatch(changeEvent({"index" : currentIndex, "value" : curEvent}));
         }
 
         const handleOnMouseMove = (e) => {
@@ -746,7 +750,6 @@ function CalendarBodyAllDay(props) {
             let popupPreview = document.querySelector('.popup-preview-container');
             let translateX = "translateX(-50%)";
             let translateY = "translateY(5%)";
-            console.log(calendarBodyEvents.right - e.clientX)
             if(calendarBodyEvents.right - e.clientX <= 190) {
                 translateX = "translateX(-100%)"
             } else if(e.clientX - calendarBodyEvents.left <= 180) {
