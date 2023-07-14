@@ -54,7 +54,7 @@
     top: calc(75px);
     left: 0%;
     width: calc(100%);
-    height: calc(100% - 125px);
+    height: calc(100% - 150px);
     padding: 0;
     overflow: auto;
     scrollbar-width: thin;
@@ -138,7 +138,7 @@
     grid-template-columns: repeat(7, 1fr);
     grid-auto-rows: 18px;
     overflow: auto;
-    height: 50px;
+    height: 75px;
     border-top: 1px dotted var(--division-color);
     scrollbar-gutter: stable;
     scrollbar-width: thin;
@@ -152,11 +152,4 @@
     display: flex;
     cursor: pointer;
     z-index: 2;
-}
-
-.calendar-body-week-events-all-day-label {
-    width: 100%;
-    position: absolute;
-    height: 50px;
-    bottom: 0;
 }

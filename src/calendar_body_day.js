@@ -2,6 +2,7 @@ import React from 'react';
 import "./calendar_body_day.css";
 import { useState, useEffect, useRef } from "react";
 import { addEvent, removeEvent, changeEvent } from './redux_slices/eventSlice';
+import { changeDate, changeDateSpecifics } from './redux_slices/dateSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import { changeSingleCalendarEvent, changeCalendarEvent } from './redux_slices/calendarEventSlice';
 import { mouseDown, mouseMove, mouseUp, setEditing } from './redux_slices/currentAddition';
@@ -322,9 +323,10 @@ function CalendarBodyEvents(props) {
             }
         }
 
-        const handleEventsOnMouseDown = (e) => {
+        const handleEventsOnMouseDown = (e, isTouch = false) => {
             let startTime = new Date(props.currentEvents[event.index]["startTime"]).getTime()
             let curTime = e.clientY - e.target.getBoundingClientRect().top;
+            if(isTouch) curTime = e.touches[0].clientY - e.target.getBoundingClientRect().top;
             curTime = Math.floor(curTime / 12.5) * 15;
             if(startTime < new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day).getTime()) {
                 curTime = ((new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day, 0, curTime).getTime() - startTime) / 60000 + (new Date(event.startTime).getHours() * 60 + new Date(event.startTime).getMinutes()))
@@ -344,17 +346,73 @@ function CalendarBodyEvents(props) {
             if(props.currentMoveEvent.isMoving) {
                 let startTime = new Date(props.currentEvents[event.index]["startTime"]).getTime()
                 let curTime = e.clientY - e.target.getBoundingClientRect().top;
+                //if(isTouch) curTime = e.touches[0].clientY - e.target.getBoundingClientRect().top;
                 curTime = Math.floor(curTime / 12.5) * 15;
                 if(startTime < new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day).getTime()) {
                     curTime = ((new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day, 0, curTime).getTime() - startTime) / 60000 + (new Date(event.startTime).getHours() * 60 + new Date(event.startTime).getMinutes()))
-                    // if(event.repeat) curTime = ((new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day, 0, curTime).getTime() - startTime) / 60000)
                 }
                 if(curTime !== props.currentMoveEvent.initialTime) {
                     props.dispatch(changeHasBeenMoving(true));
                 }
             }
-            
         }
+
+        // const handleEventOnTouchMove = (e) => {
+
+        //     const getHourAndMinutes = (hour, minute) => {
+    
+        //         let returnStr = "";
+            
+        //         let condensedHour = ((hour + 11) % 12 + 1);
+                
+        //         if(minute < 10) minute = "0" + minute;
+        
+        //         returnStr += condensedHour + ":" + minute;
+            
+        //         if(hour % 24 > 11) {
+        //             returnStr += " PM";
+        //         } else {
+        //             returnStr += " AM";
+        //         }
+            
+        //         return returnStr;
+        //     }
+
+        //     if(props.currentMoveEvent.isMoving) {
+        //         let startTime = new Date(props.currentEvents[event.index]["startTime"]).getTime()
+        //         let curTime = e.touches[0].clientY - e.target.getBoundingClientRect().top;
+        //         curTime = Math.floor(curTime / 12.5) * 15;
+        //         if(startTime < new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day).getTime()) {
+        //             curTime = ((new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day, 0, curTime).getTime() - startTime) / 60000 + (new Date(event.startTime).getHours() * 60 + new Date(event.startTime).getMinutes()))
+        //         }
+        //         if(curTime !== props.currentMoveEvent.initialTime) {
+        //             props.dispatch(changeHasBeenMoving(true));
+        //             let startTime = new Date(props.currentEvents[event.index]["startTime"]);
+        //             startTime.setMinutes(startTime.getMinutes() + (curTime - props.currentMoveEvent.initialTime));
+        //             let endTime = new Date(props.currentEvents[event.index]["endTime"]);
+        //             endTime.setMinutes(endTime.getMinutes() + (curTime - props.currentMoveEvent.initialTime));
+        //             console.log(startTime + "    " + endTime)
+        //             let curEvent = {...props.currentEvents[event.index]};
+        //             let startDateStr = startTime.getMonth() + 1 + " " + startTime.getDate() + " " + startTime.getFullYear();
+        //             let endDateStr = endTime.getMonth() + 1 + " " + endTime.getDate() + " " + endTime.getFullYear();
+        //             let startTimeStr = getHourAndMinutes(startTime.getHours(), startTime.getMinutes());
+        //             let endTimeStr = getHourAndMinutes(endTime.getHours(), endTime.getMinutes());
+        //             curEvent["curDateOne"] = {"month": startTime.getMonth(), "day": startTime.getDate(), "year": startTime.getFullYear()};
+        //             curEvent["startTime"] = startDateStr + " " + startTimeStr;
+        //             curEvent["startDate"] = startDateStr;
+        //             curEvent["rawStartTime"] = startTimeStr;
+        //             curEvent["rawStartDate"] = convertMonths[startTime.getMonth()] + " " + startTime.getDate() + ", " + startTime.getFullYear();
+        //             curEvent["curDateTwo"] = {"month": endTime.getMonth(), "day": endTime.getDate(), "year": endTime.getFullYear()};
+        //             curEvent["endTime"] = endDateStr + " " + endTimeStr;
+        //             curEvent["endDate"] = endDateStr;
+        //             curEvent["rawEndTime"] = endTimeStr;
+        //             curEvent["rawEndDate"] = convertMonths[endTime.getMonth()] + " " + endTime.getDate() + ", " + endTime.getFullYear();
+        //             curEvent["curTimeDisabled"] = {one: '', two: ''};
+        //             curEvent["isAllDay"] =  {one: false, two: false};
+        //             props.dispatch(changeEvent({"index" : event.index, "value" : curEvent}))
+        //         }
+        //     }
+        // }
 
         return (<div className='calendar-body-event-container' key={'calendar-body-event-container-' + index} style={{
             "top" : "calc(" + event.start + "%" + " + 6px)", 
@@ -470,9 +528,11 @@ function CalendarBodyLabelsTime(props) {
 
         if(props.currentMoveEvent.isMoving) {
             window.addEventListener("mouseup", handleOnMouseUp);
+            window.addEventListener("touchend", handleOnMouseUp);
 
             const cleanUpListener = () => {
                 window.removeEventListener("mouseup", handleOnMouseUp);
+                window.addEventListener("touchend", handleOnMouseUp);
             }
             return cleanUpListener;
         }
@@ -560,7 +620,7 @@ function CalendarBodyLabelsTime(props) {
             curEvent["rawEndTime"] = endTimeStr;
             curEvent["rawEndDate"] = convertMonths[endTime.getMonth()] + " " + endTime.getDate() + ", " + endTime.getFullYear();
             curEvent["curTimeDisabled"] = {one: '', two: ''};
-            curEvent["isAllDay"] =  {one: false, two: false}
+            curEvent["isAllDay"] =  {one: false, two: false};
             if(props.currentMoveEvent.eventType !== "all day") props.dispatch(changeEvent({"index" : currentIndex, "value" : curEvent}));
         }
 
@@ -787,12 +847,27 @@ function CalendarBodyAllDay(props) {
 }
 
 function CalendarBodyHeader({currentDate}) {
+
+    let curDay = new Date(currentDate.year, currentDate.month, currentDate.day);
+
+    const dispatch = useDispatch();
+
+    const handleOnClick = () => {
+        dispatch(changeDate({"month" : curDay.getMonth(), "day" : curDay.getDate(), "year": curDay.getFullYear()}));
+        dispatch(changeDateSpecifics("day"))
+    }
+
+    let isToday = "";
+    if(curDay.getTime() === new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()).getTime()) {
+        isToday = " date-today"
+    }
+
     return(
-        <div className='calendar-body-day-date-container'>
-            <div className="calendar-body-day-date-weekday">{convertWeeks[new Date(currentDate.year, currentDate.month, currentDate.day).getDay()]}</div>
+        <div className='calendar-body-day-date-container' onClick={() => handleOnClick()}>
+            <div className="calendar-body-day-date-weekday">{convertWeeks[curDay.getDay()]}</div>
             <div className="calendar-body-day-date-date">
                 <div className="calendar-body-day-date-month">{convertMonths[currentDate.month]}</div>
-                <div className="calendar-body-day-date-day">{currentDate.day}</div>
+                <div className={"calendar-body-day-date-day" + isToday}>{currentDate.day}</div>
             </div>
         </div>
     )
@@ -810,7 +885,7 @@ function CalendarBody(props) {
 
             <PopupPreview isVisible={isVisible} setIsVisible={setIsVisible} event={curEvent} dispatch={props.dispatch} setCurReference={setCurReference} currentEvents={props.currentEvents}/>
 
-            <div className='calendar-body-day-main-container'>
+            <div className='calendar-body-day-main-container' onScroll={() => setIsVisible("visibility-hidden")}>
                 
                 <CalendarBodyLabels {...props} />
 

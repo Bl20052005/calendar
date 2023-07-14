@@ -38,7 +38,20 @@
 }
 
 .calendar-body-day-date-day {
-    font-size: 30px;
+    border-radius: 50%;
+    font-size: 26px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 30px;
+    height: 30px;
+    padding: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.calendar-body-day-date-day:hover:not(.date-today) {
+    background-color: rgb(160, 198, 255);
 }
 
 .calendar-body-day-main-container {

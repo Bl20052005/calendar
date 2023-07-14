@@ -366,13 +366,13 @@ function BodyWeek() {
             <div className="calendar-body-week">
                 <PopupPreview isVisible={isVisible} setIsVisible={setIsVisible} event={curEvent} dispatch={dispatch} setCurReference={setCurReference} currentEvents={currentEvents}/>
                 {returnWeek}
-                <div className="calendar-body-week-main">
+                <div className="calendar-body-week-main" onScroll={() => setIsVisible("visibility-hidden")}>
                     <div className="calendar-body-week-time">
                         {timeArrayJSX}
                     </div>
                     {returnLabels}
                 </div>
-                <div className='calendar-body-week-events-all-day' onMouseMove={(e) => handleOnMouseMove(e)} onMouseDown={(e) => handleOnMouseDown(e)}>
+                <div className='calendar-body-week-events-all-day' onMouseMove={(e) => handleOnMouseMove(e)} onMouseDown={(e) => handleOnMouseDown(e)} onScroll={() => setIsVisible("visibility-hidden")}>
                     <CalendarBodyAllDay currentDate={currentDate} currentEvents={currentEvents} currentUnwantedColors={currentUnwantedColors} dispatch={dispatch} currentAddition={currentAddition} currentMoveEvent={currentMoveEvent} setIsVisible={setIsVisible} setCurEvent={setCurEvent} setCurReference={setCurReference}/>
                 </div>
             </div>

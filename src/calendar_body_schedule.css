@@ -1,0 +1,100 @@
+.calendar-body-schedule-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+}
+
+.calendar-body-schedule-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.calendar-body-schedule-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.calendar-body-schedule-container::-webkit-scrollbar-thumb {
+    background: var(--clickable-hover-background-color);
+    border-radius: 4px;
+}
+
+/* .calendar-body-schedule-events:nth-child(1) {
+    border: none;
+} */
+
+.calendar-body-schedule-events {
+    display: flex;
+    border-bottom: 1px solid var(--division-color);
+    padding: 3px 0px;
+}
+
+.calendar-body-schedule-event-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    height: auto;
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.calendar-body-schedule-events-day {
+    margin-left: 5px;
+    display: flex;
+    align-items: center;
+    height: 30px;
+    width: 115px;
+    min-width: 115px;
+    gap: 10px;
+}
+
+.calendar-body-schedule-events-date {
+    font-size: 20px;
+    width: 24px;
+    display: flex;
+    justify-content: center;
+    border-radius: 50%;
+    padding: 2px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.calendar-body-schedule-events-date:hover:not(.date-today) {
+    background-color: rgb(160, 198, 255);
+}
+
+.calendar-body-schedule-events-month {
+    white-space: nowrap;
+}
+
+.calendar-body-schedule-event {
+    border-radius: 10px;
+    display: flex;
+    gap: 10px;
+    cursor: pointer;
+    z-index: 2;
+    width: calc(100% - 5px);
+    padding: 3px 0px;
+}
+
+.calendar-body-schedule-event:hover {
+    background-color: rgb(196, 243, 243);
+}
+
+.calendar-body-schedule-event-color {
+    width: 15px;
+    height: 15px;
+    align-self: center;
+    border-radius: 50%;
+}
+
+.calendar-body-schedule-event-time {
+    margin-left: 10px;
+}
+
+.calendar-body-schedule-event-title {
+    position: absolute;
+    left: 210px;
+}

@@ -325,6 +325,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                 }
 
                 const handleEventsOnMouseDown = (e) => {
+                    console.log(e.target)
                     setCurReference(e.target);
                     dispatch(changeIndex(event.index));
                     dispatch(changeisMoving(true));
@@ -334,7 +335,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                 //console.log([startRow, endRow, eventStartTime, eventEndTime, eventTime, extraClasses])
 
                 if(row > -1) return(
-                    <div className={'calendar-body-month-week-events' + extraClasses} key={'calendar-body-month-week-events-' + i} style={{"gridColumn" : startRow + "/" + endRow, "backgroundColor" : event.color, "top" : (row * 20) + "px", "color" : textColor, "cursor" : "pointer"}} onMouseUp={() => handleEventsOnClick()} onMouseDown={(e) => handleEventsOnMouseDown(e)}>
+                    <div className={'calendar-body-month-week-events' + extraClasses} key={'calendar-body-month-week-events-' + i} style={{"gridColumn" : startRow + "/" + endRow, "backgroundColor" : event.color, "top" : (row * 20) + "px", "color" : textColor, "cursor" : "pointer"}} onMouseUp={() => handleEventsOnClick()} onMouseDown={(e) => handleEventsOnMouseDown(e)} onTouchStart={(e) => handleEventsOnMouseDown(e)}>
                         <div className='calendar-body-month-day-events-time'>{eventTime}</div>
                         <div className='calendar-body-month-day-events-title'>{event.title}</div>
                     </div>
@@ -418,9 +419,11 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
 
         if(currentAdditionIsMouseDown) {
             window.addEventListener("mouseup", handleOnMouseUp);
+            window.addEventListener("touchend", handleOnMouseUp);
 
             const cleanUpListener = () => {
                 window.removeEventListener("mouseup", handleOnMouseUp);
+                window.removeEventListener("touchend", handleOnMouseUp);
             }
             return cleanUpListener;
         }
@@ -436,11 +439,11 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
 
         if(currentMoveEvent.isMoving) {
             window.addEventListener("mouseup", handleOnMouseUp);
-            window.addEventListener("drag", handleOnMouseUp);
+            window.addEventListener("touchend", handleOnMouseUp);
 
             const cleanUpListener = () => {
                 window.removeEventListener("mouseup", handleOnMouseUp);
-                window.addEventListener("drag", handleOnMouseUp);
+                window.addEventListener("touchend", handleOnMouseUp);
             }
             return cleanUpListener;
         }
@@ -584,7 +587,32 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                                     eventNow["endTime"] = value.month + 1 + " " + value.day + " " + value.year;
                                     eventNow["rawEndDate"] = convertMonths[value.month] + " " + value.day + ", " + value.year;
                                     eventNow["curDateTwo"] = {"year": value.year, "month": value.month, "day": value.day};
-                                    if(!currentAdditionEditing) dispatch(changeEvent({"index" : currentEvents.length-1, "value" : eventNow}));
+                                    if(!currentAdditionEditing) {
+                                        dispatch(changeEvent({"index" : currentEvents.length-1, "value" : eventNow}));
+                                    }
+                                }
+
+                                if(currentMoveEvent.isMoving) {
+                                    handleChangeEventMove(currentMoveEvent.index);
+                                    dispatch(changeHasBeenMoving(true));
+                                    setIsVisible("visibility-hidden");
+                                }
+                            }
+
+                            const handleOnTouchMove = (e) => {
+                                console.log(document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY))
+                                let startTime = new Date(currentAddition.start.month + 1 + " " + currentAddition.start.day + " " + currentAddition.start.year).getTime();
+                                let endTime = new Date(value.month + 1 + " " + value.day + " " + value.year).getTime();
+                                if(currentAdditionIsMouseDown && endTime >= startTime) {
+                                    dispatch(mouseMove({"month" : value.month, "day": value.day, "year" : value.year}));
+                                    let eventNow = {...currentEvents[currentEvents.length-1]};
+                                    eventNow["endDate"] = value.month + 1 + " " + value.day + " " + value.year;
+                                    eventNow["endTime"] = value.month + 1 + " " + value.day + " " + value.year;
+                                    eventNow["rawEndDate"] = convertMonths[value.month] + " " + value.day + ", " + value.year;
+                                    eventNow["curDateTwo"] = {"year": value.year, "month": value.month, "day": value.day};
+                                    if(!currentAdditionEditing) {
+                                        dispatch(changeEvent({"index" : currentEvents.length-1, "value" : eventNow}));
+                                    }
                                 }
 
                                 if(currentMoveEvent.isMoving) {
@@ -601,7 +629,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                             }
 
                             return (
-                                <div className="calendar-body-month-day-container" key={"calendar-body-month-day-container-" + i} onMouseDown={() => handleOnMouseDown()} onMouseMove={() => handleOnMouseMove()} style={{"gridColumn" : (i + 1) + " / " + (i + 2)}} draggable={false}>
+                                <div className="calendar-body-month-day-container" key={"calendar-body-month-day-container-" + i} onMouseDown={() => handleOnMouseDown()} onTouchStart={() => handleOnMouseDown()} onMouseMove={() => handleOnMouseMove()} onTouchMove={(e) => handleOnTouchMove(e)} style={{"gridColumn" : (i + 1) + " / " + (i + 2)}} draggable={false}>
                                     <div className="calendar-body-month-day-values" draggable={false}>
                                         <div className={"calendar-body-month-day " + value.textColor} draggable={false} onMouseDown={(e) => changeDateOnClick(e, value.month, value.day, value.year)}>{value.day}</div>
                                     </div>

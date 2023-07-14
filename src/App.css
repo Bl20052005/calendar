@@ -1,10 +1,15 @@
-@media only screen and (max-width: 600px) {
+@media only screen and (max-width: 650px) {
+    body {
+        overflow: none;
+    }
+
     .header-calendar-container {
         display: none;
     }
 
     .calendar-header {
         font-size: 16px;
+        justify-content: center;
     }
 
     .header-description-title {
@@ -24,9 +29,87 @@
     .header-signIn-profile-pic {
         display: none;
     }
+
+    .calendar-body-container {
+        width: calc(100vw);
+        height: calc(100vh - 71px);
+        position: absolute;
+        top: 71px;
+        left: 0px;
+    }
+
+    .calendar-menu {
+        display: none;
+    }
+
+    .add-event {
+        left: 10px;
+        top: 80px;
+        width: 40px;
+    }
+
+    .add-event-text {
+        display: none;
+    }
+
+    .toggle-header-menu-container {
+        display: none;
+    }
+
+    .add-event-popup {
+        width: 250px;
+        height: 500px;
+    }
+
+    .add-event-popup-time-container svg, .add-event-popup-description-container svg, 
+    .add-event-popup-color-container svg, .add-event-popup-location-container svg {
+        display: none;
+    }
+
+    .add-event-popup-description-menu {
+        display: none;
+    }
+
+    .add-event-popup-time-date {
+        font-size: 14px;
+        width: 90px;
+    }
+    
+    .add-event-popup-time-time {
+        font-size: 14px;
+        width: 60px;
+    }
+
+    .add-event-popup-repeat-advanced-settings-text {
+        display: none;
+    }
+
+    .add-event-popup-repeat-advanced-container {
+        top: 35px;
+        left: 30px;
+    }
+
+    .add-event-popup-repeat-selector {
+        top: 33px;
+        left: 85px;
+    }
+
+    .add-event-popup-description {
+        width: 200px;
+        height: 40px;
+    }
+
+    .color-palate-container {
+        width: 150px;
+        align-self: center;
+    }
+
+    .add-event-popup-location {
+        width: 200px;
+    }
 }
 
-@media only screen and (max-width: 1000px) and (min-width: 600px) {
+@media only screen and (max-width: 1000px) and (min-width: 651px) {
     .header-calendar-container {
         display: none;
     }
@@ -46,6 +129,66 @@
 
     .header-signIn-container {
         width: calc(100% - 460px);
+    }
+
+    .calendar-body-container {
+        width: calc(100vw - 281px);
+        height: calc(100vh - 71px);
+        position: absolute;
+        top: 71px;
+        left: 281px;
+    }
+
+    .calendar-menu {
+        display: flex;
+    }
+
+    .add-event {
+        width: 150px;
+        top: 95px;
+        left: 70px;
+    }
+
+    .toggle-header-menu-container {
+        display: flex;
+    }
+
+    .add-event-popup {
+        width: 400px;
+        height: 600px;
+    }
+
+    .add-event-popup-time-date {
+        font-size: 17px;
+        width: 140px;
+    }
+    
+    .add-event-popup-time-time {
+        font-size: 17px;
+        width: 100px;
+    }
+
+    .add-event-popup-repeat-advanced-container {
+        top: 35px;
+        left: 184px;
+    }
+
+    .add-event-popup-repeat-selector {
+        top: 33px;
+        left: 120px;
+    }
+
+    .add-event-popup-description {
+        width: 350px;
+        height: 70px;
+    }
+
+    .add-event-popup-description-menu {
+        display: flex;
+    }
+
+    .add-event-popup-location {
+        width: 350px;
     }
 }
 
@@ -70,6 +213,66 @@
 
     .header-signIn-container {
         width: calc(100% - 460px);
+    }
+
+    .calendar-body-container {
+        width: calc(100vw - 281px);
+        height: calc(100vh - 71px);
+        position: absolute;
+        top: 71px;
+        left: 281px;
+    }
+
+    .calendar-menu {
+        display: flex;
+    }
+
+    .add-event {
+        width: 150px;
+        top: 95px;
+        left: 70px;
+    }
+
+    .toggle-header-menu-container {
+        display: flex;
+    }
+
+    .add-event-popup {
+        width: 400px;
+        height: 600px;
+    }
+
+    .add-event-popup-time-date {
+        font-size: 17px;
+        width: 140px;
+    }
+    
+    .add-event-popup-time-time {
+        font-size: 17px;
+        width: 100px;
+    }
+
+    .add-event-popup-repeat-advanced-container {
+        top: 35px;
+        left: 184px;
+    }
+
+    .add-event-popup-repeat-selector {
+        top: 33px;
+        left: 120px;
+    }
+
+    .add-event-popup-description {
+        width: 350px;
+        height: 70px;
+    }
+
+    .add-event-popup-description-menu {
+        display: flex;
+    }
+
+    .add-event-popup-location {
+        width: 350px;
     }
 }
 
@@ -114,7 +317,6 @@ body {
 .toggle-header-menu-container {
     height: 33px;
     width: 50px;
-    display: flex;
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
@@ -243,6 +445,7 @@ body {
     width: 22px;
     border-radius: 50%;
     transition: background-color 0.2s;
+    padding: 2px;
 }
 
 .header-description-arrow-left:hover, .header-description-arrow-right:hover {
@@ -263,7 +466,6 @@ body {
     height: calc(100vh - 81px);
     position: absolute;
     border-right: 1px solid var(--division-color);
-    display: flex;
     flex-direction: column;
     align-items: center;
     gap: 15px;
@@ -296,7 +498,6 @@ body {
     gap: 10px;
     justify-content: center;
     align-items: center;
-    width: 150px;
     height: 40px;
     font-size: 25px;
     background-color: var(--clickable-background-color);
@@ -304,9 +505,7 @@ body {
     border-radius: 25px;
     cursor: pointer;
     overflow: hidden;
-    position: fixed;
-    top: 95px;
-    left: 70px;
+    position: absolute;
     z-index: 3;
 }
 
@@ -530,10 +729,14 @@ body {
     background-color: rgb(92, 157, 255);
 }
 
+.add-event-popup-position {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
 .add-event-popup {
-    position: fixed;
-    width: 400px;
-    height: 600px;
+    position: absolute;
     z-index: 5;
     display: flex;
     flex-direction: column;
@@ -542,11 +745,6 @@ body {
     padding: 30px 15px 15px 15px;
     border-radius: 20px;
     box-shadow: 0px 0px 20px 2px rgb(136, 146, 146, 0.6);
-}
-
-.add-event-popup-position {
-    top: calc((100% - 645px) / 2);
-    left: calc((100% - 430px) / 2);
 }
 
 .add-event-popup input {
@@ -613,14 +811,10 @@ body {
 }
 
 .add-event-popup-time-date {
-    font-size: 17px;
-    width: 140px;
     text-align: center;
 }
 
 .add-event-popup-time-time {
-    font-size: 17px;
-    width: 100px;
     text-align: center;
 }
 
@@ -691,15 +885,12 @@ body {
 .add-event-popup-description-menu {
     width: 20px;
     height: 20px;
-    display: flex;
     flex-direction: column;
 }
 
 .add-event-popup-description {
     resize: none;
     background-color: transparent;
-    width: 350px;
-    height: 70px;
     border-radius: 10px;
     align-self: center;
     border: 1px solid black;
@@ -733,7 +924,6 @@ body {
 
 .add-event-popup-location {
     font-size: 15px;
-    width: 350px;
     align-self: center;
 }
 
@@ -749,7 +939,14 @@ body {
     flex-wrap: wrap;
     justify-content: space-evenly;
     align-items: center;
-    height: 26px;
+}
+
+.color-palate {
+    width: 25px;
+    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .color-palate-label {
@@ -962,11 +1159,6 @@ body {
     width: 110px;
 }
 
-.add-event-popup-repeat-selector {
-    top: 33px;
-    left: 120px;
-}
-
 .add-event-popup-repeat-advanced-selector {
     top: 87px;
     left: 92px;
@@ -993,8 +1185,6 @@ body {
     gap: 5px;
     box-shadow: 2px 2px 4px rgb(71, 73, 73);
     text-align: center;
-    top: 35px;
-    left: 184px;
 }
 
 .add-event-popup-repeat-advanced-container input:invalid {
@@ -1095,17 +1285,6 @@ body {
 
 .add-event-popup-repeat-advanced-week-day-clicked {
     background-color: rgb(160, 198, 255);
-}
-
-
-
-.calendar-body-container {
-    width: calc(100vw - 281px);
-    min-width: 350px;
-    height: calc(100vh - 71px);
-    position: absolute;
-    top: 71px;
-    left: 281px;
 }
 
 
@@ -1223,7 +1402,7 @@ body {
     transition: background-color 0.2s;
 }
 
-.calendar-body-month-day:hover {
+.calendar-body-month-day:hover:not(.date-today) {
     background-color: rgb(160, 198, 255);
 }
 

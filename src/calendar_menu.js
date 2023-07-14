@@ -204,7 +204,6 @@ function BaseCalendar({currentDate, dispatch}) {
                            
                             const handleOnClick = () => {
                                 dispatch(changeDate({"month" : value[0], "day" : value[1], "year": value[3]}));
-                                dispatch(changeDateSpecifics("day"))
                             }
                             return <div onClick={() => handleOnClick()} className={"base-calendar-day " + value[2]} key={"base-calendar-day-" + index}>{value[1]}</div>
                         })}
@@ -849,12 +848,26 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
         setOriginalCoords([e.clientY - top, e.clientX - left]);
     }
 
+    const handleTouchStart = (e) => {
+        let top = e.target.getBoundingClientRect().top;
+        let left = e.target.getBoundingClientRect().left;
+        setOriginalCoords([e.touches[0].clientY - top, e.touches[0].clientX - left]);
+    }
+
     const handleMoveMouseMove = (e) => {
         if(isMouseDown) {
             let effectedClass = document.querySelector('.add-event-popup');
             effectedClass.style.top = (e.clientY - originalCoords[0]) + "px";
             effectedClass.style.left = (e.clientX - originalCoords[1]) + "px";
+            effectedClass.style.transform = "translate(0%, 0%)";
         }
+    }
+
+    const handleTouchMove = (e) => {
+        let effectedClass = document.querySelector('.add-event-popup');
+        effectedClass.style.top = (e.touches[0].clientY - originalCoords[0]) + "px";
+        effectedClass.style.left = (e.touches[0].clientX - originalCoords[1]) + "px";
+        effectedClass.style.transform = "translate(0%, 0%)";
     }
 
     document.onmousemove = handleMoveMouseMove;
@@ -867,8 +880,9 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
     const handleClickEventExit = () => {
         setIsThisVisible("visibility-hidden")
         let effectedClass = document.querySelector('.add-event-popup');
-        effectedClass.style.top = "calc((100% - 645px) / 2)";
-        effectedClass.style.left = "calc((100% - 430px) / 2)";
+        effectedClass.style.top = "50%";
+        effectedClass.style.left = "50%";
+        effectedClass.style.transform = "translate(-50%, -50%)";
         dispatch(setEditing(false));
         resetAll();
     }
@@ -1027,7 +1041,7 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
 
     return(
         <div className={'add-event-popup add-event-popup-position ' + isThisVisible}>
-            <div className='add-event-popup-move' onMouseDown={(e) => handleMoveMouseDown(e)} onMouseUp={(e) => handleMoveMouseUp(e)}>
+            <div className='add-event-popup-move' onMouseDown={(e) => handleMoveMouseDown(e)} onMouseUp={(e) => handleMoveMouseUp(e)} onTouchMove={(e) => handleTouchMove(e)} onTouchStart={(e) => handleTouchStart(e)}>
                 <svg className='add-event-popup-exit' onMouseDown={(e) => {
                     e.stopPropagation();
                     handleCancelClick();

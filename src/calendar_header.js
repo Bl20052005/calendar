@@ -188,6 +188,10 @@ function HeaderDescription({currentDate, dispatch}) {
                 curDay.setDate(curDay.getDate() + 1);
                 return {year: curDay.getFullYear(), month: curDay.getMonth(), day: curDay.getDate()};
                 break;
+            case "schedule":
+                curDay.setDate(curDay.getDate() + 1);
+                return {year: curDay.getFullYear(), month: curDay.getMonth(), day: curDay.getDate()};
+                break;
         }
     }
 
@@ -205,6 +209,10 @@ function HeaderDescription({currentDate, dispatch}) {
                 return {year: curDay.getFullYear(), month: curDay.getMonth(), day: curDay.getDate()};
                 break;
             case "day":
+                curDay.setDate(curDay.getDate() - 1);
+                return {year: curDay.getFullYear(), month: curDay.getMonth(), day: curDay.getDate()};
+                break;
+            case "schedule":
                 curDay.setDate(curDay.getDate() - 1);
                 return {year: curDay.getFullYear(), month: curDay.getMonth(), day: curDay.getDate()};
                 break;

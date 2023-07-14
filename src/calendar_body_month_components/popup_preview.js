@@ -88,20 +88,19 @@ function PopupPreview({isVisible, setIsVisible, event, dispatch, setCurReference
     const ref = useRef();
 
     useEffect(() => {
-        const HeaderDropdownMenuClicked = (e) => {
+        const makeVisibilityHiddenClick = (e) => {
             setCurReference((curReference) => {
                 if(isVisible === "visibility-visible" && ref.current && !ref.current.contains(e.target) && e.target !== curReference ) {
                     setIsVisible("visibility-hidden")
                 }
                 return curReference;
             })
-            
         }
 
-        document.addEventListener("click", HeaderDropdownMenuClicked);
+        document.addEventListener("click", makeVisibilityHiddenClick);
 
         return () => {
-            document.removeEventListener("click", HeaderDropdownMenuClicked);
+            document.removeEventListener("click", makeVisibilityHiddenClick);
         }
     }, [isVisible]);
 
