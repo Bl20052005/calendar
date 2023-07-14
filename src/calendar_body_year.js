@@ -23,9 +23,9 @@ function BodyYearMonth({currentDate, dispatch}) {
         daysInMonths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     }
 
-    let firstOfMonth = new Date(curMonth + 1 + " 1, " + curYear);
+    let firstOfMonth = new Date(curYear, curMonth, 1);
 
-    let lastOfMonth = new Date(curMonth + 1 + " " + daysInMonths[curMonth] + ", " + curYear);
+    let lastOfMonth = new Date(curYear, curMonth, daysInMonths[curMonth]);
 
     let weekAddition = [];
 
