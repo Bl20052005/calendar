@@ -5,6 +5,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { changeDate, changeDateSpecifics } from './redux_slices/dateSlice';
 import { addUndesiredColor, removeUndesiredColor, addTotalColorNumber, addTotalColor, removeTotalColor, changeTotalColorLabel, changeTotalColorIsLocked } from './redux_slices/colorSlice';
 import { changeSingleCalendarEvent, changeCalendarEvent } from './redux_slices/calendarEventSlice';
+import addZeroes from './calendar_shared_components/add_zeroes_to_dates';
+import createEventsRepeated from './calendar_body_useful_functions/create_repeating_events';
+import filterEventsStartEnd from './calendar_body_useful_functions/filter_events_start_end';
+import getHourAndMinutes from './calendar_body_useful_functions/get_hours_and_minutes';
 import { setEditing } from './redux_slices/currentAddition';
 import { current } from '@reduxjs/toolkit';
 
@@ -21,7 +25,7 @@ function AddEventPopupCalendar({currentDate, setCurrentDate, setDateInput, focus
     let curYear = curDate.year;
     let curDay = curDate.day;
 
-    curYear = new Date("January 01 " + curYear).getFullYear();
+    curYear = new Date(curYear + '-01-01T00:00').getFullYear();
 
     let today = new Date();
     today = today.getMonth() + " " + today.getDate() + " " + today.getFullYear();
@@ -40,8 +44,8 @@ function AddEventPopupCalendar({currentDate, setCurrentDate, setDateInput, focus
         daysInMonths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     }
 
-    let firstOfMonth = new Date(curMonth + 1 + " 1, " + curYear);
-    let lastOfMonth = new Date(curMonth + 1 + " " + daysInMonths[curMonth] + ", " + curYear);
+    let firstOfMonth = new Date(curYear, curMonth, 1);
+    let lastOfMonth = new Date(curYear, curMonth, daysInMonths[curMonth]);
     let weekAddition = [];
 
     for(let i = firstOfMonth.getDay() * -1 + 1; i < daysInMonths[curMonth] + 7 - lastOfMonth.getDay(); i++) {
@@ -162,9 +166,9 @@ function BaseCalendar({currentDate, dispatch}) {
         daysInMonths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     }
 
-    let firstOfMonth = new Date(curMonth + 1 + " 1, " + curYear);
+    let firstOfMonth = new Date(curYear, curMonth, 1);
 
-    let lastOfMonth = new Date(curMonth + 1 + " " + daysInMonths[curMonth] + ", " + curYear);
+    let lastOfMonth = new Date(curYear, curMonth, daysInMonths[curMonth]);
 
     let weekAddition = [];
 
@@ -266,32 +270,35 @@ function AddEventPopUpTime({previousTime = {hour: 0, minute: 0}, setPreviousTime
     for(let i = previousTime.hour; i < 24; i++) {
         for(let j = 0; j < 60; j += 15){
             if(i === previousTime.hour && j < previousTime.minute) continue; 
-            else timeArr.push([(i + 11) % 12 + 1, j, i < 12 ? "AM": "PM"]);
+            else timeArr.push([i, j, i < 12 ? "AM": "PM"]);
         }
     }
 
     let resultArr = timeArr.map((item, index) => {
+        let displayHours = (item[0] + 11) % 12 + 1;
         if(item[0] < 10) item[0] = "0" + item[0]
         if(item[1] < 10) item[1] = "0" + item[1]
+
+        const handlePopupTimeClick = (e) => {
+            console.log(displayHours)
+            setCurTime(displayHours + ":" + item[1] + " " + item[2]);
+            if(setPreviousTime !== null) {
+                let addition = 0;
+                if(e.target.innerText.substring(6) === "PM") addition = 12
+                setPreviousTime({hour: parseInt(item[0]), minute: parseInt(item[1])})
+            }
+        }
+        
         return (
-            <div className="popup-time-choices" key={"popup-time-choices-" + index}>
-                    {item[0] + ":" + item[1] + " " + item[2]}
+            <div className="popup-time-choices" key={"popup-time-choices-" + index} onClick={(e) => handlePopupTimeClick(e)}>
+                    {displayHours + ":" + item[1] + " " + item[2]}
             </div>
         )
     })
 
-    const handlePopupTimeClick = (e) => {
-        setCurTime(e.target.innerText);
-        if(setPreviousTime !== null) {
-            let addition = 0;
-            if(e.target.innerText.substring(6) === "PM") addition = 12
-            setPreviousTime({hour: parseInt(e.target.innerText.substring(0,2)) % 12 + addition, minute: parseInt(e.target.innerText.substring(3,5))})
-        }
-    }
-
     return (
         <div className={'popup-time-container ' + isVisible}>
-            <div className='popup-time' onClick={(e) => handlePopupTimeClick(e)}>
+            <div className='popup-time'>
                 {resultArr}
             </div>
         </div>
@@ -613,33 +620,52 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
 
     const getTimeIn15MinuteIntervals = (hour, minute, wantedFunction) => {
         let returnStr = "";
-
+    
         let condensedHour = ((hour + 11) % 12 + 1);
         let condensedMinute = Math.ceil(minute / 15) * 15;
         let addedDays = 0;
         let totalHours = hour;
-
+    
         condensedHour = ((condensedHour + 11 + Math.floor(condensedMinute / 60)) % 12 + 1);
+        //let condensedHour = (hour + Math.floor(condensedMinute / 60)) % 24;
         totalHours += Math.floor(condensedMinute / 60);
         addedDays = Math.floor(totalHours / 24);
         condensedMinute %= 60;
-
+    
         if(condensedHour < 10) condensedHour = "0" + condensedHour;
         if(condensedMinute < 10) condensedMinute = "0" + condensedMinute;
-
+    
         returnStr += condensedHour + ":" + condensedMinute;
-
+    
         if(totalHours % 24 > 11) {
             returnStr += " PM";
         } else {
             returnStr += " AM";
         }
-
+    
         if(wantedFunction === "date") {
             return Math.floor(condensedMinute / 60) * 60 * 60000;
         }
-
+    
         return returnStr;
+    }
+
+    const getTrueTime = (time) => {
+        let timeArr = time.trim().split(/[ :]/ig).filter((item) => item !== '');
+        if(timeArr.length === 3 && !isNaN(parseInt(timeArr[0])) && !isNaN(parseInt(timeArr[1]))) {
+            if(timeArr[2].toLowerCase() === "am" && parseInt(timeArr[0]) <= 12 && parseInt(timeArr[0]) > 0 && parseInt(timeArr[1]) < 60) {
+                if(parseInt(timeArr[0]) === 12) return "00:" + addZeroes(parseInt(timeArr[1]));
+                else return addZeroes(parseInt(timeArr[0])) + ":" + addZeroes(parseInt(timeArr[1]));
+            } else if(timeArr[2].toLowerCase() === "pm" && parseInt(timeArr[0]) <= 12 && parseInt(timeArr[0]) > 0 && parseInt(timeArr[1]) < 60) {
+                if(parseInt(timeArr[0]) === 12) return "12:" + addZeroes(parseInt(timeArr[1]));
+                else return addZeroes(parseInt(timeArr[0]) + 12) + ":" + addZeroes(parseInt(timeArr[1]));
+            }
+        } else if(timeArr.length === 2 && !isNaN(parseInt(timeArr[0])) && !isNaN(parseInt(timeArr[1]))) {
+            if(parseInt(timeArr[0]) < 24 && parseInt(timeArr[0]) >= 0 && parseInt(timeArr[1]) < 60) {
+                return addZeroes(parseInt(timeArr[0])) + ":" + addZeroes(parseInt(timeArr[1]));
+            }
+        }
+        return undefined;
     }
 
     let currentDate = new Date();
@@ -777,24 +803,59 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
         }
     }, [focusTimeVisibleTwo]);
 
+    const dateValidator = (dateString) => {
+        let checkMonths = [["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"],
+                            ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]];
+        let finalDate = null;
+        let newArr = dateString.trim().split(/[, -/]/ig).filter((item) => item !== '');
+        if(newArr.length >= 3) {
+            for(let i = 0; i < 2; i++) {
+                if(checkMonths[i].indexOf(newArr[0].toLowerCase()) !== -1) {
+                    if(Date.parse(newArr[2] + "-" + addZeroes(checkMonths[i].indexOf(newArr[0].toLowerCase()) + 1) + "-" + addZeroes(newArr[1]) + "T00:00:00")) finalDate = {"year": parseInt(newArr[2]), "month": checkMonths[i].indexOf(newArr[0].toLowerCase()), "day" : parseInt(newArr[1])};
+                } else if(checkMonths[i].indexOf(newArr[1].toLowerCase()) !== -1) {
+                    if(Date.parse(newArr[2] + "-" + addZeroes(checkMonths[i].indexOf(newArr[1].toLowerCase()) + 1) + "-" + addZeroes(newArr[0]) + "T00:00:00")) finalDate = {"year": parseInt(newArr[2]), "month": checkMonths[i].indexOf(newArr[1].toLowerCase()), "day" : parseInt(newArr[0])};
+                }
+            }
+            if(finalDate === null) {
+                if(Date.parse(newArr[0] + "-" + addZeroes(parseInt(newArr[1])) + "-" + addZeroes(parseInt(newArr[2])) + "T00:00:00")) {
+                    finalDate = {"year": parseInt(newArr[0]), "month": parseInt(newArr[1]) - 1, "day" : parseInt(newArr[2])};
+                } else if(Date.parse(newArr[2] + "-" + addZeroes(parseInt(newArr[0])) + "-" + addZeroes(parseInt(newArr[1])) + "T00:00:00")) {
+                    finalDate = {"year": parseInt(newArr[2]), "month": parseInt(newArr[0]) - 1, "day" : parseInt(newArr[1])};
+                }
+            }
+        } else {
+            finalDate = null;
+        }
+
+        return finalDate;
+    }
+
     const handleSetCurDateOne = (e) => {
-        let newArr = e.target.value.trim().split(/[, -/]/ig).filter((item) => item !== '');
-        let monthNow = new Date(newArr[0] + " 01, 2000").getMonth();
-        setCurDateOne({"year": parseInt(newArr[2]), "month": monthNow, "day" : parseInt(newArr[1])})
         setDateOneInput(e.target.value);
+        let finalDate = dateValidator(e.target.value);
+        if(finalDate !== null) {
+            setCurDateOne(finalDate);
+            setWrongInputs({"time1" : wrongInputs.time1, "time2" : wrongInputs.time2, "date1" : "", "date2" : wrongInputs.date2})
+        } else {
+            setWrongInputs({"time1" : wrongInputs.time1, "time2" : wrongInputs.time2, "date1" : "input-incorrect", "date2" : wrongInputs.date2})
+        }
     }
 
     const handleSetCurDateTwo = (e) => {
-        let newArr = e.target.value.trim().split(/[, -/]/ig).filter((item) => item !== '');
-        let monthNow = new Date(newArr[0] + " 01, 2000").getMonth();
-        setCurDateTwo({"year": parseInt(newArr[2]), "month": monthNow, "day" : parseInt(newArr[1])})
         setDateTwoInput(e.target.value);
+        let finalDate = dateValidator(e.target.value);
+        if(finalDate !== null) {
+            setCurDateTwo(finalDate);
+            setWrongInputs({"time1" : wrongInputs.time1, "time2" : wrongInputs.time2, "date1" : wrongInputs.date1, "date2" : ""});
+        } else {
+            setWrongInputs({"time1" : wrongInputs.time1, "time2" : wrongInputs.time2, "date1" : wrongInputs.date1, "date2" : "input-incorrect"});
+        }
     }
 
     useEffect(() => {
-        if(!isNaN(Date.parse("01 01 01 " + curTimeOne)) && !isNaN(Date.parse("01 01 01 " + curTimeTwo)) && curDateOne.year === curDateTwo.year && curDateOne.month === curDateTwo.month && curDateOne.day === curDateTwo.day) {
-            let dateNow = new Date("01 01 01 " + curTimeOne);
-            let dateTwo = new Date("01 01 01 " + curTimeTwo);
+        if(getTrueTime(curTimeOne) !== undefined && getTrueTime(curTimeTwo) !== undefined && curDateOne.year === curDateTwo.year && curDateOne.month === curDateTwo.month && curDateOne.day === curDateTwo.day) {
+            let dateNow = new Date("2000-01-01T" + getTrueTime(curTimeOne));
+            let dateTwo = new Date("2000-01-01T" + getTrueTime(curTimeTwo));
             if(dateNow.getHours() > dateTwo.getHours() || (dateNow.getHours() >= dateTwo.getHours() && dateNow.getMinutes() > dateTwo.getMinutes())) {
                 setCurTimeTwo(getTimeIn15MinuteIntervals(dateNow.getHours(), dateNow.getMinutes()));
             }
@@ -802,21 +863,23 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
     }, [curTimeOne, dateOneInput, dateTwoInput]);
 
     useEffect(() => {
-        let finalObj = {}
-        if(isNaN(Date.parse("01 01 01 " + curTimeOne)) || curTimeOne === "") finalObj["time1"] = "input-incorrect";
+        let finalObj = {...wrongInputs};
+        if(getTrueTime(curTimeOne) === undefined) finalObj["time1"] = "input-incorrect";
         else finalObj["time1"] = "";
-        if(isNaN(Date.parse("01 01 01 " + curTimeTwo)) || curTimeTwo === "") finalObj["time2"] = "input-incorrect";
+        if(getTrueTime(curTimeTwo) === undefined) finalObj["time2"] = "input-incorrect";
         else finalObj["time2"] = "";
-        if(isNaN(Date.parse(dateOneInput)) || dateOneInput.length < 5) finalObj["date1"] = "input-incorrect";
+        if(dateValidator(dateOneInput) === null) finalObj["date1"] = "input-incorrect";
         else finalObj["date1"] = "";
-        if(isNaN(Date.parse(dateTwoInput)) || dateTwoInput.length < 5) finalObj["date2"] = "input-incorrect";
+        if(dateValidator(dateTwoInput) === null) finalObj["date2"] = "input-incorrect";
         else finalObj["date2"] = "";
 
         if(finalObj.time1 !== "input-incorrect" && finalObj.time2 !== "input-incorrect" && finalObj.date1 !== "input-incorrect" && finalObj.date2 !== "input-incorrect") {
-            let dayOne = new Date(dateOneInput)
-            let dayTwo = new Date(dateTwoInput)
-            dayOne = new Date(dayOne.getMonth() + 1 + " " + dayOne.getDate() + " " + dayOne.getFullYear() + " " + curTimeOne);
-            dayTwo = new Date(dayTwo.getMonth() + 1 + " " + dayTwo.getDate() + " " + dayTwo.getFullYear() + " " + curTimeTwo);
+            let dayOne = dateValidator(dateOneInput);
+            let dayTwo = dateValidator(dateTwoInput);
+            dayOne = new Date(dayOne.year + '-' + addZeroes(dayOne.month + 1) + '-' + addZeroes(dayOne.day) + 'T' + getTrueTime(curTimeOne));
+            dayTwo = new Date(dayTwo.year + '-' + addZeroes(dayTwo.month + 1) + '-' + addZeroes(dayTwo.day) + 'T' + getTrueTime(curTimeTwo));
+            console.log(dayOne)
+            console.log(dateValidator(dateOneInput))
             if(dayOne.getTime() > dayTwo.getTime()) {
                 if(dayOne.getFullYear() === dayTwo.getFullYear() && dayOne.getMonth() === dayTwo.getMonth() && dayOne.getDate() === dayTwo.getDate()) {
                     finalObj["time1"] = "input-incorrect";
@@ -828,10 +891,10 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
         }
 
         if(finalObj.time1 === "input-incorrect" || finalObj.time2 === "input-incorrect") {
-            let dayOne = new Date(dateOneInput)
-            let dayTwo = new Date(dateTwoInput)
-            dayOne = new Date(dayOne.getMonth() + 1 + " " + dayOne.getDate() + " " + dayOne.getFullYear());
-            dayTwo = new Date(dayTwo.getMonth() + 1 + " " + dayTwo.getDate() + " " + dayTwo.getFullYear());
+            let dayOne = dateValidator(dateOneInput);
+            let dayTwo = dateValidator(dateTwoInput);
+            dayOne = new Date(dayOne.year + '-' + addZeroes(dayOne.month + 1) + '-' + addZeroes(dayOne.day));
+            dayTwo = new Date(dayTwo.year + '-' + addZeroes(dayTwo.month + 1) + '-' + addZeroes(dayTwo.day));
             if(dayOne.getTime() > dayTwo.getTime()) {
                 finalObj["date1"] = "input-incorrect";
             }
@@ -899,25 +962,27 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
     const handleClickEventSave = () => {
         const handleSubmit = () => {
             let finalObj = {};
-            let TimeOne = "";
-            let TimeTwo = "";
+            let TimeOne = "T00:00:00";
+            let TimeTwo = "T00:00:00";
             if(!isAllDay.one) {
-                TimeOne = curTimeOne;
+                TimeOne = "T" + getTrueTime(curTimeOne);
             }
             if(!isAllDay.two) {
-                TimeTwo = curTimeTwo;
+                TimeTwo = "T" + getTrueTime(curTimeTwo);
             }
             if(curTitle === "") {
                 finalObj["title"] = "[No Title]";
             } else {
                 finalObj["title"] = curTitle;
             }
-            let dayOne = new Date(dateOneInput);
-            let dayTwo = new Date(dateTwoInput);
-            finalObj["startDate"] = dayOne.getMonth() + 1 + " " + dayOne.getDate() + " " + dayOne.getFullYear();
-            finalObj["endDate"] = dayTwo.getMonth() + 1 + " " + dayTwo.getDate() + " " + dayTwo.getFullYear();
-            finalObj["startTime"] = dayOne.getMonth() + 1 + " " + dayOne.getDate() + " " + dayOne.getFullYear() + " " + TimeOne;
-            finalObj["endTime"] = dayTwo.getMonth() + 1 + " " + dayTwo.getDate() + " " + dayTwo.getFullYear() + " " + TimeTwo;
+            let dayOne = dateValidator(dateOneInput);
+            let dayTwo = dateValidator(dateTwoInput);
+            // dayOne = new Date(dayOne.year + '-' + addZeroes(dayOne.month + 1) + '-' + addZeroes(dayOne.day));
+            // dayTwo = new Date(dayTwo.year + '-' + addZeroes(dayTwo.month + 1) + '-' + addZeroes(dayTwo.day));
+            finalObj["startDate"] = dayOne.year + '-' + addZeroes(dayOne.month + 1) + '-' + addZeroes(dayOne.day) + "T00:00:00";
+            finalObj["endDate"] = dayTwo.year + '-' + addZeroes(dayTwo.month + 1) + '-' + addZeroes(dayTwo.day) + "T00:00:00";
+            finalObj["startTime"] = dayOne.year + '-' + addZeroes(dayOne.month + 1) + '-' + addZeroes(dayOne.day) + TimeOne;
+            finalObj["endTime"] = dayTwo.year + '-' + addZeroes(dayTwo.month + 1) + '-' + addZeroes(dayTwo.day) + TimeTwo;
             finalObj["rawStartDate"] = dateOneInput;
             finalObj["rawStartTime"] = curTimeOne;
             finalObj["rawEndDate"] = dateTwoInput;
@@ -934,6 +999,8 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
             finalObj["repeatSpecifics"] = repeatSpecifics;
             finalObj["repeatEnding"] = repeatEnding;
             finalObj["repeatExceptions"] = repeatExceptions;
+
+            console.log(finalObj)
 
             if(currentCalendarDate.functionWanted === "edit-delete") {
                 dispatch(changeEvent({"index" : currentCalendarDate.editingIndex, "value" : finalObj}));
@@ -1126,94 +1193,88 @@ function AddEvent({dispatch}) {
     )
 }
 
-function TodayEvents({currentEvents, curentUnwantedColors}) {
-    const getHourAndMinutes = (hour, minute, isAllDay) => {
-        if(isAllDay) {
-            return "All Day";
-        }
+function TodayEvents({currentEvents, currentUnwantedColors, currentDate}) {
+
+    function getDisplayTime(event, date) {
         let returnStr = "";
-
-        let condensedHour = ((hour + 11) % 12 + 1);
-
-        if(condensedHour < 10) condensedHour = "0" + condensedHour;
-        if(minute < 10) minute = "0" + minute;
-
-        returnStr += condensedHour + ":" + minute;
-
-        if(hour % 24 > 11) {
-            returnStr += " PM";
+        let eventStartDate = new Date(event.startDate);
+        let eventEndDate = new Date(event.endDate);
+        let eventStartTime = new Date(event.startTime);
+        let eventEndTime = new Date(event.endTime);
+        if(eventStartDate.getTime() === eventEndDate.getTime()) {
+            if(event.isAllDay.one) {
+                return "All Day";
+            }
+            let start = getHourAndMinutes(eventStartTime.getHours(), eventStartTime.getMinutes());
+            returnStr = start;
         } else {
-            returnStr += " AM";
+            if(eventStartDate.getTime() === date.getTime()) {
+                return `${getHourAndMinutes(eventStartTime.getHours(), eventStartTime.getMinutes())}`;
+            }
+            if(eventEndDate.getTime() === date.getTime()) {
+                return `Until ${getHourAndMinutes(eventEndTime.getHours(), eventEndTime.getMinutes())}`;
+            }
+            return `All Day`;
         }
-
+    
         return returnStr;
     }
 
-    const filterEvents = (event, year, month, day, curentUnwantedColors) => {
-        let eventDate = new Date(event.startTime);
-        return (eventDate.getDate() === day && 
-        eventDate.getMonth() === month &&
-        eventDate.getFullYear() === year &&
-        curentUnwantedColors.indexOf(event.color) === -1);
-    }
+    let curDate = currentDate;
+        curDate = new Date(curDate.year, curDate.month, curDate.day)
+        let eventsToday = [...currentEvents].map((event, index) => {
+            let objNow = {"index" : index}
+            let returnedObj = Object.assign(objNow, event)
+            return returnedObj;
+        }).filter((event) => {
+            return event.repeat;
+        }).map((event) => {
+            return createEventsRepeated(event, curDate.getTime(), new Date(curDate.getFullYear(), curDate.getMonth(), curDate.getDate() + 1).getTime());
+        }).flat().filter((event) => {
+            return filterEventsStartEnd(event, curDate, curDate, currentUnwantedColors);
+        }).concat([...currentEvents].map((event, index) => {
+            let objNow = {"index" : index}
+            let returnedObj = Object.assign(objNow, event)
+            return returnedObj;
+        }).filter((event) => {
+            return !event.repeat && filterEventsStartEnd(event, curDate, curDate, currentUnwantedColors);
+        })).sort((a, b) => {
+            return (new Date(a.startTime).getTime()) - (new Date(b.startTime).getTime())
+        })
+        let eventsTodayAllDay = eventsToday.filter((event) => {
+            return getDisplayTime(event, curDate) === "All Day";
+        })
+        let eventsTodayNotAllDay = eventsToday.filter((event) => {
+            return getDisplayTime(event, curDate) !== "All Day";
+        })
 
-    const filterEventsLong = (event, currentUnwantedColors) => {
-        let eventDateEnd = new Date(event.endDate).getTime();
-        let eventDateStart = new Date(event.startDate).getTime();
-        let newDate = new Date();
-        newDate = new Date(newDate.getMonth() + 1 + " " + newDate.getDate() + " " + newDate.getFullYear()).getTime();
-        
+        eventsToday = eventsTodayNotAllDay.concat(eventsTodayAllDay);
 
-        if(eventDateEnd < newDate) {
-            return false;
-        }
+        let returnEvents = eventsToday.map((item, index) => {
+            return (<div className='today-events-item-container' key={"today-events-" + index}>
+                <div className='today-events-item'>
+                    <div className="today-events-item-color" style={{"backgroundColor": item.color}}></div>
+                    <div className="today-events-item-time">{getDisplayTime(item, curDate)}</div>
+                    <div className='today-events-item-name'>{item.title}</div>
+                </div>
+                <div className='today-events-divider-line'></div>
+            </div>);
+        });
 
-        if(eventDateStart > newDate) {
-            return false;
-        }
 
-        return currentUnwantedColors.indexOf(event.color) === -1 && eventDateEnd !== eventDateStart && eventDateStart !== newDate;
-    }
 
-    let newDate = new Date();
-
-    //const currentEvents = [["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"],["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"],["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"],["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"], ["Kazuha", "red"]];
-    const currentEventsAllDay = [...currentEvents].filter((event) => event.isAllDay.one && filterEvents(event, newDate.getFullYear(), newDate.getMonth(), newDate.getDate(), curentUnwantedColors))
-    const currentEventsLong = [...currentEvents].filter((event) => filterEventsLong(event, curentUnwantedColors));
-    const currentEventsJSX = [...currentEvents].filter((event) => !event.isAllDay.one && filterEvents(event, newDate.getFullYear(), newDate.getMonth(), newDate.getDate(), curentUnwantedColors)).sort((a, b) => {
-        return (new Date(a.startTime).getHours() * 60 + new Date(a.startTime).getMinutes()) - (new Date(b.startTime).getHours() * 60 + new Date(b.startTime).getMinutes())
-    }).concat(...currentEventsAllDay).concat(...currentEventsLong).map((item, index) => {
-        let eventDateEnd = new Date(item.endDate).getTime();
-        let eventDateStart = new Date(item.startDate).getTime();
-        let newDate = new Date();
-        newDate = new Date(newDate.getMonth() + 1 + " " + newDate.getDate() + " " + newDate.getFullYear()).getTime();
-        let eventTime = "All Day";
-        if(eventDateStart === newDate) {
-            eventTime = getHourAndMinutes(new Date(item.startTime).getHours(), new Date(item.startTime).getMinutes(), item.isAllDay.one)
-        } else if(eventDateEnd === newDate) {
-            eventTime = getHourAndMinutes(new Date(item.endTime).getHours(), new Date(item.endTime).getMinutes(), item.isAllDay.two)
-        }
-        return (<div className='today-events-item-container' key={"today-events-" + index}>
-            <div className='today-events-item'>
-                <div className="today-events-item-color" style={{"backgroundColor": item.color}}></div>
-                <div className="today-events-item-time">{eventTime}</div>
-                <div className='today-events-item-name'>{item.title}</div>
-            </div>
-            <div className='today-events-divider-line'></div>
-        </div>);
-    });
     return(
         <div className='today-events-container'>
             <div className='today-events-text'>Today's Agenda...</div>
             <div className='today-events'>
-                {currentEventsJSX}
+                {returnEvents}
             </div>
         </div>
     );
     
 }
 
-function ColorChooser({curentUnwantedColors, dispatch, currentColors, currentColorLabels, currentColorIsLocked}) {
+function ColorChooser({currentUnwantedColors, dispatch, currentColors, currentColorLabels, currentColorIsLocked}) {
     let colors = ["#9fc0f5", "#4332d9", "#ae99e0", "#320699", "#c979bf", "#8a0e79", "#cf5f66", "#9e0812", "#93db7f", "#26820d", "#7adedc", "#0da3a1"];
     colors = colors.filter((color) => {
         return currentColors.indexOf(color) !== -1
@@ -1221,10 +1282,10 @@ function ColorChooser({curentUnwantedColors, dispatch, currentColors, currentCol
 
 
     const handleColorCheckboxChange = (e, color) => {
-        if(!e.target.checked && curentUnwantedColors.indexOf(color) === -1) {
+        if(!e.target.checked && currentUnwantedColors.indexOf(color) === -1) {
             dispatch(addUndesiredColor(color));
         } else {
-            let index = curentUnwantedColors.indexOf(color);
+            let index = currentUnwantedColors.indexOf(color);
             if(index !== -1) {
                 dispatch(removeUndesiredColor(index));
             }
@@ -1288,7 +1349,7 @@ function ColorChooser({curentUnwantedColors, dispatch, currentColors, currentCol
 function Menu() {
     const currentEvents = useSelector((state) => state.event.events);
     const currentDate = useSelector((state) => state.date);
-    const curentUnwantedColors = useSelector((state) => state.color.undesiredColors);
+    const currentUnwantedColors = useSelector((state) => state.color.undesiredColors);
     const currentColors = useSelector((state) => state.color.totalColors);
     const currentColorLabels = useSelector((state) => state.color.totalColorsLabel);
     const currentColorIsLocked = useSelector((state) => state.color.totalColorsisLocked);
@@ -1304,9 +1365,9 @@ function Menu() {
                 <div className="calendar-menu-scroll">
                     <BaseCalendar currentDate={currentDate} dispatch={dispatch}/>
                     <div className='calendar-menu-divider-line'></div>
-                    <TodayEvents currentEvents={currentEvents} curentUnwantedColors={curentUnwantedColors}/>
+                    <TodayEvents currentEvents={currentEvents} currentUnwantedColors={currentUnwantedColors} currentDate={currentDate}/>
                     <div className='calendar-menu-divider-line'></div>
-                    <ColorChooser curentUnwantedColors={curentUnwantedColors} dispatch={dispatch} currentColors={currentColors} currentColorLabels={currentColorLabels} currentColorIsLocked={currentColorIsLocked}/>
+                    <ColorChooser currentUnwantedColors={currentUnwantedColors} dispatch={dispatch} currentColors={currentColors} currentColorLabels={currentColorLabels} currentColorIsLocked={currentColorIsLocked}/>
                 </div>  
             </div>
         </React.Fragment>

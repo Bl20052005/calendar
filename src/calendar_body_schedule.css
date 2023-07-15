@@ -77,6 +77,7 @@
     z-index: 2;
     width: calc(100% - 5px);
     padding: 3px 0px;
+    overflow: hidden;
 }
 
 .calendar-body-schedule-event:hover {
@@ -96,5 +97,7 @@
 
 .calendar-body-schedule-event-title {
     position: absolute;
-    left: 210px;
+    left: 180px;
+    width: calc(100% - 188px);
+    overflow: hidden;
 }

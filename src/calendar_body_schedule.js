@@ -93,6 +93,14 @@ function ScheduleDays(props) {
         }).sort((a, b) => {
             return (new Date(a.startTime).getTime()) - (new Date(b.startTime).getTime())
         })
+        let eventsTodayAllDay = eventsToday.filter((event) => {
+            return getDisplayTime(event, curDate) === "All Day";
+        })
+        let eventsTodayNotAllDay = eventsToday.filter((event) => {
+            return getDisplayTime(event, curDate) !== "All Day";
+        })
+
+        eventsToday = eventsTodayNotAllDay.concat(eventsTodayAllDay);
         totalEventsNum += eventsToday.length;
         totalEvents.push({"date" : curDate, "events" : eventsToday});
         if(totalEventsNum > 100) break;

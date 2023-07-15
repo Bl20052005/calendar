@@ -11,6 +11,7 @@ import createEventsRepeated from './calendar_body_useful_functions/create_repeat
 import filterEventsStartEnd from './calendar_body_useful_functions/filter_events_start_end';
 import getHourAndMinutes from './calendar_body_useful_functions/get_hours_and_minutes';
 import PopupPreview from './calendar_body_month_components/popup_preview';
+import addZeroes from './calendar_shared_components/add_zeroes_to_dates';
 import { current } from '@reduxjs/toolkit';
 
 
@@ -35,67 +36,33 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
         daysInMonths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     }
 
-    let firstOfMonth = new Date(curMonth + 1 + " 1, " + curYear);
+    let firstOfMonth = new Date(curYear, curMonth, 1);
 
-    let lastOfMonth = new Date(curMonth + 1 + " " + daysInMonths[curMonth] + ", " + curYear);
+    let lastOfMonth = new Date(curYear, curMonth, daysInMonths[curMonth]);
 
     let weekAddition = [];
 
     const startEndDates = () => {
 
         const dateHelper = (date) => {
-
-            let yearNow = curYear;
-            let monthNow = curMonth;
-            let dayNow = date;
-
-            if(date < 0) {
-                if(curMonth === 0) yearNow -= 1;
-                monthNow = (12 + monthNow - 1) % 12;
-                dayNow = daysInMonths[monthNow] + dayNow + 1;
-            } else if(date > daysInMonths[monthNow]) {
-                if(curMonth === 11) yearNow += 1;
-                monthNow = (monthNow + 1) % 12;
-                dayNow = dayNow - daysInMonths[curMonth];
-            } else if(date === daysInMonths[monthNow]) {
-                dayNow = dayNow;
-            } else if(date === 0) {
-                dayNow++;
-            }
-    
-            return new Date(monthNow + 1 + " " + dayNow + " " + yearNow)
+            return new Date(curYear, curMonth, date + 1)
         }
 
-        const dateHelperModified = (date) => {
-
-            let yearNow = curYear;
-            let monthNow = curMonth;
-            let dayNow = date + 1;
-
-            if(dayNow < 1) {
-                if(curMonth === 0) yearNow -= 1;
-                monthNow = (12 + monthNow - 1) % 12;
-                dayNow = daysInMonths[monthNow] + dayNow;
-            } else if(dayNow > daysInMonths[monthNow]) {
-                if(curMonth === 11) yearNow += 1;
-                monthNow = (monthNow + 1) % 12;
-                dayNow = dayNow - daysInMonths[curMonth];
-            }
-    
-            return new Date(monthNow + 1 + " " + dayNow + " " + yearNow)
+        const dateHelperMinus = (date) => {
+            return new Date(curYear, curMonth, date - 1)
         }
 
         let returnValue = [];
 
         for(let i = firstOfMonth.getDay() * -1; i < daysInMonths[curMonth] + 7 - lastOfMonth.getDay(); i += 7) {
-            returnValue.push(dateHelperModified(i));
+            returnValue.push(dateHelper(i));
         }
 
         let weekTime = returnValue.map((week) => {
             return week;
         })
 
-        return([dateHelper(firstOfMonth.getDay() * -1), dateHelper(daysInMonths[curMonth] + 7 - lastOfMonth.getDay()), weekTime])
+        return([dateHelper(firstOfMonth.getDay() * -1), dateHelperMinus(daysInMonths[curMonth] + 7 - lastOfMonth.getDay()), weekTime])
     }
 
     const getWeek = (event) => {
@@ -104,6 +71,8 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
         let eventEndWeekDay = new Date(event.endDate);
         let startWeek = -1;
         let endWeek = 6;
+
+        //console.log(weekTime)
 
         for(let i = 0; i < weekTime.length - 1; i++) {
             if(eventStartWeekDay.getTime() >= weekTime[i].getTime() && eventStartWeekDay.getTime() < weekTime[i+1].getTime()) {
@@ -118,6 +87,8 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                 break;
             }
         }
+
+        //console.log({"eventStartWeek" : startWeek, "eventStartDay" : eventStartWeekDay.getDay(), "eventEndWeek" : endWeek, "eventEndDay" : eventEndWeekDay.getDay()})
         
         return {"eventStartWeek" : startWeek, "eventStartDay" : eventStartWeekDay.getDay(), "eventEndWeek" : endWeek, "eventEndDay" : eventEndWeekDay.getDay()};
     }
@@ -180,7 +151,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
         }).filter((event) => {
             return !(new Date(event.startDate).getTime() !== new Date(event.endDate).getTime()) && event.repeat && currentUnwantedColors.indexOf(event.color) === -1;
         }).map((event) => {
-            return createEventsRepeated(event, new Date(monthNow + 1 + " " + dayNow + " " + yearNow).getTime(), new Date(monthNow + 1 + " " + dayNow + " " + yearNow).getTime());
+            return createEventsRepeated(event, new Date(yearNow, monthNow, dayNow).getTime(), new Date(yearNow, monthNow, dayNow).getTime());
         }).flat().map((event) => {
             let objNow = {"weekAndDay" : getWeek(event)}
             let returnedObj = Object.assign(objNow, event)
@@ -190,7 +161,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
             let returnedObj = Object.assign(objNow, event)
             return returnedObj;
         }).filter((event) => {
-            return filterEventsStartEnd(event, new Date(monthNow + 1 + " " + dayNow + " " + yearNow), new Date(monthNow + 1 + " " + dayNow + " " + yearNow), currentUnwantedColors) && !(new Date(event.startDate).getTime() !== new Date(event.endDate).getTime()) && !event.repeat
+            return filterEventsStartEnd(event, new Date(yearNow, monthNow, dayNow), new Date(yearNow, monthNow, dayNow), currentUnwantedColors) && !(new Date(event.startDate).getTime() !== new Date(event.endDate).getTime()) && !event.repeat
         }).map((event) => {
             let objNow = {"weekAndDay" : getWeek(event)}
             let returnedObj = Object.assign(objNow, event)
@@ -199,7 +170,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
             return (new Date(a.startTime).getHours() * 60 + new Date(a.startTime).getMinutes()) - (new Date(b.startTime).getHours() * 60 + new Date(b.startTime).getMinutes())
         });
 
-        let numberOfEvents = longEvents.filter((event) => filterEventsStartEnd(event, new Date(monthNow + 1 + " " + dayNow + " " + yearNow), new Date(monthNow + 1 + " " + dayNow + " " + yearNow), currentUnwantedColors)).length + eventsToday.length;
+        let numberOfEvents = longEvents.filter((event) => filterEventsStartEnd(event, new Date(yearNow, monthNow, dayNow), new Date(yearNow, monthNow, dayNow), currentUnwantedColors)).length + eventsToday.length;
 
         weekAddition.push({"year" : yearNow, "month" : monthNow, "day" : dayNow, "textColor" : textColor, "eventsToday" : eventsToday, "numberOfEvents" : numberOfEvents});
 
@@ -325,7 +296,6 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                 }
 
                 const handleEventsOnMouseDown = (e) => {
-                    console.log(e.target)
                     setCurReference(e.target);
                     dispatch(changeIndex(event.index));
                     dispatch(changeisMoving(true));
@@ -344,7 +314,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
         })
 
         let numEventsVar = item.map((value, i) => {
-            let curDateStr = value.month + 1 + " " + value.day + " " + value.year;
+            let curDateStr = value.year + "-" + addZeroes(value.month + 1) + "-" + addZeroes(value.day) + 'T00:00:00';
             let extraEvents = longEvents.filter((event) => {
                 return filterEventsStartEnd(event, curDateStr, curDateStr, currentUnwantedColors);
             });
@@ -353,7 +323,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
             let numEventsStr = "";
             let combinedEvents = value.eventsToday.concat(...extraEvents);
             //dispatch(changeViewAllContents({"date" : new Date(value.month + 1 + " " + value.day + " " + value.year), "column" : new Date(value.month + 1 + " " + value.day + " " + value.year).getDay(), "row" : index, "events" : combinedEvents, "visibility" : "visibility-visible"}))
-            let curColumn = new Date(value.month + 1 + " " + value.day + " " + value.year).getDay() + 1;
+            let curColumn = new Date(value.year, value.month, value.day).getDay() + 1;
             if(numEvents > 3) {
                 numEventsStr = "View More (" + numEvents + ")";
             } else {
@@ -361,7 +331,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
             }
 
             const handleViewAllOnClick = () => {
-                dispatch(changeViewAllContents({"date" : value.month + 1 + " " + value.day + " " + value.year, "month": convertMonths[value.month], "day" : value.day, "column" : new Date(value.month + 1 + " " + value.day + " " + value.year).getDay(), "row" : index, "events" : combinedEvents, "visibility" : "visibility-visible", "numberOfWeeks" : calendarArray.length}))
+                dispatch(changeViewAllContents({"date" : value.year + "-" + addZeroes(value.month + 1) + "-" + addZeroes(value.day) + 'T00:00:00', "month": convertMonths[value.month], "day" : value.day, "column" : new Date(value.year, value.month, value.day).getDay(), "row" : index, "events" : combinedEvents, "visibility" : "visibility-visible", "numberOfWeeks" : calendarArray.length}))
             }
 
             if(numEvents > 3) return (
@@ -450,6 +420,8 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
 
     });
 
+    //console.log(calendarArray)
+
     const returnValue = calendarArray.map((item, index) =>
                     <div className='calendar-body-month-week-group' key={"calendar-body-month-week-" + index}>
                         <div className='calendar-body-month-week-group-events'>
@@ -508,11 +480,11 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                                 let curEvent = {...currentEvents[currentIndex]};
                                 let curEventStart = new Date(curEvent.startDate).getTime();
                                 let curEventEnd = new Date(curEvent.endDate).getTime();
-                                let timeDifference = Math.round((new Date(value.month + 1 + " " + value.day + " " + value.year).getTime() - curEventStart) / 86400000) * 86400000;
-                                curEventStart = new Date(Math.round((curEventStart + timeDifference) / 86400000) * 86400000 + new Date().getTimezoneOffset()*60000);
+                                let timeDifference = Math.round((new Date(value.year, value.month, value.day).getTime() - curEventStart) / 86400000) * 86400000;
+                                curEventStart = new Date(Math.round((curEventStart + timeDifference) / 86400000) * 86400000 + new Date().getTimezoneOffset() * 60000);
                                 curEventEnd = new Date(Math.round((curEventEnd + timeDifference) / 86400000) * 86400000 + new Date().getTimezoneOffset()*60000);
-                                let curEventStartStr = (curEventStart.getMonth() + 1 + " " + curEventStart.getDate() + " " + curEventStart.getFullYear());
-                                let curEventEndStr = (curEventEnd.getMonth() + 1 + " " + curEventEnd.getDate() + " " + curEventEnd.getFullYear());
+                                let curEventStartStr = (curEventStart.getFullYear() + "-" + addZeroes(curEventStart.getMonth() + 1) + "-" + addZeroes(curEventStart.getDate()) + 'T00:00:00');
+                                let curEventEndStr = (curEventEnd.getFullYear() + "-" + addZeroes(curEventEnd.getMonth() + 1) + "-" + addZeroes(curEventEnd.getDate()) + 'T00:00:00');
                                 let curEventStartStrMonth = (convertMonths[curEventStart.getMonth()] + " " + curEventStart.getDate() + ", " + curEventStart.getFullYear());
                                 let curEventEndStrMonth = (convertMonths[curEventEnd.getMonth()] + " " + curEventEnd.getDate() + ", " + curEventEnd.getFullYear());
                                 let curDateOne = {"year": curEventStart.getFullYear(), "month": curEventStart.getMonth(), "day": curEventStart.getDate()};
@@ -523,25 +495,26 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                             }
 
                             const handleChangeEventMove = (currentIndex) => {
+                                //console.log('hmmmmmmmmmmm')
                                 let curEvent = {...currentEvents[currentIndex]};
                                 let curEventStart = new Date(curEvent.startDate).getTime();
                                 let curEventEnd = new Date(curEvent.endDate).getTime();
-                                //console.log(new Date(curEventStart) + "             " + new Date(curEventEnd))
-                                //let [curEventStart, curEventEnd] = dateDifference(curStart, curEnd, new Date(value.month + 1 + " " + value.day + " " + value.year));
-                                let timeDifference = Math.round((new Date(value.month + 1 + " " + value.day + " " + value.year).getTime() - curEventStart) / 86400000) * 86400000;
+                                //console.log(new Date(value.year, value.month, value.day))
+                                let timeDifference = Math.round((new Date(value.year, value.month, value.day).getTime() - curEventStart) / 86400000) * 86400000;
                                 //console.log(new Date(Math.round((curEventStart + timeDifference) / 86400000) * 86400000) + "        " + new Date(curEventStart + timeDifference))
-                                curEventStart = new Date(Math.round((curEventStart + timeDifference) / 86400000) * 86400000 + new Date().getTimezoneOffset()*60000);
-                                curEventEnd = new Date(Math.round((curEventEnd + timeDifference) / 86400000) * 86400000 + new Date().getTimezoneOffset()*60000);
-                                let curEventStartStr = (curEventStart.getMonth() + 1 + " " + curEventStart.getDate() + " " + curEventStart.getFullYear());
-                                let curEventEndStr = (curEventEnd.getMonth() + 1 + " " + curEventEnd.getDate() + " " + curEventEnd.getFullYear());
+                                curEventStart = new Date(Math.round((curEventStart + timeDifference) / 86400000) * 86400000 + new Date().getTimezoneOffset() * 60000);
+                                curEventEnd = new Date(Math.round((curEventEnd + timeDifference) / 86400000) * 86400000 + new Date().getTimezoneOffset() * 60000);
+                                let curEventStartStr = (curEventStart.getFullYear() + "-" + addZeroes(curEventStart.getMonth() + 1) + "-" + addZeroes(curEventStart.getDate()));
+                                let curEventEndStr = (curEventEnd.getFullYear() + "-" + addZeroes(curEventEnd.getMonth() + 1) + "-" + addZeroes(curEventEnd.getDate()));
                                 let curEventStartStrMonth = (convertMonths[curEventStart.getMonth()] + " " + curEventStart.getDate() + ", " + curEventStart.getFullYear());
                                 let curEventEndStrMonth = (convertMonths[curEventEnd.getMonth()] + " " + curEventEnd.getDate() + ", " + curEventEnd.getFullYear());
                                 let curDateOne = {"year": curEventStart.getFullYear(), "month": curEventStart.getMonth(), "day": curEventStart.getDate()};
                                 let curDateTwo = {"year": curEventEnd.getFullYear(), "month": curEventEnd.getMonth(), "day": curEventEnd.getDate()};
-                                let objNow = {"startDate" : curEventStartStr, "endDate" : curEventEndStr, "rawStartDate" : curEventStartStrMonth, "rawEndDate" : curEventEndStrMonth, "curDateOne" : curDateOne, "curDateTwo" : curDateTwo};
-                                objNow["startTime"] = (curEventStartStr + " " + new Date(curEvent.startTime).getHours() + ":" + new Date(curEvent.startTime).getMinutes())
-                                objNow["endTime"] = (curEventEndStr + " " + new Date(curEvent.endTime).getHours() + ":" + new Date(curEvent.endTime).getMinutes())
+                                let objNow = {"startDate" : curEventStartStr + "T00:00:00", "endDate" : curEventEndStr + "T00:00:00", "rawStartDate" : curEventStartStrMonth, "rawEndDate" : curEventEndStrMonth, "curDateOne" : curDateOne, "curDateTwo" : curDateTwo};
+                                objNow["startTime"] = (curEventStartStr + "T" + new Date(curEvent.startTime).getHours() + ":" + new Date(curEvent.startTime).getMinutes())
+                                objNow["endTime"] = (curEventEndStr + "T" + new Date(curEvent.endTime).getHours() + ":" + new Date(curEvent.endTime).getMinutes())
                                 let returnedObj = Object.assign(curEvent, objNow);
+                                //console.log(returnedObj)
                                 dispatch(changeEvent({"index" : currentIndex, "value" : returnedObj}));
                             }
                             
@@ -549,10 +522,10 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                                 dispatch(mouseDown({"start" : {"month" : value.month, "day": value.day, "year" : value.year}, "end" : {"month" : value.month, "day": value.day, "year" : value.year}}));
                                 let finalObj = {};
                                 finalObj["title"] = "[No Title]";
-                                finalObj["startDate"] = value.month + 1 + " " + value.day + " " + value.year;
-                                finalObj["endDate"] = value.month + 1 + " " + value.day + " " + value.year;
-                                finalObj["startTime"] = value.month + 1 + " " + value.day + " " + value.year;
-                                finalObj["endTime"] = value.month + 1 + " " + value.day + " " + value.year;
+                                finalObj["startDate"] = value.year + "-" + addZeroes(value.month + 1) + "-" + addZeroes(value.day) + 'T00:00:00';
+                                finalObj["endDate"] = value.year + "-" + addZeroes(value.month + 1) + "-" + addZeroes(value.day) + 'T00:00:00';
+                                finalObj["startTime"] = value.year + "-" + addZeroes(value.month + 1) + "-" + addZeroes(value.day) + 'T00:00:00';
+                                finalObj["endTime"] = value.year + "-" + addZeroes(value.month + 1) + "-" + addZeroes(value.day) + 'T00:00:00';
                                 finalObj["rawStartDate"] = convertMonths[value.month] + " " + value.day + ", " + value.year;
                                 finalObj["rawStartTime"] = "";
                                 finalObj["rawEndDate"] = convertMonths[value.month] + " " + value.day + ", " + value.year;
@@ -578,13 +551,13 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                             }
 
                             const handleOnMouseMove = () => {
-                                let startTime = new Date(currentAddition.start.month + 1 + " " + currentAddition.start.day + " " + currentAddition.start.year).getTime();
-                                let endTime = new Date(value.month + 1 + " " + value.day + " " + value.year).getTime();
+                                let startTime = new Date(currentAddition.start.year, currentAddition.start.month, currentAddition.start.day).getTime();
+                                let endTime = new Date(value.year, value.month, value.day).getTime();
                                 if(currentAdditionIsMouseDown && endTime >= startTime) {
                                     dispatch(mouseMove({"month" : value.month, "day": value.day, "year" : value.year}));
                                     let eventNow = {...currentEvents[currentEvents.length-1]};
-                                    eventNow["endDate"] = value.month + 1 + " " + value.day + " " + value.year;
-                                    eventNow["endTime"] = value.month + 1 + " " + value.day + " " + value.year;
+                                    eventNow["endDate"] = value.year + "-" + addZeroes(value.month + 1) + "-" + addZeroes(value.day) + 'T00:00:00';
+                                    eventNow["endTime"] = value.year + "-" + addZeroes(value.month + 1) + "-" + addZeroes(value.day) + 'T00:00:00';
                                     eventNow["rawEndDate"] = convertMonths[value.month] + " " + value.day + ", " + value.year;
                                     eventNow["curDateTwo"] = {"year": value.year, "month": value.month, "day": value.day};
                                     if(!currentAdditionEditing) {
@@ -600,14 +573,13 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                             }
 
                             const handleOnTouchMove = (e) => {
-                                console.log(document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY))
-                                let startTime = new Date(currentAddition.start.month + 1 + " " + currentAddition.start.day + " " + currentAddition.start.year).getTime();
-                                let endTime = new Date(value.month + 1 + " " + value.day + " " + value.year).getTime();
+                                let startTime = new Date(currentAddition.start.year, currentAddition.start.month, currentAddition.start.day).getTime();
+                                let endTime = new Date(value.year, value.month, value.day).getTime();
                                 if(currentAdditionIsMouseDown && endTime >= startTime) {
                                     dispatch(mouseMove({"month" : value.month, "day": value.day, "year" : value.year}));
                                     let eventNow = {...currentEvents[currentEvents.length-1]};
-                                    eventNow["endDate"] = value.month + 1 + " " + value.day + " " + value.year;
-                                    eventNow["endTime"] = value.month + 1 + " " + value.day + " " + value.year;
+                                    eventNow["endDate"] = value.year + "-" + addZeroes(value.month + 1) + "-" + addZeroes(value.day) + 'T00:00:00';
+                                    eventNow["endTime"] = value.year + "-" + addZeroes(value.month + 1) + "-" + addZeroes(value.day) + 'T00:00:00';
                                     eventNow["rawEndDate"] = convertMonths[value.month] + " " + value.day + ", " + value.year;
                                     eventNow["curDateTwo"] = {"year": value.year, "month": value.month, "day": value.day};
                                     if(!currentAdditionEditing) {
@@ -630,12 +602,9 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
 
                             return (
                                 <div className="calendar-body-month-day-container" key={"calendar-body-month-day-container-" + i} onMouseDown={() => handleOnMouseDown()} onTouchStart={() => handleOnMouseDown()} onMouseMove={() => handleOnMouseMove()} onTouchMove={(e) => handleOnTouchMove(e)} style={{"gridColumn" : (i + 1) + " / " + (i + 2)}} draggable={false}>
-                                    <div className="calendar-body-month-day-values" draggable={false}>
-                                        <div className={"calendar-body-month-day " + value.textColor} draggable={false} onMouseDown={(e) => changeDateOnClick(e, value.month, value.day, value.year)}>{value.day}</div>
+                                    <div className="calendar-body-month-day-values">
+                                        <div className={"calendar-body-month-day " + value.textColor} onMouseDown={(e) => changeDateOnClick(e, value.month, value.day, value.year)}>{value.day}</div>
                                     </div>
-                                    {/* <div className='calendar-body-month-day-events-container'>
-                                            <ReturnValueEvents value={value} />
-                                    </div> */}
                                 </div>
                             );
                         })}
