@@ -11,6 +11,7 @@ import createEventsRepeated from './calendar_body_useful_functions/create_repeat
 import filterEventsStartEnd from './calendar_body_useful_functions/filter_events_start_end';
 import getHourAndMinutes from './calendar_body_useful_functions/get_hours_and_minutes';
 import PopupPreview from './calendar_body_month_components/popup_preview';
+import addZeroes from './calendar_shared_components/add_zeroes_to_dates';
 
 const convertWeeks = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const convertMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -82,13 +83,13 @@ function CalendarBodyEvents(props) {
 
     const changeLongObjectStartTimes = (event) => {
         if(new Date(event.startDate).getTime() < new Date(curDate.year, curDate.month, curDate.day).getTime()) {
-            let objNow = {"startDate" : curDate.month + 1 + " " + curDate.day + " " + curDate.year, "startTime" : curDate.month + 1 + " " + curDate.day + " " + curDate.year + " 12:00 AM"}
+            let objNow = {"startDate" : curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + "T00:00:00", "startTime" : curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + "T00:00:00"}
             let returnedObj = Object.assign({...event}, objNow);
             return returnedObj;
         }
         if(new Date(event.endDate).getTime() > new Date(curDate.year, curDate.month, curDate.day).getTime()) {
             let curNewDate = new Date(curDate.year, curDate.month, curDate.day + 1);
-            let objNow = {"endDate" : curNewDate.getMonth() + 1 + " " + curNewDate.getDate() + " " + curNewDate.getFullYear(), "endTime" : curNewDate.getMonth() + 1 + " " + curNewDate.getDate() + " " + curNewDate.getFullYear() + " 12:00 AM"}
+            let objNow = {"endDate" : curNewDate.getFullYear() + '-' + addZeroes(curNewDate.getMonth() + 1) + '-' + addZeroes(curNewDate.getDate()) + "T00:00:00", "endTime" : curNewDate.getFullYear() + '-' + addZeroes(curNewDate.getMonth() + 1) + '-' + addZeroes(curNewDate.getDate()) + "T00:00:00"}
             let returnedObj = Object.assign({...event}, objNow);
             return returnedObj;
         }
@@ -323,10 +324,9 @@ function CalendarBodyEvents(props) {
             }
         }
 
-        const handleEventsOnMouseDown = (e, isTouch = false) => {
+        const handleEventsOnMouseDown = (e) => {
             let startTime = new Date(props.currentEvents[event.index]["startTime"]).getTime()
             let curTime = e.clientY - e.target.getBoundingClientRect().top;
-            if(isTouch) curTime = e.touches[0].clientY - e.target.getBoundingClientRect().top;
             curTime = Math.floor(curTime / 12.5) * 15;
             if(startTime < new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day).getTime()) {
                 curTime = ((new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day, 0, curTime).getTime() - startTime) / 60000 + (new Date(event.startTime).getHours() * 60 + new Date(event.startTime).getMinutes()))
@@ -449,6 +449,10 @@ function CalendarBodyLabelsTime(props) {
     }
 
     const getHourAndMinutes = (hour, minute) => {
+        return addZeroes(hour) + ":" + addZeroes(minute);
+    }
+
+    const getRawHourAndMinutes = (hour, minute) => {
     
         let returnStr = "";
     
@@ -572,13 +576,15 @@ function CalendarBodyLabelsTime(props) {
             let finalHrOne = getHourAndMinutes(hour, minute)
             let finalHrTwo = getHourAndMinutes(hourTwo, minuteTwo)
 
+            //console.log(finalHrOne)
+
             props.dispatch(mouseDown({"start" : {...curDate, "time" : {hour, minute}}, "end" : {...curDateTwo, "time" : {hourTwo, minuteTwo}}}));
             let finalObj = {};
             finalObj["title"] = "[No Title]";
-            finalObj["startDate"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year;
-            finalObj["endDate"] = curDateTwo.month + 1 + " " + curDateTwo.day + " " + curDateTwo.year;
-            finalObj["startTime"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year + " " + finalHrOne;
-            finalObj["endTime"] = curDateTwo.month + 1 + " " + curDateTwo.day + " " + curDateTwo.year + " " + finalHrTwo;
+            finalObj["startDate"] = curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + "T00:00:00";
+            finalObj["endDate"] = curDateTwo.year + '-' + addZeroes(curDateTwo.month + 1) + '-' + addZeroes(curDateTwo.day) + "T00:00:00";
+            finalObj["startTime"] = curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + 'T' + finalHrOne;
+            finalObj["endTime"] = curDateTwo.year + '-' + addZeroes(curDateTwo.month + 1) + '-' + addZeroes(curDateTwo.day) + 'T' + finalHrTwo;
             finalObj["rawStartDate"] = convertMonths[curDate.month] + " " + curDate.day + ", " + curDate.year;
             finalObj["rawStartTime"] = "";
             finalObj["rawEndDate"] = convertMonths[curDateTwo.month] + " " + curDateTwo.day + ", " + curDateTwo.year;
@@ -596,6 +602,7 @@ function CalendarBodyLabelsTime(props) {
             finalObj["repeatEnding"] = {"never" : false, "onDay" : null, "afterIterations" : null};
             finalObj["repeatExceptions"] = {};
             if(!props.currentAddition.isCurrentlyEditing) {
+                //console.log(finalObj)
                 props.dispatch(addEvent(finalObj));
             }
         }
@@ -605,19 +612,19 @@ function CalendarBodyLabelsTime(props) {
             let timeDifference = new Date(curEvent["endTime"]).getTime() - new Date(curEvent["startTime"]).getTime();
             let startTime = new Date(curDate.year, curDate.month, curDate.day, hour, minute - props.currentMoveEvent.initialTime);
             let endTime = new Date(curDate.year, curDate.month, curDate.day, hour, minute - props.currentMoveEvent.initialTime, 0, timeDifference);
-            let startDateStr = startTime.getMonth() + 1 + " " + startTime.getDate() + " " + startTime.getFullYear();
-            let endDateStr = endTime.getMonth() + 1 + " " + endTime.getDate() + " " + endTime.getFullYear();
+            let startDateStr = startTime.getFullYear() + '-' + addZeroes(startTime.getMonth() + 1) + '-' + addZeroes(startTime.getDate());
+            let endDateStr = endTime.getFullYear() + '-' + addZeroes(endTime.getMonth() + 1) + '-' + addZeroes(endTime.getDate());
             let startTimeStr = getHourAndMinutes(startTime.getHours(), startTime.getMinutes());
             let endTimeStr = getHourAndMinutes(endTime.getHours(), endTime.getMinutes());
             curEvent["curDateOne"] = {"month": startTime.getMonth(), "day": startTime.getDate(), "year": startTime.getFullYear()};
-            curEvent["startTime"] = startDateStr + " " + startTimeStr;
-            curEvent["startDate"] = startDateStr;
-            curEvent["rawStartTime"] = startTimeStr;
+            curEvent["startTime"] = startDateStr + "T" + startTimeStr;
+            curEvent["startDate"] = startDateStr + "T00:00:00";
+            curEvent["rawStartTime"] = getRawHourAndMinutes(startTime.getHours(), startTime.getMinutes());
             curEvent["rawStartDate"] = convertMonths[startTime.getMonth()] + " " + startTime.getDate() + ", " + startTime.getFullYear();
             curEvent["curDateTwo"] = {"month": endTime.getMonth(), "day": endTime.getDate(), "year": endTime.getFullYear()};
-            curEvent["endTime"] = endDateStr + " " + endTimeStr;
-            curEvent["endDate"] = endDateStr;
-            curEvent["rawEndTime"] = endTimeStr;
+            curEvent["endTime"] = endDateStr + "T" + endTimeStr;
+            curEvent["endDate"] = endDateStr + "T00:00:00";
+            curEvent["rawEndTime"] = getRawHourAndMinutes(endTime.getHours(), endTime.getMinutes());
             curEvent["rawEndDate"] = convertMonths[endTime.getMonth()] + " " + endTime.getDate() + ", " + endTime.getFullYear();
             curEvent["curTimeDisabled"] = {one: '', two: ''};
             curEvent["isAllDay"] =  {one: false, two: false};
@@ -644,45 +651,46 @@ function CalendarBodyLabelsTime(props) {
             let curDate = {"month" : props.currentDate.month, "day" : props.currentDate.day, "year" : props.currentDate.year};
 
             if(props.currentAddition.isMouseDown) {
+                let originalStart = props.currentAddition.currentEvent.start;
                 let eventNow = {...props.currentEvents[props.currentEvents.length-1]};
                 let dayNow = new Date(props.currentDate.year, props.currentDate.month, props.currentDate.day).getTime();
-                let startDate = new Date(props.currentAddition.currentEvent.start.year, props.currentAddition.currentEvent.start.month, props.currentAddition.currentEvent.start.day).getTime();
+                let startDate = new Date(originalStart.year, originalStart.month, originalStart.day).getTime();
                 if(dayNow > startDate) {
-                    eventNow["startDate"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year;
-                    eventNow["startTime"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year + " " + getHourAndMinutes(props.currentAddition.currentEvent.start.time.hour, props.currentAddition.currentEvent.start.time.minute);
-                    eventNow["rawStartDate"] = convertMonths[props.currentAddition.currentEvent.start.month] + " " + props.currentAddition.currentEvent.start.day + ", " + props.currentAddition.currentEvent.start.year;
+                    eventNow["startDate"] = originalStart.year + '-' + addZeroes(originalStart.month + 1) + '-' + addZeroes(originalStart.day) + "T00:00:00";
+                    eventNow["startTime"] = originalStart.year + '-' + addZeroes(originalStart.month + 1) + '-' + addZeroes(originalStart.day) + "T" + getHourAndMinutes(originalStart.time.hour, originalStart.time.minute);
+                    eventNow["rawStartDate"] = convertMonths[originalStart.month] + " " + originalStart.day + ", " + originalStart.year;
                     eventNow["curDateOne"] = curDate;
-                    eventNow["endDate"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year;
-                    eventNow["endTime"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year + " " + finalHr;
+                    eventNow["endDate"] = curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + "T00:00:00";
+                    eventNow["endTime"] = curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + "T" + finalHr;
                     eventNow["rawEndDate"] = convertMonths[curDate.month] + " " + curDate.day + ", " + curDate.year;
                     eventNow["curDateTwo"] = curDate;
                 } else if(dayNow < startDate) {
-                    eventNow["startDate"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year;
-                    eventNow["startTime"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year + " " + finalHr;
+                    eventNow["startDate"] = curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + "T00:00:00";
+                    eventNow["startTime"] = curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + "T" + finalHr;
                     eventNow["rawStartDate"] = convertMonths[curDate.month] + " " + curDate.day + ", " + curDate.year;
                     eventNow["curDateOne"] = curDate;
-                    eventNow["endDate"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year;
-                    eventNow["endTime"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year + " " + getHourAndMinutes(props.currentAddition.currentEvent.start.time.hour, props.currentAddition.currentEvent.start.time.minute);
-                    eventNow["rawEndDate"] = convertMonths[props.currentAddition.currentEvent.start.month] + " " + props.currentAddition.currentEvent.start.day + ", " + props.currentAddition.currentEvent.start.year;
+                    eventNow["endDate"] = originalStart.year + '-' + addZeroes(originalStart.month + 1) + '-' + addZeroes(originalStart.day) + "T00:00:00";
+                    eventNow["endTime"] = originalStart.year + '-' + addZeroes(originalStart.month + 1) + '-' + addZeroes(originalStart.day) + "T" + getHourAndMinutes(originalStart.time.hour, originalStart.time.minute);
+                    eventNow["rawEndDate"] = convertMonths[originalStart.month] + " " + originalStart.day + ", " + originalStart.year;
                     eventNow["curDateTwo"] = curDate;
                 } else if(dayNow === startDate) {
-                    if(props.currentAddition.currentEvent.start.time.hour * 60 + props.currentAddition.currentEvent.start.time.minute < hour * 60 + minute) {
-                        eventNow["startDate"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year;
-                        eventNow["startTime"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year + " " + getHourAndMinutes(props.currentAddition.currentEvent.start.time.hour, props.currentAddition.currentEvent.start.time.minute);
-                        eventNow["rawStartDate"] = convertMonths[props.currentAddition.currentEvent.start.month] + " " + props.currentAddition.currentEvent.start.day + ", " + props.currentAddition.currentEvent.start.year;
+                    if(originalStart.time.hour * 60 + originalStart.time.minute < hour * 60 + minute) {
+                        eventNow["startDate"] = originalStart.year + '-' + addZeroes(originalStart.month + 1) + '-' + addZeroes(originalStart.day) + "T00:00:00";
+                        eventNow["startTime"] = originalStart.year + '-' + addZeroes(originalStart.month + 1) + '-' + addZeroes(originalStart.day) + "T" + getHourAndMinutes(originalStart.time.hour, originalStart.time.minute);
+                        eventNow["rawStartDate"] = convertMonths[originalStart.month] + " " + originalStart.day + ", " + originalStart.year;
                         eventNow["curDateOne"] = curDate;
-                        eventNow["endDate"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year;
-                        eventNow["endTime"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year + " " + finalHr;
+                        eventNow["endDate"] = curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + "T00:00:00";
+                        eventNow["endTime"] = curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + "T" + finalHr;
                         eventNow["rawEndDate"] = convertMonths[curDate.month] + " " + curDate.day + ", " + curDate.year;
                         eventNow["curDateTwo"] = curDate;
-                    } else if(props.currentAddition.currentEvent.start.time.hour * 60 + props.currentAddition.currentEvent.start.time.minute > hour * 60 + minute) {
-                        eventNow["startDate"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year;
-                        eventNow["startTime"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year + " " + finalHr;
+                    } else if(originalStart.time.hour * 60 + originalStart.time.minute > hour * 60 + minute) {
+                        eventNow["startDate"] = curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + "T00:00:00";
+                        eventNow["startTime"] = curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + "T" + finalHr;
                         eventNow["rawStartDate"] = convertMonths[curDate.month] + " " + curDate.day + ", " + curDate.year;
                         eventNow["curDateOne"] = curDate;
-                        eventNow["endDate"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year;
-                        eventNow["endTime"] = props.currentAddition.currentEvent.start.month + 1 + " " + props.currentAddition.currentEvent.start.day + " " + props.currentAddition.currentEvent.start.year + " " + getHourAndMinutes(props.currentAddition.currentEvent.start.time.hour, props.currentAddition.currentEvent.start.time.minute);
-                        eventNow["rawEndDate"] = convertMonths[props.currentAddition.currentEvent.start.month] + " " + props.currentAddition.currentEvent.start.day + ", " + props.currentAddition.currentEvent.start.year;
+                        eventNow["endDate"] = originalStart.year + '-' + addZeroes(originalStart.month + 1) + '-' + addZeroes(originalStart.day) + "T00:00:00";
+                        eventNow["endTime"] = originalStart.year + '-' + addZeroes(originalStart.month + 1) + '-' + addZeroes(originalStart.day) + "T" + getHourAndMinutes(originalStart.time.hour, originalStart.time.minute);
+                        eventNow["rawEndDate"] = convertMonths[originalStart.month] + " " + originalStart.day + ", " + originalStart.year;
                         eventNow["curDateTwo"] = curDate;
                     }
                 }
@@ -908,6 +916,8 @@ function BodyDay() {
     const currentAddition = useSelector((state) => state.currentAddition);
     const currentMoveEvent = useSelector((state) => state.moveEvent);
     const dispatch = useDispatch();
+
+    //console.log(currentEvents)
     return(
         <div className="calendar-body-day-container">
             <CalendarBody currentDate={currentDate} currentEvents={currentEvents} currentUnwantedColors={currentUnwantedColors} dispatch={dispatch} currentAddition={currentAddition} currentMoveEvent={currentMoveEvent}/>

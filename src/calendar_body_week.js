@@ -10,6 +10,7 @@ import { addEvent, changeEvent } from './redux_slices/eventSlice';
 import PopupPreview from './calendar_body_month_components/popup_preview';
 import createEventsRepeated from './calendar_body_useful_functions/create_repeating_events';
 import filterEventsStartEnd from './calendar_body_useful_functions/filter_events_start_end';
+import addZeroes from './calendar_shared_components/add_zeroes_to_dates';
 
 function BodyWeek() {
     const currentDate = useSelector((state) => state.date);
@@ -108,7 +109,7 @@ function BodyWeek() {
         }).map((event) => {
             return createEventsRepeated(event, new Date(curDate.year, curDate.month, curDate.day).getTime(), new Date(endDate.year, endDate.month, endDate.day).getTime());
         }).flat().filter((event) => {
-            return filterEventsStartEnd(event, new Date(curDate.year, curDate.month, curDate.day), new Date(endDate.year, endDate.month, endDate.day), props.currentUnwantedColors);
+            return filterEventsStartEnd(event, new Date(curDate.year, curDate.month, curDate.day), new Date(endDate.year, endDate.month, endDate.day), props.currentUnwantedColors) && isAllDay(event);
         }).concat([...props.currentEvents].map((event, index) => {
             return {...event, "index" : index};
         }).filter((event) => {
@@ -116,6 +117,20 @@ function BodyWeek() {
         })).map((event) => {
             return allDayStart(event);
         }).sort((a, b) => a.startIndex - b.startIndex)
+
+        console.log([...props.currentEvents].map((event, index) => {
+            return {...event, "index" : index};
+        }).filter((event) => {
+            return event.repeat;
+        }).map((event) => {
+            return createEventsRepeated(event, new Date(curDate.year, curDate.month, curDate.day).getTime(), new Date(endDate.year, endDate.month, endDate.day).getTime());
+        }).flat().filter((event) => {
+            return filterEventsStartEnd(event, new Date(curDate.year, curDate.month, curDate.day), new Date(endDate.year, endDate.month, endDate.day), props.currentUnwantedColors);
+        }).concat([...props.currentEvents].map((event, index) => {
+            return {...event, "index" : index};
+        }).filter((event) => {
+            return !event.repeat && filterEventsStartEnd(event, new Date(curDate.year, curDate.month, curDate.day), new Date(endDate.year, endDate.month, endDate.day), props.currentUnwantedColors) && isAllDay(event);
+        })))
     
         const ReturnedEvents = eventsToday.map((event, index) => {
     
@@ -165,7 +180,7 @@ function BodyWeek() {
                 let parentRect = document.querySelector('.calendar-body-week-events-all-day').getBoundingClientRect();
                 let curIndex = Math.floor((e.clientX - parentRect.left) / parentRect.width * 7);
                 if(curIndex < 0) curIndex = 0;
-                let start = {"startMouse" : curIndex, "originalStart" : event.startTime, "originalEnd" : event.endTime}
+                let start = {"startMouse" : curIndex, "originalStart" : props.currentEvents[event.index].startTime, "originalEnd" : props.currentEvents[event.index].endTime}
                 
                 props.dispatch(setInitialTime(start));
                 props.dispatch(changeEventType("all day"));
@@ -265,19 +280,19 @@ function BodyWeek() {
         let endTime = new Date(currentMoveEvent.initialTime.originalEnd);
         startTime = new Date(startTime.getFullYear(), startTime.getMonth(), startTime.getDate() + indexDifference, startTime.getHours(), startTime.getMinutes());
         endTime = new Date(endTime.getFullYear(), endTime.getMonth(), endTime.getDate() + indexDifference, endTime.getHours(), endTime.getMinutes());
-        let startDateStr = startTime.getMonth() + 1 + " " + startTime.getDate() + " " + startTime.getFullYear();
-        let endDateStr = endTime.getMonth() + 1 + " " + endTime.getDate() + " " + endTime.getFullYear();
-        let startTimeStr = getHourAndMinutes(startTime.getHours(), startTime.getMinutes());
-        let endTimeStr = getHourAndMinutes(endTime.getHours(), endTime.getMinutes());
+        let startDateStr = startTime.getFullYear() + '-' + addZeroes(startTime.getMonth() + 1) + '-' + addZeroes(startTime.getDate());
+        let endDateStr = endTime.getFullYear() + '-' + addZeroes(endTime.getMonth() + 1) + '-' + addZeroes(endTime.getDate());
+        let startTimeStr = addZeroes(startTime.getHours()) + ":" + addZeroes(startTime.getMinutes());
+        let endTimeStr = addZeroes(endTime.getHours()) + ":" + addZeroes(endTime.getMinutes());
         curEvent["curDateOne"] = {"month": startTime.getMonth(), "day": startTime.getDate(), "year": startTime.getFullYear()};
-        curEvent["startTime"] = startDateStr + " " + startTimeStr;
-        curEvent["startDate"] = startDateStr;
-        curEvent["rawStartTime"] = startTimeStr;
+        curEvent["startTime"] = startDateStr + "T" + startTimeStr;
+        curEvent["startDate"] = startDateStr + "T00:00:00";
+        curEvent["rawStartTime"] = getHourAndMinutes(startTime.getHours(), startTime.getMinutes());
         curEvent["rawStartDate"] = convertMonths[startTime.getMonth()] + " " + startTime.getDate() + ", " + startTime.getFullYear();
         curEvent["curDateTwo"] = {"month": endTime.getMonth(), "day": endTime.getDate(), "year": endTime.getFullYear()};
-        curEvent["endTime"] = endDateStr + " " + endTimeStr;
-        curEvent["endDate"] = endDateStr;
-        curEvent["rawEndTime"] = endTimeStr;
+        curEvent["endTime"] = endDateStr + "T" + endTimeStr;
+        curEvent["endDate"] = endDateStr + "T00:00:00";
+        curEvent["rawEndTime"] = getHourAndMinutes(endTime.getHours(), endTime.getMinutes());;
         curEvent["rawEndDate"] = convertMonths[endTime.getMonth()] + " " + endTime.getDate() + ", " + endTime.getFullYear();
         if(currentMoveEvent.eventType !== "day") dispatch(changeEvent({"index" : currentIndex, "value" : curEvent}));
     }
@@ -285,6 +300,7 @@ function BodyWeek() {
     const handleOnMouseMove = (e) => {
 
         if(currentAddition.isMouseDown) {
+            let originalStart = currentAddition.currentEvent.start;
             let parentRect = document.querySelector('.calendar-body-week-events-all-day').getBoundingClientRect();
             let curIndex = Math.floor((e.clientX - parentRect.left) / parentRect.width * 7);
             if(curIndex < 0) curIndex = 0;
@@ -293,24 +309,24 @@ function BodyWeek() {
             let startDate = new Date(currentAddition.currentEvent.start.year, currentAddition.currentEvent.start.month, currentAddition.currentEvent.start.day).getTime();
             let curDate = {"month" : currentWeek[curIndex].month, "day" : currentWeek[curIndex].day, "year" : currentWeek[curIndex].year};
         if(dayNow >= startDate) {
-            eventNow["startDate"] = currentAddition.currentEvent.start.month + 1 + " " + currentAddition.currentEvent.start.day + " " + currentAddition.currentEvent.start.year;
-            eventNow["startTime"] = currentAddition.currentEvent.start.month + 1 + " " + currentAddition.currentEvent.start.day + " " + currentAddition.currentEvent.start.year;
-            eventNow["rawStartDate"] = convertMonths[currentAddition.currentEvent.start.month] + " " + currentAddition.currentEvent.start.day + ", " + currentAddition.currentEvent.start.year;
+            eventNow["startDate"] = originalStart.year + '-' + addZeroes(originalStart.month + 1) + '-' + addZeroes(originalStart.day) + "T00:00:00";
+            eventNow["startTime"] = originalStart.year + '-' + addZeroes(originalStart.month + 1) + '-' + addZeroes(originalStart.day) + "T00:00:00";
+            eventNow["rawStartDate"] = convertMonths[originalStart.month] + " " + originalStart.day + ", " + originalStart.year;
             eventNow["curDateOne"] = curDate;
-            eventNow["endDate"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year;
-            eventNow["endTime"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year;
+            eventNow["endDate"] = curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + "T00:00:00";
+            eventNow["endTime"] = curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + "T00:00:00";
             eventNow["rawEndDate"] = convertMonths[curDate.month] + " " + curDate.day + ", " + curDate.year;
             eventNow["curDateTwo"] = curDate;
             eventNow["isAllDay"] = {"one" : true, "two": true};
             eventNow["curTimeDisabled"] = {"one" : "input-disabled", "two" : "input-disabled"};
         } else if(dayNow < startDate) {
-            eventNow["startDate"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year;
-            eventNow["startTime"] = curDate.month + 1 + " " + curDate.day + " " + curDate.year;
+            eventNow["startDate"] = curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + "T00:00:00";
+            eventNow["startTime"] = curDate.year + '-' + addZeroes(curDate.month + 1) + '-' + addZeroes(curDate.day) + "T00:00:00";
             eventNow["rawStartDate"] = convertMonths[curDate.month] + " " + curDate.day + ", " + curDate.year;
             eventNow["curDateOne"] = curDate;
-            eventNow["endDate"] = currentAddition.currentEvent.start.month + 1 + " " + currentAddition.currentEvent.start.day + " " + currentAddition.currentEvent.start.year;
-            eventNow["endTime"] = currentAddition.currentEvent.start.month + 1 + " " + currentAddition.currentEvent.start.day + " " + currentAddition.currentEvent.start.year;
-            eventNow["rawEndDate"] = convertMonths[currentAddition.currentEvent.start.month] + " " + currentAddition.currentEvent.start.day + ", " + currentAddition.currentEvent.start.year;
+            eventNow["endDate"] = originalStart.year + '-' + addZeroes(originalStart.month + 1) + '-' + addZeroes(originalStart.day) + "T00:00:00";
+            eventNow["endTime"] = originalStart.year + '-' + addZeroes(originalStart.month + 1) + '-' + addZeroes(originalStart.day) + "T00:00:00";
+            eventNow["rawEndDate"] = convertMonths[originalStart.month] + " " + originalStart.day + ", " + originalStart.year;
             eventNow["curDateTwo"] = curDate;
             eventNow["isAllDay"] = {"one" : true, "two": true};
             eventNow["curTimeDisabled"] = {"one" : "input-disabled", "two" : "input-disabled"};
@@ -360,6 +376,8 @@ function BodyWeek() {
             dispatch(addEvent(finalObj));
         }
     }
+
+    console.log(currentEvents)
 
     return(
         <div className="calendar-body-week-container">

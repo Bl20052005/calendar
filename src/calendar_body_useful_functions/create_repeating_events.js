@@ -1,3 +1,5 @@
+import addZeroes from "../calendar_shared_components/add_zeroes_to_dates";
+
 const createEventsRepeated = (event, monthStart, monthEnd) => {
     const convertMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
     const roundTime = (time) => {
@@ -14,15 +16,16 @@ const createEventsRepeated = (event, monthStart, monthEnd) => {
         let curEvent = {...event};
         let curEventStart = new Date(time1);
         let curEventEnd = new Date(time2);
-        let curEventStartStr = (curEventStart.getMonth() + 1 + " " + curEventStart.getDate() + " " + curEventStart.getFullYear());
-        let curEventEndStr = (curEventEnd.getMonth() + 1 + " " + curEventEnd.getDate() + " " + curEventEnd.getFullYear());
+        //dayOne.year + '-' + addZeroes(dayOne.month + 1) + '-' + addZeroes(dayOne.day) + "T00:00:00"
+        let curEventStartStr = curEventStart.getFullYear() + '-' + addZeroes(curEventStart.getMonth() + 1) + '-' + addZeroes(curEventStart.getDate());
+        let curEventEndStr = curEventEnd.getFullYear() + '-' + addZeroes(curEventEnd.getMonth() + 1) + '-' + addZeroes(curEventEnd.getDate());
         let curEventStartStrMonth = (convertMonths[curEventStart.getMonth()] + " " + curEventStart.getDate() + ", " + curEventStart.getFullYear());
         let curEventEndStrMonth = (convertMonths[curEventEnd.getMonth()] + " " + curEventEnd.getDate() + ", " + curEventEnd.getFullYear());
         let curDateOne = {"year": curEventStart.getFullYear(), "month": curEventStart.getMonth(), "day": curEventStart.getDate()};
         let curDateTwo = {"year": curEventEnd.getFullYear(), "month": curEventEnd.getMonth(), "day": curEventEnd.getDate()};
-        let objNow = {"startDate" : curEventStartStr, "endDate" : curEventEndStr, "rawStartDate" : curEventStartStrMonth, "rawEndDate" : curEventEndStrMonth, "curDateOne" : curDateOne, "curDateTwo" : curDateTwo};
-        objNow["startTime"] = (curEventStartStr + " " + new Date(curEvent.startTime).getHours() + ":" + new Date(curEvent.startTime).getMinutes())
-        objNow["endTime"] = (curEventEndStr + " " + new Date(curEvent.endTime).getHours() + ":" + new Date(curEvent.endTime).getMinutes())
+        let objNow = {"startDate" : curEventStartStr + "T00:00:00", "endDate" : curEventEndStr + "T00:00:00", "rawStartDate" : curEventStartStrMonth, "rawEndDate" : curEventEndStrMonth, "curDateOne" : curDateOne, "curDateTwo" : curDateTwo};
+        objNow["startTime"] = (curEventStartStr + "T" + addZeroes(new Date(curEvent.startTime).getHours()) + ":" + addZeroes(new Date(curEvent.startTime).getMinutes()))
+        objNow["endTime"] = (curEventEndStr + "T" + addZeroes(new Date(curEvent.endTime).getHours()) + ":" + addZeroes(new Date(curEvent.endTime).getMinutes()))
         return Object.assign(curEvent, objNow);
     }
 
