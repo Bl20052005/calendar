@@ -16,6 +16,17 @@ import { current } from '@reduxjs/toolkit';
 
 
 function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispatch, setCurEvent, setIsVisible, currentAddition, currentAdditionIsMouseDown, currentAdditionEditing, currentMoveEvent, setCurReference}) {
+    const [curHeight, setCurHeight] = useState(window.innerHeight);
+
+    useEffect(() => {
+        function listenWindowChange() {
+            setCurHeight(window.innerHeight);
+        }
+        window.addEventListener('resize', listenWindowChange);
+
+        return () => window.removeEventListener('resize', listenWindowChange);
+    }, []);
+
     const convertWeeks = [["Sunday", "S", "Sun"], ["Monday", "M", "Mon"], ["Tuesday", "T", "Tue"], ["Wednesday", "W", "Wed"], ["Thursday", "Th", "Thu"], ["Friday", "F", "Fri"], ["Saturday", "Sa", "Sat"]];
     const convertMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
     let daysInMonths = [];
@@ -324,7 +335,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
             let combinedEvents = value.eventsToday.concat(...extraEvents);
             //dispatch(changeViewAllContents({"date" : new Date(value.month + 1 + " " + value.day + " " + value.year), "column" : new Date(value.month + 1 + " " + value.day + " " + value.year).getDay(), "row" : index, "events" : combinedEvents, "visibility" : "visibility-visible"}))
             let curColumn = new Date(value.year, value.month, value.day).getDay() + 1;
-            if(numEvents > 3) {
+            if(numEvents > Math.min(4, Math.floor(((((curHeight - 71) * 0.95) - 20) / calendarArray.length - 52) / 20)) && numEvents !== 0) {
                 numEventsStr = "View More (" + numEvents + ")";
             } else {
                 numEventsStr = "";
@@ -334,7 +345,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                 dispatch(changeViewAllContents({"date" : value.year + "-" + addZeroes(value.month + 1) + "-" + addZeroes(value.day) + 'T00:00:00', "month": convertMonths[value.month], "day" : value.day, "column" : new Date(value.year, value.month, value.day).getDay(), "row" : index, "events" : combinedEvents, "visibility" : "visibility-visible", "numberOfWeeks" : calendarArray.length}))
             }
 
-            if(numEvents > 3) return (
+            if(numEvents > Math.min(4, Math.floor(((((curHeight - 71) * 0.95) - 20) / calendarArray.length - 52) / 20)) && numEvents !== 0) return (
                 <div onClick={() => handleViewAllOnClick()} className={'calendar-body-month-day-events-number'} key={'calendar-body-month-day-events-number-' + i} style={{"gridColumn" : curColumn + " / " + (curColumn + 1)}}>{numEventsStr}</div>
             );
         })
@@ -601,7 +612,7 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                             }
 
                             return (
-                                <div className="calendar-body-month-day-container" key={"calendar-body-month-day-container-" + i} onMouseDown={() => handleOnMouseDown()} onTouchStart={() => handleOnMouseDown()} onMouseMove={() => handleOnMouseMove()} onTouchMove={(e) => handleOnTouchMove(e)} style={{"gridColumn" : (i + 1) + " / " + (i + 2)}} draggable={false}>
+                                <div className="calendar-body-month-day-container" key={"calendar-body-month-day-container-" + i} onMouseDown={() => handleOnMouseDown()} onTouchStart={(e) => e.stopPropagation()} onMouseMove={() => handleOnMouseMove()} onTouchMove={(e) => handleOnTouchMove(e)} style={{"gridColumn" : (i + 1) + " / " + (i + 2)}} draggable={false}>
                                     <div className="calendar-body-month-day-values">
                                         <div className={"calendar-body-month-day " + value.textColor} onMouseDown={(e) => changeDateOnClick(e, value.month, value.day, value.year)}>{value.day}</div>
                                     </div>
