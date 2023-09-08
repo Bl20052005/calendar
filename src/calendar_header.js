@@ -2,6 +2,10 @@ import React from 'react';
 import { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 import { changeDate, changeDateSpecifics } from './redux_slices/dateSlice';
+import { userSignIn, userSignOut } from './redux_slices/signInSlice';
+import { replaceAll } from './redux_slices/eventSlice';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "firebase/auth";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 function HeaderToggleSideMenu({menuHidden, setMenuHidden}) {
     const handleHeaderMenuOnClick = () => {
@@ -100,13 +104,202 @@ function HeaderDropdownMenu(props) {
     );
 }
 
-function HeaderSignIn() {
-    return(
-        <div className='header-signIn-container'>
-            <div className='header-signIn-text'>Sign In</div>
-            <img className='header-signIn-profile-pic' src="https://i.pinimg.com/736x/83/bc/8b/83bc8b88cf6bc4b4e04d153a418cde62.jpg"/>
+function HeaderSignInPopup(props) {
+    const auth = getAuth();
+
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [switchbtwn, setSwitchbtwn] = useState("log in");
+    const [changingWords, setChangingWords] = useState({extra: "Register", popup: "Log in", title: "Log in"});
+    const [errorObj, setErrorObj] = useState({visibility: "visibility-hidden", message : ""});
+    const [timeoutID, setTimeoutID] = useState(0);
+    
+    const handleSignInOnClick = (e) => {
+        e.preventDefault();
+        if(switchbtwn === "register") {
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed in 
+                    const user = userCredential.user;
+                    props.dispatch(userSignIn(user.uid));
+
+                    //props.dispatch(replaceAll());
+                    handleClose();
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    clearTimeout(timeoutID);
+                    setErrorObj({visibility: "visibility-visible", message : "Error: " + errorCode});
+                    setTimeoutID(setTimeout(() => {
+                        setErrorObj({visibility: "visibility-hidden", message : ""});
+                    }, 10000));
+                });
+        } else if (switchbtwn === "log in") {
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Signed in 
+                    const user = userCredential.user;
+                    props.dispatch(userSignIn(user.uid));
+
+                    const storage = getStorage();
+                    getDownloadURL(ref(storage, user.uid))
+                      .then((url) => {
+                        fetch(url)
+                            .then((val) => val.json())
+                            .then((ans) => props.dispatch(replaceAll(ans)));
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                      });
+
+                    handleClose();
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    clearTimeout(timeoutID);
+                    setErrorObj({visibility: "visibility-visible", message : "Error: " + errorCode});
+                    setTimeoutID(setTimeout(() => {
+                        setErrorObj({visibility: "visibility-hidden", message : ""});
+                    }, 10000));
+                });
+        } else if (switchbtwn === "forgot") {
+            sendPasswordResetEmail(auth, email)
+                .then(() => {
+                    // Password reset email sent!
+                    // ..
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    // ..
+                });
+        }
+        
+    }
+
+    const handleSwitch = (val) => {
+        switch(val) {
+            case "register":
+                setSwitchbtwn("register");
+                setChangingWords({extra: "Log in", popup: "Register", title: "Register"});
+                break;
+            case "log in":
+                setSwitchbtwn("log in");
+                setChangingWords({extra: "Register", popup: "Log in", title: "Log in"});
+                break;
+            case "forgot":
+                setSwitchbtwn("forgot");
+                setChangingWords({extra: "Log in", popup: "Reset", title: "Reset Password"});
+                break;
+        }
+    }
+
+    const handleChangeClick = () => {
+        if(switchbtwn === "register") {
+            handleSwitch("log in");
+        } else if(switchbtwn === "log in") {
+            handleSwitch("register");
+        } else {
+            handleSwitch("log in");
+        }
+    }
+
+    const handleClose = () => {
+        props.setPopupVisible("visibility-hidden");
+        setEmail("");
+        setPassword("");
+        setSwitchbtwn("log in")
+        setChangingWords({extra: "Register", popup: "Log in", title: "Log in"});
+        setErrorObj({visibility: "visibility-hidden", message : ""});
+        setTimeoutID(0);
+    }
+
+    if(switchbtwn === "forgot") {
+        return (
+            <div className={'header-sign-in-popup-container ' + props.popupVisible}>
+                <div className={'header-sign-in-popup-error ' + errorObj.visibility}>{errorObj.message}</div>
+                <svg className='header-sign-in-popup-exit' onClick={() => handleClose()} xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+                <div className='header-sign-in-popup-title'>{changingWords.title}</div>
+                <form className='header-sign-in-popup-form' onSubmit={(e) => handleSignInOnClick(e)}>
+                    <div className='header-sign-in-popup-email-container'>
+                        <div>Email</div>
+                        <input className='header-sign-in-popup-email' type='email' required onChange={(e) => setEmail(e.target.value)} value={email}/>
+                    </div>
+                    <input type='submit' className='header-sign-in-popup-log-in' value={changingWords.popup}/>
+                    <div className='header-sign-in-popup-extra'>
+                        <div className='header-sign-in-popup-register' onClick={() => handleChangeClick()}>{changingWords.extra}</div>
+                        <div>•</div>
+                        <div className='header-sign-in-popup-forgot-password' onClick={() => handleSwitch("forgot")}>Forgot Password</div>
+                    </div>
+                </form>
+            </div>
+        )
+    }
+
+    return (
+        <div className={'header-sign-in-popup-container ' + props.popupVisible}>
+            <div className={'header-sign-in-popup-error ' + errorObj.visibility}>{errorObj.message}</div>
+            <svg className='header-sign-in-popup-exit' onClick={() => handleClose()} xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+            <div className='header-sign-in-popup-title'>{changingWords.title}</div>
+            <form className='header-sign-in-popup-form' onSubmit={(e) => handleSignInOnClick(e)}>
+                <div className='header-sign-in-popup-email-container'>
+                    <div>Email</div>
+                    <input className='header-sign-in-popup-email' type='email' required onChange={(e) => setEmail(e.target.value)} value={email}/>
+                </div>
+                <div className='header-sign-in-popup-password-container'>
+                    <div>Password <span className={switchbtwn === "register" ? 'header-sign-in-popup-password-text-span' : 'header-sign-in-popup-password-text-span visibility-hidden'}>(min 8 characters)</span></div>
+                    <input type='password' className='header-sign-in-popup-password' minLength="8" required onChange={(e) => setPassword(e.target.value)} value={password}/>
+                </div>
+                <input type='submit' className='header-sign-in-popup-log-in' value={changingWords.popup}/>
+                <div className='header-sign-in-popup-extra'>
+                    <div className='header-sign-in-popup-register' onClick={() => handleChangeClick()}>{changingWords.extra}</div>
+                    <div>•</div>
+                    <div className='header-sign-in-popup-forgot-password' onClick={() => handleSwitch("forgot")}>Forgot Password</div>
+                </div>
+            </form>
         </div>
     )
+}
+
+function HeaderSignIn(props) {
+
+    const [popupVisible, setPopupVisible] = useState("visibility-hidden");
+
+    const handleOpenPopup = () => {
+        setPopupVisible("visibility-visible");
+    }
+
+    const handleSignOut = () => {
+        props.dispatch(userSignOut());
+        const auth = getAuth();
+        signOut(auth).then(() => {
+          // Sign-out successful.
+            props.dispatch(replaceAll([]));
+        }).catch((error) => {
+          // An error happened.
+        });
+    }
+    
+    if(!props.signInStatus.signIn) {
+        return(
+            <div className='header-signIn-container'>
+                <div className='header-signIn-text' onClick={() => handleOpenPopup()}>Sign In</div>
+                <img className='header-signIn-profile-pic' src="https://i.pinimg.com/736x/83/bc/8b/83bc8b88cf6bc4b4e04d153a418cde62.jpg"/>
+                <div className={'header-sign-in-cover ' + popupVisible}></div>
+                <HeaderSignInPopup popupVisible={popupVisible} setPopupVisible={setPopupVisible} {...props}/>
+            </div>
+        );
+    } else {
+        return(
+            <div className='header-signIn-container'>
+                <div className='header-signIn-text' onClick={() => handleSignOut()}>Sign Out</div>
+                <img className='header-signIn-profile-pic' src="https://i.pinimg.com/736x/83/bc/8b/83bc8b88cf6bc4b4e04d153a418cde62.jpg"/>
+            </div>
+        );
+    }
+    
 }
 
 function HeaderDescription({currentDate, dispatch}) {
@@ -239,10 +432,45 @@ function HeaderToday({dispatch}) {
     )
 }
 
+function HeaderSave(props) {
+
+    const handleUploadOnClick = () => {
+        // Get a reference to the storage service, which is used to create references in your storage bucket
+        const storage = getStorage();
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        // Create a storage reference from our storage service
+        console.log(user.uid)
+        const userRef = ref(storage, user.uid);
+
+        let uploadedFile = JSON.stringify(props.currentEvents);
+
+        const file = new Blob([uploadedFile], {
+            type: "application/json",
+          });
+
+          console.log(file)
+
+        uploadBytes(userRef, file).then((snapshot) => {
+            console.log('Uploaded a blob or file!');
+        });
+    }
+
+    return(
+        <svg onClick={() => handleUploadOnClick()} xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><path d="M64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V173.3c0-17-6.7-33.3-18.7-45.3L352 50.7C340 38.7 323.7 32 306.7 32H64zm0 96c0-17.7 14.3-32 32-32H288c17.7 0 32 14.3 32 32v64c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V128zM224 288a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/></svg>
+    )
+}
+
 function Header() {
     const currentDate = useSelector((state) => state.date);
+    const signInStatus = useSelector((state) => state.signIn);
     const dispatch = useDispatch();
     const [menuHidden, setMenuHidden] = useState(false);
+    const currentEvents = useSelector((state) => state.event.events);
+    // const auth = getAuth();
+    // const user = auth.currentUser;
+    // console.log(user)
     return(
         <div className="calendar-header">
             <HeaderToggleSideMenu menuHidden={menuHidden} setMenuHidden={setMenuHidden}/>
@@ -250,7 +478,8 @@ function Header() {
             <HeaderToday dispatch={dispatch} />
             <HeaderDescription currentDate={currentDate} dispatch={dispatch}/>
             <HeaderDropdownMenu currentDate={currentDate} dispatch={dispatch}/>
-            <HeaderSignIn />
+            <HeaderSave currentEvents={currentEvents} />
+            <HeaderSignIn dispatch={dispatch} signInStatus={signInStatus} currentEvents={currentEvents}/>
         </div>
     );
 }

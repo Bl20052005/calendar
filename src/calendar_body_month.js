@@ -522,10 +522,11 @@ function CalendarBody({currentDate, currentEvents, currentUnwantedColors, dispat
                                 let curDateOne = {"year": curEventStart.getFullYear(), "month": curEventStart.getMonth(), "day": curEventStart.getDate()};
                                 let curDateTwo = {"year": curEventEnd.getFullYear(), "month": curEventEnd.getMonth(), "day": curEventEnd.getDate()};
                                 let objNow = {"startDate" : curEventStartStr + "T00:00:00", "endDate" : curEventEndStr + "T00:00:00", "rawStartDate" : curEventStartStrMonth, "rawEndDate" : curEventEndStrMonth, "curDateOne" : curDateOne, "curDateTwo" : curDateTwo};
-                                objNow["startTime"] = (curEventStartStr + "T" + new Date(curEvent.startTime).getHours() + ":" + new Date(curEvent.startTime).getMinutes())
-                                objNow["endTime"] = (curEventEndStr + "T" + new Date(curEvent.endTime).getHours() + ":" + new Date(curEvent.endTime).getMinutes())
+                                objNow["startTime"] = (curEventStartStr + "T" + addZeroes(new Date(curEvent.startTime).getHours()) + ":" + addZeroes(new Date(curEvent.startTime).getMinutes()))
+                                objNow["endTime"] = (curEventEndStr + "T" + addZeroes(new Date(curEvent.endTime).getHours()) + ":" + addZeroes(new Date(curEvent.endTime).getMinutes()))
                                 let returnedObj = Object.assign(curEvent, objNow);
                                 //console.log(returnedObj)
+                                //console.log(currentEvents)
                                 dispatch(changeEvent({"index" : currentIndex, "value" : returnedObj}));
                             }
                             

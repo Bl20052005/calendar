@@ -336,13 +336,13 @@ function ChooseColorPalate({selectedColor, setSelectedColor}) {
 
 function AddEventPopUpRepeatAdvanced(props) {
 
-    const [curNumber, setCurNumber] = useState(1);
-    const [curOption, setCurOption] = useState("week");
-    const [numIterations, setNumIterations] = useState(1);
-    const [curRepeatEnding, setCurRepeatEnding] = useState("never");
-    const [curWeekdays, setCurWeekdays] = useState([0]);
-    const [curEndDate, setCurEndDate] = useState("");
-    const [isAdvancedSelectorVisible, setIsAdvancedSelectorVisible] = useState("visibility-hidden");
+    const [curNumber, setCurNumber] = [props.curNumber, props.setCurNumber];
+    const [curOption, setCurOption] = [props.curOption, props.setCurOption];
+    const [numIterations, setNumIterations] = [props.numIterations, props.setNumIterations];
+    const [curRepeatEnding, setCurRepeatEnding] = [props.curRepeatEnding, props.setCurRepeatEnding];
+    const [curWeekdays, setCurWeekdays] = [props.curWeekdays, props.setCurWeekdays];
+    const [curEndDate, setCurEndDate] = [props.curEndDate, props.setCurEndDate];
+    const [isAdvancedSelectorVisible, setIsAdvancedSelectorVisible] = [props.isAdvancedSelectorVisible, props.setIsAdvancedSelectorVisible];
 
     const handleAdvancedNumberChange = (e) => {
         setCurNumber(parseInt(e.target.value));
@@ -354,6 +354,7 @@ function AddEventPopUpRepeatAdvanced(props) {
         setCurOption(option);
         let returnedObj = {...props.repeatSpecifics};
         returnedObj[option] = curNumber;
+        setIsAdvancedSelectorVisible("visibility-hidden");
     }
 
     const ref = useRef();
@@ -365,15 +366,66 @@ function AddEventPopUpRepeatAdvanced(props) {
     }
 
     const handleExitAdvanced = () => {
-        setCurNumber(1);
-        setCurOption("week");
         setIsAdvancedSelectorVisible("visibility-hidden");
+        document.getElementById('add-event-popup-repeat-advanced-never-checkbox').click();
         props.setIsAdvancedVisible("visibility-hidden");
-        setCurRepeatEnding("never");
-        setNumIterations(1);
-        setCurEndDate("");
-        setCurWeekdays([0]);
+        if(props.repeatSpecifics.day > 0) {
+            setCurNumber(props.repeatSpecifics.day);
+            setCurOption("day");
+            setCurWeekdays([0]);
+        } else if(props.repeatSpecifics.week > 0) {
+            setCurNumber(props.repeatSpecifics.week);
+            setCurOption("week");
+            setCurWeekdays(props.repeatSpecifics.weekdays);
+        } else if(props.repeatSpecifics.month > 0) {
+            setCurNumber(props.repeatSpecifics.month);
+            setCurOption("month");
+            setCurWeekdays([0]);
+        } else if(props.repeatSpecifics.year > 0) {
+            setCurNumber(props.repeatSpecifics.year);
+            setCurOption("year");
+            setCurWeekdays([0]);
+        }
+
+        if(props.repeatEnding.onDay !== null) {
+            setCurRepeatEnding("onDay");
+            setCurEndDate(props.repeatEnding.onDay);
+        } else if(props.repeatEnding.afterIterations !== null) {
+            setCurRepeatEnding("afterIterations");
+            setNumIterations(props.repeatEnding.afterIterations);
+        }
     }
+
+    // useEffect(() => {
+    //     if(props.isAdvancedVisible === "visibility-visible") {
+    //         console.log(props.repeatEnding)
+    //         if(props.repeatSpecifics.day > 0) {
+    //             setCurNumber(props.repeatSpecifics.day);
+    //             setCurOption("day");
+    //             setCurWeekdays([0]);
+    //         } else if(props.repeatSpecifics.week > 0) {
+    //             setCurNumber(props.repeatSpecifics.week);
+    //             setCurOption("week");
+    //             setCurWeekdays(props.repeatSpecifics.weekdays);
+    //         } else if(props.repeatSpecifics.month > 0) {
+    //             setCurNumber(props.repeatSpecifics.month);
+    //             setCurOption("month");
+    //             setCurWeekdays([0]);
+    //         } else if(props.repeatSpecifics.year > 0) {
+    //             setCurNumber(props.repeatSpecifics.year);
+    //             setCurOption("year");
+    //             setCurWeekdays([0]);
+    //         }
+    
+    //         if(props.repeatEnding.onDay !== null) {
+    //             setCurRepeatEnding("onDay");
+    //             setCurEndDate(props.repeatEnding.onDay);
+    //         } else if(props.repeatEnding.afterIterations !== null) {
+    //             setCurRepeatEnding("afterIterations");
+    //             setNumIterations(props.repeatEnding.afterIterations);
+    //         }
+    //     }
+    // }, [props.isAdvancedVisible])
 
     useEffect(() => {
         const HeaderDropdownMenuClicked = (e) => {
@@ -393,6 +445,7 @@ function AddEventPopUpRepeatAdvanced(props) {
         const HeaderDropdownMenuClicked = (e) => {
             if(props.isAdvancedVisible === "visibility-visible" && ref1.current && !ref1.current.contains(e.target)) {
                 props.setIsAdvancedVisible("visibility-hidden");
+                handleExitAdvanced();
             }
         }
 
@@ -403,24 +456,22 @@ function AddEventPopUpRepeatAdvanced(props) {
         }
     }, [props.isAdvancedVisible]);
 
-    const handleRepeatEndChange = (e, val) => {
-        if(e.target.checked) {
-            setCurRepeatEnding(val);
-        }
-    }
+    // const handleRepeatEndChange = (e, val) => {
+    //     //console.log(curRepeatEnding)
+    //     setCurRepeatEnding(val);
+    // }
 
     const handleAdvancedSave = () => {
         let returnedObj = {"day" : 0, "week" : 0, "month" : 0, "year" : 0, "weekdays" : curWeekdays};
         let returnedRepeatEnding = {"never" : false, "onDay" : null, "afterIterations" : null};
         returnedObj[curOption] = curNumber;
         if(curRepeatEnding === "afterIterations") returnedRepeatEnding[curRepeatEnding] = numIterations;
-        if(curRepeatEnding === "onDay" && Date.parse(curEndDate)) returnedRepeatEnding[curRepeatEnding] = curEndDate;
+        console.log(curRepeatEnding)
+        if(curRepeatEnding === "onDay" && !isNaN(Date.parse(curEndDate))) returnedRepeatEnding[curRepeatEnding] = curEndDate;
         console.log(returnedObj);
         props.setRepeat(true);
         props.setRepeatSpecifics(returnedObj);
         props.setRepeatEnding(returnedRepeatEnding);
-        console.log(returnedRepeatEnding);
-        console.log(curEndDate)
         handleExitAdvanced();
     }
 
@@ -478,16 +529,28 @@ function AddEventPopUpRepeatAdvanced(props) {
             <div className='add-event-popup-repeat-advanced-limit'>
                 <div className='add-event-popup-repeat-advanced-limit-ends'>Ends...</div>
                 <div className='add-event-popup-repeat-advanced-limit-option'>
-                    <input type="radio" name="add-event-popup-repeat-advanced-limit" value="never" defaultChecked></input>
+                    <input id='add-event-popup-repeat-advanced-never-checkbox' type="radio" name="add-event-popup-repeat-advanced-limit" value="never" defaultChecked onChange={(e) => {
+                        if(e.target.checked) {
+                            setCurRepeatEnding("never");
+                        }
+                    }}></input>
                     <div className='add-event-popup-repeat-advanced-limit-option-never-text'>Never</div>
                 </div>
                 <div className='add-event-popup-repeat-advanced-limit-option'>
-                    <input type="radio" name="add-event-popup-repeat-advanced-limit" value="onDay" onChange={(e) => handleRepeatEndChange(e, "onDay")}></input>
+                    <input id='add-event-popup-repeat-advanced-onDay-checkbox' type="radio" name="add-event-popup-repeat-advanced-limit" value="onDay" onChange={(e) => {
+                        if(e.target.checked) {
+                            setCurRepeatEnding("onDay");
+                        }
+                    }}></input>
                     <div className='add-event-popup-repeat-advanced-limit-option-on-date-text'>On</div>
                     <input className='add-event-popup-repeat-advanced-limit-option-on-date-input' type="date" value={curEndDate} onChange={(e) => setCurEndDate(e.target.value)}></input>
                 </div>
                 <div className='add-event-popup-repeat-advanced-limit-option'>
-                <input type="radio" name="add-event-popup-repeat-advanced-limit" value="afterIterations" onChange={(e) => handleRepeatEndChange(e, "afterIterations")}></input>
+                <input id='add-event-popup-repeat-advanced-afterIterations-checkbox' type="radio" name="add-event-popup-repeat-advanced-limit" value="afterIterations" onChange={(e) => {
+                        if(e.target.checked) {
+                            setCurRepeatEnding("afterIterations");
+                        }
+                    }}></input>
                     <div className='add-event-popup-repeat-advanced-limit-option-after-iterations-text'>After</div>
                     <input className='add-event-popup-repeat-advanced-limit-option-after-iterations-input' value={numIterations} onChange={(e) => setNumIterations(parseInt(e.target.value))} min={1} type="number"></input>
                     <div className='add-event-popup-repeat-advanced-limit-option-after-iterations-text'>iterations</div>
@@ -521,7 +584,7 @@ function AddEventPopUpRepeat(props) {
 
     let repeatTitle = "None";
 
-    const [isAdvancedVisible, setIsAdvancedVisible] = useState("visibility-hidden");
+    // const [isAdvancedVisible, setIsAdvancedVisible] = useState("visibility-hidden");
 
     if(props.repeat) {
         if(props.repeatSpecifics.day === 1) {
@@ -535,9 +598,14 @@ function AddEventPopUpRepeat(props) {
         } else {
             repeatTitle = "Custom";
         }
+
+        if(props.repeatEnding.onDay !== null || props.repeatEnding.afterIterations !== null) {
+            repeatTitle = "Custom";
+        }
     }
 
     const handleRepeatSelectorOnClick = (repeatVal) => {
+        props.setIsAddEventPopUpRepeatVisible("visibility-hidden");
         switch (repeatVal) {
             case "None" :
                 props.setRepeat(false);
@@ -545,23 +613,26 @@ function AddEventPopUpRepeat(props) {
             case "Every Day":
                 props.setRepeat(true);
                 props.setRepeatSpecifics({"day" : 1, "week" : 0, "month" : 0, "year" : 0, "weekdays" : []});
+                props.setRepeatEnding({never: false, onDay: null, afterIterations: null});
                 break;
             case "Every Week":
                 props.setRepeat(true);
                 props.setRepeatSpecifics({"day" : 0, "week" : 1, "month" : 0, "year" : 0, "weekdays" : []});
+                props.setRepeatEnding({never: false, onDay: null, afterIterations: null});
                 break;
             case "Every Month":
                 props.setRepeat(true);
                 props.setRepeatSpecifics({"day" : 0, "week" : 0, "month" : 1, "year" : 0, "weekdays" : []});
+                props.setRepeatEnding({never: false, onDay: null, afterIterations: null});
                 break;
             case "Every Year":
                 props.setRepeat(true);
                 props.setRepeatSpecifics({"day" : 0, "week" : 0, "month" : 0, "year" : 1, "weekdays" : []});
+                props.setRepeatEnding({never: false, onDay: null, afterIterations: null});
                 break;
             case "Custom":
                 handleSetAdvancedVisible();
-                props.setIsAddEventPopUpRepeatVisible("visibility-hidden");
-                props.setRepeat(true);
+                // props.setIsAddEventPopUpRepeatVisible("visibility-hidden");
                 break;
         }
     }
@@ -587,7 +658,13 @@ function AddEventPopUpRepeat(props) {
     }
 
     const handleSetAdvancedVisible = () => {
-        setIsAdvancedVisible("visibility-visible");
+        props.setIsAdvancedVisible("visibility-visible");
+        if(props.repeatEnding.onDay !== null) {
+            document.getElementById('add-event-popup-repeat-advanced-onDay-checkbox').click();
+        } else if(props.repeatEnding.afterIterations !== null) {
+            document.getElementById('add-event-popup-repeat-advanced-afterIterations-checkbox').click();
+        }
+        //document.getElementById('add-event-popup-repeat-advanced-never-checkbox').click();
     }
 
     return(
@@ -611,7 +688,7 @@ function AddEventPopUpRepeat(props) {
                 <svg className='add-event-popup-repeat-advanced-settings-icon' xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 640 512"><path d="M308.5 135.3c7.1-6.3 9.9-16.2 6.2-25c-2.3-5.3-4.8-10.5-7.6-15.5L304 89.4c-3-5-6.3-9.9-9.8-14.6c-5.7-7.6-15.7-10.1-24.7-7.1l-28.2 9.3c-10.7-8.8-23-16-36.2-20.9L199 27.1c-1.9-9.3-9.1-16.7-18.5-17.8C173.9 8.4 167.2 8 160.4 8h-.7c-6.8 0-13.5 .4-20.1 1.2c-9.4 1.1-16.6 8.6-18.5 17.8L115 56.1c-13.3 5-25.5 12.1-36.2 20.9L50.5 67.8c-9-3-19-.5-24.7 7.1c-3.5 4.7-6.8 9.6-9.9 14.6l-3 5.3c-2.8 5-5.3 10.2-7.6 15.6c-3.7 8.7-.9 18.6 6.2 25l22.2 19.8C32.6 161.9 32 168.9 32 176s.6 14.1 1.7 20.9L11.5 216.7c-7.1 6.3-9.9 16.2-6.2 25c2.3 5.3 4.8 10.5 7.6 15.6l3 5.2c3 5.1 6.3 9.9 9.9 14.6c5.7 7.6 15.7 10.1 24.7 7.1l28.2-9.3c10.7 8.8 23 16 36.2 20.9l6.1 29.1c1.9 9.3 9.1 16.7 18.5 17.8c6.7 .8 13.5 1.2 20.4 1.2s13.7-.4 20.4-1.2c9.4-1.1 16.6-8.6 18.5-17.8l6.1-29.1c13.3-5 25.5-12.1 36.2-20.9l28.2 9.3c9 3 19 .5 24.7-7.1c3.5-4.7 6.8-9.5 9.8-14.6l3.1-5.4c2.8-5 5.3-10.2 7.6-15.5c3.7-8.7 .9-18.6-6.2-25l-22.2-19.8c1.1-6.8 1.7-13.8 1.7-20.9s-.6-14.1-1.7-20.9l22.2-19.8zM112 176a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zM504.7 500.5c6.3 7.1 16.2 9.9 25 6.2c5.3-2.3 10.5-4.8 15.5-7.6l5.4-3.1c5-3 9.9-6.3 14.6-9.8c7.6-5.7 10.1-15.7 7.1-24.7l-9.3-28.2c8.8-10.7 16-23 20.9-36.2l29.1-6.1c9.3-1.9 16.7-9.1 17.8-18.5c.8-6.7 1.2-13.5 1.2-20.4s-.4-13.7-1.2-20.4c-1.1-9.4-8.6-16.6-17.8-18.5L583.9 307c-5-13.3-12.1-25.5-20.9-36.2l9.3-28.2c3-9 .5-19-7.1-24.7c-4.7-3.5-9.6-6.8-14.6-9.9l-5.3-3c-5-2.8-10.2-5.3-15.6-7.6c-8.7-3.7-18.6-.9-25 6.2l-19.8 22.2c-6.8-1.1-13.8-1.7-20.9-1.7s-14.1 .6-20.9 1.7l-19.8-22.2c-6.3-7.1-16.2-9.9-25-6.2c-5.3 2.3-10.5 4.8-15.6 7.6l-5.2 3c-5.1 3-9.9 6.3-14.6 9.9c-7.6 5.7-10.1 15.7-7.1 24.7l9.3 28.2c-8.8 10.7-16 23-20.9 36.2L315.1 313c-9.3 1.9-16.7 9.1-17.8 18.5c-.8 6.7-1.2 13.5-1.2 20.4s.4 13.7 1.2 20.4c1.1 9.4 8.6 16.6 17.8 18.5l29.1 6.1c5 13.3 12.1 25.5 20.9 36.2l-9.3 28.2c-3 9-.5 19 7.1 24.7c4.7 3.5 9.5 6.8 14.6 9.8l5.4 3.1c5 2.8 10.2 5.3 15.5 7.6c8.7 3.7 18.6 .9 25-6.2l19.8-22.2c6.8 1.1 13.8 1.7 20.9 1.7s14.1-.6 20.9-1.7l19.8 22.2zM464 304a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>
                 <div className='add-event-popup-repeat-advanced-settings-text'>Advanced</div>
             </div>
-            <AddEventPopUpRepeatAdvanced {...props} isAdvancedVisible={isAdvancedVisible} setIsAdvancedVisible={setIsAdvancedVisible}/>
+            <AddEventPopUpRepeatAdvanced {...props}/>
         </div>
     )
 }
@@ -708,7 +785,44 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
     const [repeatSpecifics, setRepeatSpecifics] = [currentCalendarDate.repeatSpecifics, buildFunction("repeatSpecifics")];
     const [repeatEnding, setRepeatEnding] = [currentCalendarDate.repeatEnding, buildFunction("repeatEnding")];
     const [repeatExceptions, setRepeatExceptions] = [currentCalendarDate.repeatExceptions, buildFunction("repeatExceptions")];
+
     const [isAddEventPopUpRepeatVisible, setIsAddEventPopUpRepeatVisible] = useState("visibility-hidden");
+    const [isAdvancedVisible, setIsAdvancedVisible] = useState("visibility-hidden");
+    const [curNumber, setCurNumber] = useState(1);
+    const [curOption, setCurOption] = useState("week");
+    const [numIterations, setNumIterations] = useState(1);
+    const [curRepeatEnding, setCurRepeatEnding] = useState("never");
+    const [curWeekdays, setCurWeekdays] = useState([0]);
+    const [curEndDate, setCurEndDate] = useState("");
+    const [isAdvancedSelectorVisible, setIsAdvancedSelectorVisible] = useState("visibility-hidden");
+
+    useEffect(() => {
+        //console.log(repeatSpecifics)
+        if(repeatSpecifics.day > 0) {
+            setCurNumber(repeatSpecifics.day);
+            setCurOption("day");
+        } else if(repeatSpecifics.week > 0) {
+            setCurNumber(repeatSpecifics.week);
+            setCurOption("week");
+            setCurWeekdays(repeatSpecifics.weekdays);
+        } else if(repeatSpecifics.month > 0) {
+            setCurNumber(repeatSpecifics.month);
+            setCurOption("month");
+        } else if(repeatSpecifics.year > 0) {
+            setCurNumber(repeatSpecifics.year);
+            setCurOption("year");
+        }
+
+        if(repeatEnding.onDay !== null) {
+            setCurRepeatEnding("onDay");
+            setCurEndDate(repeatEnding.onDay);
+        } else if(repeatEnding.afterIterations !== null) {
+            setCurRepeatEnding("afterIterations");
+            setNumIterations(repeatEnding.afterIterations);
+        }
+
+        //console.log(repeatEnding.afterIterations)
+    }, [isThisVisible])
 
     const resetAll = () => {
         setCurDateOne({"year": currentDateOne.getFullYear(), "month": currentDateOne.getMonth(), "day": currentDateOne.getDate()});
@@ -737,6 +851,15 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
         setRepeatSpecifics({"day" : 0, "week" : 0, "month" : 0, "year" : 0, "weekdays" : []});
         setRepeatEnding({"never" : false, "onDay" : null, "afterIterations" : null});
         setRepeatExceptions({});
+        setIsAddEventPopUpRepeatVisible("visibility-hidden");
+        setIsAdvancedVisible("visibility-hidden");
+        setCurNumber(1);
+        setCurOption("week");
+        setCurWeekdays([0]);
+        setCurRepeatEnding("never");
+        setNumIterations(1);
+        setCurEndDate("");
+        setIsAdvancedSelectorVisible("visibility-hidden");
     }
 
     const ref1 = useRef();
@@ -1152,7 +1275,14 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
                     </div>
                 </div>
             </div>
-            <AddEventPopUpRepeat repeat={repeat} setRepeat={setRepeat} repeatEnding={repeatEnding} setRepeatEnding={setRepeatEnding} repeatSpecifics={repeatSpecifics} setRepeatSpecifics={setRepeatSpecifics} isAddEventPopUpRepeatVisible={isAddEventPopUpRepeatVisible} setIsAddEventPopUpRepeatVisible={setIsAddEventPopUpRepeatVisible}/>
+            <AddEventPopUpRepeat repeat={repeat} setRepeat={setRepeat} repeatEnding={repeatEnding} setRepeatEnding={setRepeatEnding} repeatSpecifics={repeatSpecifics} setRepeatSpecifics={setRepeatSpecifics} isAddEventPopUpRepeatVisible={isAddEventPopUpRepeatVisible} setIsAddEventPopUpRepeatVisible={setIsAddEventPopUpRepeatVisible} isAdvancedVisible={isAdvancedVisible} setIsAdvancedVisible={setIsAdvancedVisible}
+                curNumber={curNumber} setCurNumber={setCurNumber}
+                curOption={curOption} setCurOption={setCurOption}
+                numIterations={numIterations} setNumIterations={setNumIterations}
+                curRepeatEnding={curRepeatEnding} setCurRepeatEnding={setCurRepeatEnding}
+                curWeekdays={curWeekdays} setCurWeekdays={setCurWeekdays}
+                curEndDate={curEndDate} setCurEndDate={setCurEndDate}
+                isAdvancedSelectorVisible={isAdvancedSelectorVisible} setIsAdvancedSelectorVisible={setIsAdvancedSelectorVisible}/>
             <div className='add-event-popup-description-container'>
                 <div className='add-event-popup-description-menu'>
                     <div className='add-event-popup-description-menu-line add-event-popup-description-menu-line-1'></div>
@@ -1208,6 +1338,9 @@ function TodayEvents({currentEvents, currentUnwantedColors, currentDate}) {
             let start = getHourAndMinutes(eventStartTime.getHours(), eventStartTime.getMinutes());
             returnStr = start;
         } else {
+            if(event.isAllDay.two) {
+                return "All Day";
+            }
             if(eventStartDate.getTime() === date.getTime()) {
                 return `${getHourAndMinutes(eventStartTime.getHours(), eventStartTime.getMinutes())}`;
             }
@@ -1221,7 +1354,8 @@ function TodayEvents({currentEvents, currentUnwantedColors, currentDate}) {
     }
 
     let curDate = currentDate;
-        curDate = new Date(curDate.year, curDate.month, curDate.day)
+    let curSpecificDate = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+        curDate = new Date()
         let eventsToday = [...currentEvents].map((event, index) => {
             let objNow = {"index" : index}
             let returnedObj = Object.assign(objNow, event)
@@ -1231,13 +1365,13 @@ function TodayEvents({currentEvents, currentUnwantedColors, currentDate}) {
         }).map((event) => {
             return createEventsRepeated(event, curDate.getTime(), new Date(curDate.getFullYear(), curDate.getMonth(), curDate.getDate() + 1).getTime());
         }).flat().filter((event) => {
-            return filterEventsStartEnd(event, curDate, curDate, currentUnwantedColors);
+            return filterEventsStartEnd(event, curSpecificDate, curSpecificDate, currentUnwantedColors);
         }).concat([...currentEvents].map((event, index) => {
             let objNow = {"index" : index}
             let returnedObj = Object.assign(objNow, event)
             return returnedObj;
         }).filter((event) => {
-            return !event.repeat && filterEventsStartEnd(event, curDate, curDate, currentUnwantedColors);
+            return !event.repeat && filterEventsStartEnd(event, curSpecificDate, curSpecificDate, currentUnwantedColors);
         })).sort((a, b) => {
             return (new Date(a.startTime).getTime()) - (new Date(b.startTime).getTime())
         })

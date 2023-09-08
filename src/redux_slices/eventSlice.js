@@ -14,10 +14,13 @@ export const eventSlice = createSlice({
         },
         changeEvent: (state, action) => {
             state.events.splice(action.payload.index, 1, action.payload.value)
+        },
+        replaceAll : (state, action) => {
+            state.events = action.payload;
         }
     }
 })
 
-export const { addEvent, removeEvent, changeEvent } = eventSlice.actions;
+export const { addEvent, removeEvent, changeEvent, replaceAll } = eventSlice.actions;
 
 export default eventSlice.reducer;

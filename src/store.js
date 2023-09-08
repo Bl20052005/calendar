@@ -6,6 +6,7 @@ import calendarEventReducer from './redux_slices/calendarEventSlice';
 import currentAdditionReducer from './redux_slices/currentAddition';
 import moveEventReducer from './redux_slices/moveEvent';
 import viewAllReducer from './redux_slices/viewAllSlice';
+import signInReducer from './redux_slices/signInSlice';
 
 export default configureStore({
   reducer: {
@@ -16,5 +17,6 @@ export default configureStore({
     currentAddition: currentAdditionReducer,
     moveEvent : moveEventReducer,
     viewAll : viewAllReducer,
+    signIn : signInReducer,
   },
 });

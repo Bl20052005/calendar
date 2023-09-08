@@ -47,7 +47,7 @@ function getDisplayTime(currentEvents, currentDate, index) {
     let eventEndTime = new Date(event.endTime);
     if(eventStartDate.getTime() === eventEndDate.getTime()) {
         let start = getHourAndMinutes(eventStartTime.getHours(), eventStartTime.getMinutes());
-        let end = getHourAndMinutes(eventEndTime.getHours(), eventEndTime.getMinutes())
+        let end = getHourAndMinutes(eventEndTime.getHours(), eventEndTime.getMinutes());
         if(start.substring(start.length - 2) === end.substring(end.length - 2)) {
             returnStr = start.substring(0, start.length - 2) + " - " + end;
         } else {
@@ -57,10 +57,9 @@ function getDisplayTime(currentEvents, currentDate, index) {
         if(event.isAllDay.one) returnStr = convertMonths[eventStartTime.getMonth()] + " " + eventStartTime.getDate() + " - " + convertMonths[eventEndTime.getMonth()] + " " + eventEndTime.getDate() + " " + getHourAndMinutes(eventEndTime.getHours(), eventEndTime.getMinutes());
         else returnStr = convertMonths[eventStartTime.getMonth()] + " " + eventStartTime.getDate() + ", " + getHourAndMinutes(eventStartTime.getHours(), eventStartTime.getMinutes()) + " - " + convertMonths[eventEndTime.getMonth()] + " " + eventEndTime.getDate() + ", " + getHourAndMinutes(eventEndTime.getHours(), eventEndTime.getMinutes());
     } else if(eventEndDate.getTime() > curDay.getTime()) {
-        if(event.isAllDay.two) returnStr = convertMonths[eventStartTime.getMonth()] + " " + eventStartTime.getDate() + " " +  + getHourAndMinutes(eventStartTime.getHours(), eventStartTime.getMinutes()) + " - " + convertMonths[eventEndTime.getMonth()] + " " + eventEndTime.getDate();
+        if(event.isAllDay.two) returnStr = convertMonths[eventStartTime.getMonth()] + " " + eventStartTime.getDate() + " " + getHourAndMinutes(eventStartTime.getHours(), eventStartTime.getMinutes()) + " - " + convertMonths[eventEndTime.getMonth()] + " " + eventEndTime.getDate();
         else returnStr = convertMonths[eventStartTime.getMonth()] + " " + eventStartTime.getDate() + ", " + getHourAndMinutes(eventStartTime.getHours(), eventStartTime.getMinutes()) + " - " + convertMonths[eventEndTime.getMonth()] + " " + eventEndTime.getDate() + ", " + getHourAndMinutes(eventEndTime.getHours(), eventEndTime.getMinutes());
     }
-
     return returnStr;
 }
 
@@ -489,8 +488,8 @@ function CalendarBodyLabelsTime(props) {
                 "focusTimeVisibleOne" : "visibility-hidden",
                 "focusTimeVisibleTwo" : "visibility-hidden",
                 "previousTime" : {},
-                "curTimeOne" : getHourAndMinutes(startTime.getHours(), startTime.getMinutes()),
-                "curTimeTwo" : getHourAndMinutes(endTime.getHours(), endTime.getMinutes()),
+                "curTimeOne" : getRawHourAndMinutes(startTime.getHours(), startTime.getMinutes()),
+                "curTimeTwo" : getRawHourAndMinutes(endTime.getHours(), endTime.getMinutes()),
                 "curTimeDisabled": {"one" : "", "two" : ""},
                 "isMouseDown" : false,
                 "originalCoords" : [0,0],
@@ -871,11 +870,11 @@ function CalendarBodyHeader({currentDate}) {
     }
 
     return(
-        <div className='calendar-body-day-date-container' onClick={() => handleOnClick()}>
+        <div className='calendar-body-day-date-container'>
             <div className="calendar-body-day-date-weekday">{convertWeeks[curDay.getDay()]}</div>
             <div className="calendar-body-day-date-date">
                 <div className="calendar-body-day-date-month">{convertMonths[currentDate.month]}</div>
-                <div className={"calendar-body-day-date-day" + isToday}>{currentDate.day}</div>
+                <div className={"calendar-body-day-date-day" + isToday} onClick={() => handleOnClick()}>{currentDate.day}</div>
             </div>
         </div>
     )

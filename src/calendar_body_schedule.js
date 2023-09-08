@@ -34,6 +34,9 @@ function getDisplayTime(event, date) {
             return `${getHourAndMinutes(eventStartTime.getHours(), eventStartTime.getMinutes())}`;
         }
         if(eventEndDate.getTime() === date.getTime()) {
+            if(event.isAllDay.two) {
+                return "All Day";
+            }
             return `Until ${getHourAndMinutes(eventEndTime.getHours(), eventEndTime.getMinutes())}`;
         }
         return `All Day`;
@@ -116,7 +119,7 @@ function ScheduleDays(props) {
         }
     })
     
-    let ReturnEvents = totalEvents.map((event) => {
+    let ReturnEvents = totalEvents.map((event, index) => {
 
         const handleOnClick = () => {
             props.dispatch(changeDate({"month" : event.date.getMonth(), "day" : event.date.getDate(), "year": event.date.getFullYear()}));
@@ -129,7 +132,7 @@ function ScheduleDays(props) {
         }
 
         return(
-            <div className="calendar-body-schedule-events">
+            <div className="calendar-body-schedule-events" key={"calendar-body-schedule-events-" + index}>
                 <div className="calendar-body-schedule-events-day">
                     <div className={"calendar-body-schedule-events-date" + isToday} onClick={() => handleOnClick()}>{event.date.getDate()}</div>
                     <div className="calendar-body-schedule-events-month">{convertMonths[event.date.getMonth()] + ", " + convertWeeks[event.date.getDay()]}</div>
