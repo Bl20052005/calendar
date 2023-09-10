@@ -132,11 +132,11 @@ function AddEventPopupCalendar({currentDate, setCurrentDate, setDateInput, focus
         <div className={'add-event-popup-calendar ' + focusCalendarVisible}>
             <div className='add-event-popup-calendar-top'>
                 <div className='add-event-popup-calendar-arrow-left' onClick={() => changeDateEnablerMinus()}>
-                    <svg xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+                    <svg className='svg-fill' xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
                 </div>
                 <div className='add-event-popup-calendar-title'>{convertMonths[curMonth]}, {curYear}</div>
                 <div className='add-event-popup-calendar-arrow-right' onClick={() => changeDateEnablerPlus()}>
-                    <svg xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg>
+                    <svg className='svg-fill' xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg>
                 </div>
             </div>
             {returnValue}
@@ -251,12 +251,12 @@ function BaseCalendar({currentDate, dispatch}) {
         <div className='base-calendar'>
             <div className='base-calendar-top'>
                 <div className='base-calendar-arrow-left' onClick={() => dispatch(changeDate(changeDateEnablerMinus()))}>
-                    <svg xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+                    <svg className='svg-fill' xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288 416 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-306.7 0L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
                 </div>
                 
                 <div className='base-calendar-title'><span className='base-calendar-title-month' onClick={() => dispatch(changeDateSpecifics("month"))}>{convertMonths[curMonth]}</span>, <span className='base-calendar-title-year' onClick={() => dispatch(changeDateSpecifics("year"))}>{curYear}</span></div>
                 <div className='base-calendar-arrow-right' onClick={() => dispatch(changeDate(changeDateEnablerPlus()))}>
-                    <svg xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg>
+                    <svg className='svg-fill' xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg>
                 </div>
             </div>
             {returnValue}
@@ -280,7 +280,7 @@ function AddEventPopUpTime({previousTime = {hour: 0, minute: 0}, setPreviousTime
         if(item[1] < 10) item[1] = "0" + item[1]
 
         const handlePopupTimeClick = (e) => {
-            console.log(displayHours)
+            //console.log(displayHours)
             setCurTime(displayHours + ":" + item[1] + " " + item[2]);
             if(setPreviousTime !== null) {
                 let addition = 0;
@@ -466,9 +466,9 @@ function AddEventPopUpRepeatAdvanced(props) {
         let returnedRepeatEnding = {"never" : false, "onDay" : null, "afterIterations" : null};
         returnedObj[curOption] = curNumber;
         if(curRepeatEnding === "afterIterations") returnedRepeatEnding[curRepeatEnding] = numIterations;
-        console.log(curRepeatEnding)
+        //console.log(curRepeatEnding)
         if(curRepeatEnding === "onDay" && !isNaN(Date.parse(curEndDate))) returnedRepeatEnding[curRepeatEnding] = curEndDate;
-        console.log(returnedObj);
+        //console.log(returnedObj);
         props.setRepeat(true);
         props.setRepeatSpecifics(returnedObj);
         props.setRepeatEnding(returnedRepeatEnding);
@@ -484,7 +484,7 @@ function AddEventPopUpRepeatAdvanced(props) {
     }
 
     const handleDisplayDayOnClick = (index) => {
-        console.log(curWeekdays)
+        //console.log(curWeekdays)
         if(curWeekdays.indexOf(index) === -1) {
             // e.target.setAttribute("class", "add-event-popup-repeat-advanced-week-day add-event-popup-repeat-advanced-week-day-clicked");
             setCurWeekdays([...curWeekdays, index]);
@@ -506,13 +506,13 @@ function AddEventPopUpRepeatAdvanced(props) {
 
     return(
         <div className={'add-event-popup-repeat-advanced-container ' + props.isAdvancedVisible} ref={ref1}>
-            <svg className='add-event-popup-repeat-advanced-exit' onClick={() => handleExitAdvanced()} xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+            <svg className='add-event-popup-repeat-advanced-exit svg-fill' onClick={() => handleExitAdvanced()} xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
             <div className='add-event-popup-repeat-advanced-title'>Repeats every</div>
             <div className='add-event-popup-repeat-advanced-main-container'>
                 <input className='add-event-popup-repeat-advanced-input' type="number" min={1} max={99} value={curNumber} onChange={(e) => handleAdvancedNumberChange(e)}></input>
                 <div className='add-event-popup-repeat-advanced-main' onClick={() => handleAdvancedMainClick()}>
                     <div className='add-event-popup-repeat-advanced-main-name'>{curOption[0].toUpperCase() + curOption.substring(1)}</div>
-                    <svg className="add-event-popup-repeat-advanced-main-down-arrow" xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M201.4 342.6c12.5 12.5 32.8 12.5 45.3 0l160-160c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 274.7 86.6 137.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l160 160z"/></svg>
+                    <svg className="add-event-popup-repeat-advanced-main-down-arrow svg-fill" xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M201.4 342.6c12.5 12.5 32.8 12.5 45.3 0l160-160c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 274.7 86.6 137.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l160 160z"/></svg>
                 </div>
             </div>
 
@@ -673,7 +673,7 @@ function AddEventPopUpRepeat(props) {
                 <div className='add-event-popup-repeat-title'>Repeat...</div>
                 <div className='add-event-popup-repeat-main' onClick={() => handleOpenRepeatSelector()}>
                     <div className='add-event-popup-repeat-main-name'>{repeatTitle}</div>
-                    <svg className="add-event-popup-repeat-main-down-arrow" xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M201.4 342.6c12.5 12.5 32.8 12.5 45.3 0l160-160c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 274.7 86.6 137.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l160 160z"/></svg>
+                    <svg className="add-event-popup-repeat-main-down-arrow svg-fill" xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 448 512"><path d="M201.4 342.6c12.5 12.5 32.8 12.5 45.3 0l160-160c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 274.7 86.6 137.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l160 160z"/></svg>
                 </div>
             </div>
             <div className={'add-event-popup-repeat-selector ' + props.isAddEventPopUpRepeatVisible} ref={ref}>
@@ -685,7 +685,7 @@ function AddEventPopUpRepeat(props) {
                 <div className='add-event-popup-repeat-selector-option' onClick={() => handleRepeatSelectorOnClick("Custom")}>Custom</div>
             </div>
             <div className='add-event-popup-repeat-advanced-settings' onClick={() => handleSetAdvancedVisible()}>
-                <svg className='add-event-popup-repeat-advanced-settings-icon' xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 640 512"><path d="M308.5 135.3c7.1-6.3 9.9-16.2 6.2-25c-2.3-5.3-4.8-10.5-7.6-15.5L304 89.4c-3-5-6.3-9.9-9.8-14.6c-5.7-7.6-15.7-10.1-24.7-7.1l-28.2 9.3c-10.7-8.8-23-16-36.2-20.9L199 27.1c-1.9-9.3-9.1-16.7-18.5-17.8C173.9 8.4 167.2 8 160.4 8h-.7c-6.8 0-13.5 .4-20.1 1.2c-9.4 1.1-16.6 8.6-18.5 17.8L115 56.1c-13.3 5-25.5 12.1-36.2 20.9L50.5 67.8c-9-3-19-.5-24.7 7.1c-3.5 4.7-6.8 9.6-9.9 14.6l-3 5.3c-2.8 5-5.3 10.2-7.6 15.6c-3.7 8.7-.9 18.6 6.2 25l22.2 19.8C32.6 161.9 32 168.9 32 176s.6 14.1 1.7 20.9L11.5 216.7c-7.1 6.3-9.9 16.2-6.2 25c2.3 5.3 4.8 10.5 7.6 15.6l3 5.2c3 5.1 6.3 9.9 9.9 14.6c5.7 7.6 15.7 10.1 24.7 7.1l28.2-9.3c10.7 8.8 23 16 36.2 20.9l6.1 29.1c1.9 9.3 9.1 16.7 18.5 17.8c6.7 .8 13.5 1.2 20.4 1.2s13.7-.4 20.4-1.2c9.4-1.1 16.6-8.6 18.5-17.8l6.1-29.1c13.3-5 25.5-12.1 36.2-20.9l28.2 9.3c9 3 19 .5 24.7-7.1c3.5-4.7 6.8-9.5 9.8-14.6l3.1-5.4c2.8-5 5.3-10.2 7.6-15.5c3.7-8.7 .9-18.6-6.2-25l-22.2-19.8c1.1-6.8 1.7-13.8 1.7-20.9s-.6-14.1-1.7-20.9l22.2-19.8zM112 176a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zM504.7 500.5c6.3 7.1 16.2 9.9 25 6.2c5.3-2.3 10.5-4.8 15.5-7.6l5.4-3.1c5-3 9.9-6.3 14.6-9.8c7.6-5.7 10.1-15.7 7.1-24.7l-9.3-28.2c8.8-10.7 16-23 20.9-36.2l29.1-6.1c9.3-1.9 16.7-9.1 17.8-18.5c.8-6.7 1.2-13.5 1.2-20.4s-.4-13.7-1.2-20.4c-1.1-9.4-8.6-16.6-17.8-18.5L583.9 307c-5-13.3-12.1-25.5-20.9-36.2l9.3-28.2c3-9 .5-19-7.1-24.7c-4.7-3.5-9.6-6.8-14.6-9.9l-5.3-3c-5-2.8-10.2-5.3-15.6-7.6c-8.7-3.7-18.6-.9-25 6.2l-19.8 22.2c-6.8-1.1-13.8-1.7-20.9-1.7s-14.1 .6-20.9 1.7l-19.8-22.2c-6.3-7.1-16.2-9.9-25-6.2c-5.3 2.3-10.5 4.8-15.6 7.6l-5.2 3c-5.1 3-9.9 6.3-14.6 9.9c-7.6 5.7-10.1 15.7-7.1 24.7l9.3 28.2c-8.8 10.7-16 23-20.9 36.2L315.1 313c-9.3 1.9-16.7 9.1-17.8 18.5c-.8 6.7-1.2 13.5-1.2 20.4s.4 13.7 1.2 20.4c1.1 9.4 8.6 16.6 17.8 18.5l29.1 6.1c5 13.3 12.1 25.5 20.9 36.2l-9.3 28.2c-3 9-.5 19 7.1 24.7c4.7 3.5 9.5 6.8 14.6 9.8l5.4 3.1c5 2.8 10.2 5.3 15.5 7.6c8.7 3.7 18.6 .9 25-6.2l19.8-22.2c6.8 1.1 13.8 1.7 20.9 1.7s14.1-.6 20.9-1.7l19.8 22.2zM464 304a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>
+                <svg className='add-event-popup-repeat-advanced-settings-icon svg-fill' xmlns="http://www.w3.org/2000/svg" height="15px" viewBox="0 0 640 512"><path d="M308.5 135.3c7.1-6.3 9.9-16.2 6.2-25c-2.3-5.3-4.8-10.5-7.6-15.5L304 89.4c-3-5-6.3-9.9-9.8-14.6c-5.7-7.6-15.7-10.1-24.7-7.1l-28.2 9.3c-10.7-8.8-23-16-36.2-20.9L199 27.1c-1.9-9.3-9.1-16.7-18.5-17.8C173.9 8.4 167.2 8 160.4 8h-.7c-6.8 0-13.5 .4-20.1 1.2c-9.4 1.1-16.6 8.6-18.5 17.8L115 56.1c-13.3 5-25.5 12.1-36.2 20.9L50.5 67.8c-9-3-19-.5-24.7 7.1c-3.5 4.7-6.8 9.6-9.9 14.6l-3 5.3c-2.8 5-5.3 10.2-7.6 15.6c-3.7 8.7-.9 18.6 6.2 25l22.2 19.8C32.6 161.9 32 168.9 32 176s.6 14.1 1.7 20.9L11.5 216.7c-7.1 6.3-9.9 16.2-6.2 25c2.3 5.3 4.8 10.5 7.6 15.6l3 5.2c3 5.1 6.3 9.9 9.9 14.6c5.7 7.6 15.7 10.1 24.7 7.1l28.2-9.3c10.7 8.8 23 16 36.2 20.9l6.1 29.1c1.9 9.3 9.1 16.7 18.5 17.8c6.7 .8 13.5 1.2 20.4 1.2s13.7-.4 20.4-1.2c9.4-1.1 16.6-8.6 18.5-17.8l6.1-29.1c13.3-5 25.5-12.1 36.2-20.9l28.2 9.3c9 3 19 .5 24.7-7.1c3.5-4.7 6.8-9.5 9.8-14.6l3.1-5.4c2.8-5 5.3-10.2 7.6-15.5c3.7-8.7 .9-18.6-6.2-25l-22.2-19.8c1.1-6.8 1.7-13.8 1.7-20.9s-.6-14.1-1.7-20.9l22.2-19.8zM112 176a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zM504.7 500.5c6.3 7.1 16.2 9.9 25 6.2c5.3-2.3 10.5-4.8 15.5-7.6l5.4-3.1c5-3 9.9-6.3 14.6-9.8c7.6-5.7 10.1-15.7 7.1-24.7l-9.3-28.2c8.8-10.7 16-23 20.9-36.2l29.1-6.1c9.3-1.9 16.7-9.1 17.8-18.5c.8-6.7 1.2-13.5 1.2-20.4s-.4-13.7-1.2-20.4c-1.1-9.4-8.6-16.6-17.8-18.5L583.9 307c-5-13.3-12.1-25.5-20.9-36.2l9.3-28.2c3-9 .5-19-7.1-24.7c-4.7-3.5-9.6-6.8-14.6-9.9l-5.3-3c-5-2.8-10.2-5.3-15.6-7.6c-8.7-3.7-18.6-.9-25 6.2l-19.8 22.2c-6.8-1.1-13.8-1.7-20.9-1.7s-14.1 .6-20.9 1.7l-19.8-22.2c-6.3-7.1-16.2-9.9-25-6.2c-5.3 2.3-10.5 4.8-15.6 7.6l-5.2 3c-5.1 3-9.9 6.3-14.6 9.9c-7.6 5.7-10.1 15.7-7.1 24.7l9.3 28.2c-8.8 10.7-16 23-20.9 36.2L315.1 313c-9.3 1.9-16.7 9.1-17.8 18.5c-.8 6.7-1.2 13.5-1.2 20.4s.4 13.7 1.2 20.4c1.1 9.4 8.6 16.6 17.8 18.5l29.1 6.1c5 13.3 12.1 25.5 20.9 36.2l-9.3 28.2c-3 9-.5 19 7.1 24.7c4.7 3.5 9.5 6.8 14.6 9.8l5.4 3.1c5 2.8 10.2 5.3 15.5 7.6c8.7 3.7 18.6 .9 25-6.2l19.8-22.2c6.8 1.1 13.8 1.7 20.9 1.7s14.1-.6 20.9-1.7l19.8 22.2zM464 304a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>
                 <div className='add-event-popup-repeat-advanced-settings-text'>Advanced</div>
             </div>
             <AddEventPopUpRepeatAdvanced {...props}/>
@@ -1001,8 +1001,8 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
             let dayTwo = dateValidator(dateTwoInput);
             dayOne = new Date(dayOne.year + '-' + addZeroes(dayOne.month + 1) + '-' + addZeroes(dayOne.day) + 'T' + getTrueTime(curTimeOne));
             dayTwo = new Date(dayTwo.year + '-' + addZeroes(dayTwo.month + 1) + '-' + addZeroes(dayTwo.day) + 'T' + getTrueTime(curTimeTwo));
-            console.log(dayOne)
-            console.log(dateValidator(dateOneInput))
+            //console.log(dayOne)
+            //console.log(dateValidator(dateOneInput))
             if(dayOne.getTime() > dayTwo.getTime()) {
                 if(dayOne.getFullYear() === dayTwo.getFullYear() && dayOne.getMonth() === dayTwo.getMonth() && dayOne.getDate() === dayTwo.getDate()) {
                     finalObj["time1"] = "input-incorrect";
@@ -1123,7 +1123,7 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
             finalObj["repeatEnding"] = repeatEnding;
             finalObj["repeatExceptions"] = repeatExceptions;
 
-            console.log(finalObj)
+            //console.log(finalObj)
 
             if(currentCalendarDate.functionWanted === "edit-delete") {
                 dispatch(changeEvent({"index" : currentCalendarDate.editingIndex, "value" : finalObj}));
@@ -1232,14 +1232,14 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
     return(
         <div className={'add-event-popup add-event-popup-position ' + isThisVisible}>
             <div className='add-event-popup-move' onMouseDown={(e) => handleMoveMouseDown(e)} onMouseUp={(e) => handleMoveMouseUp(e)} onTouchMove={(e) => handleTouchMove(e)} onTouchStart={(e) => handleTouchStart(e)}>
-                <svg className='add-event-popup-exit' onMouseDown={(e) => {
+                <svg className='add-event-popup-exit svg-fill' onMouseDown={(e) => {
                     e.stopPropagation();
                     handleCancelClick();
                 }} xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
             </div>
             <input type="text" className='add-event-popup-title' name="add-event-popup-title" placeholder='Enter title here' value={curTitle} onChange={(e) => setCurTitle(e.target.value)} autoComplete="off"></input>
             <div className='add-event-popup-time-container'>
-            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 512 512"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"/></svg>
+            <svg className='svg-fill' xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 512 512"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"/></svg>
                 <div className='add-event-popup-texts'>Time</div>
             </div>
             <div className='add-event-popup-time'>
@@ -1285,20 +1285,20 @@ function AddEventPopUp({dispatch, currentColors, currentCalendarDate, currentEve
                 isAdvancedSelectorVisible={isAdvancedSelectorVisible} setIsAdvancedSelectorVisible={setIsAdvancedSelectorVisible}/>
             <div className='add-event-popup-description-container'>
                 <div className='add-event-popup-description-menu'>
-                    <div className='add-event-popup-description-menu-line add-event-popup-description-menu-line-1'></div>
-                    <div className='add-event-popup-description-menu-line add-event-popup-description-menu-line-2'></div>
-                    <div className='add-event-popup-description-menu-line add-event-popup-description-menu-line-3'></div>
+                    <div className='add-event-popup-description-menu-line line-fill add-event-popup-description-menu-line-1'></div>
+                    <div className='add-event-popup-description-menu-line line-fill add-event-popup-description-menu-line-2'></div>
+                    <div className='add-event-popup-description-menu-line line-fill add-event-popup-description-menu-line-3'></div>
                 </div>
                 <div className='add-event-popup-texts'>Description</div>
             </div>
             <textarea className='add-event-popup-description' name='add-event-popup-description' value={curDescription} onChange={(e) => setCurDescription(e.target.value)}></textarea>
             <div className='add-event-popup-color-container'>
-                <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 576 512"><path d="M339.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L568.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S517.7-4.4 499.1 9.6L262.4 187.2c-24 18-38.2 46.1-38.4 76.1L339.3 367.1zm-19.6 25.4l-116-104.4C143.9 290.3 96 339.6 96 400c0 3.9 .2 7.8 .6 11.6C98.4 429.1 86.4 448 68.8 448H64c-17.7 0-32 14.3-32 32s14.3 32 32 32H208c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg>
+                <svg className='svg-fill' xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 576 512"><path d="M339.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L568.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S517.7-4.4 499.1 9.6L262.4 187.2c-24 18-38.2 46.1-38.4 76.1L339.3 367.1zm-19.6 25.4l-116-104.4C143.9 290.3 96 339.6 96 400c0 3.9 .2 7.8 .6 11.6C98.4 429.1 86.4 448 68.8 448H64c-17.7 0-32 14.3-32 32s14.3 32 32 32H208c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg>
                 <div className='add-event-popup-texts'>Color & Label</div>
             </div>
             <ChooseColorPalate selectedColor={selectedColor} setSelectedColor={setSelectedColor}/>
             <div className='add-event-popup-location-container'>
-                <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 384 512"><path d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/></svg>
+                <svg className='svg-fill' xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 384 512"><path d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/></svg>
                 <div className='add-event-popup-texts'>Location</div>
             </div>
             <input type="text" className='add-event-popup-location' name="add-event-popup-location" value={curLocation} onChange={(e) => setCurLocation(e.target.value)} autoComplete="off"></input>
@@ -1315,7 +1315,7 @@ function AddEvent({dispatch}) {
     return(
         <div className='add-event' onClick={() => dispatch(changeSingleCalendarEvent({"key" : "isThisVisible", "value" : "visibility-visible"}))}>
             <div className='add-event-add-sign'>
-                <svg xmlns="http://www.w3.org/2000/svg" height="25px" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
+                <svg className='svg-fill' xmlns="http://www.w3.org/2000/svg" height="25px" viewBox="0 0 448 512"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z"/></svg>
             </div>
             <div className='add-event-text'>Event</div>
         </div>

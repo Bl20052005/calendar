@@ -62,7 +62,7 @@
 }
 
 .calendar-body-schedule-events-date:hover:not(.date-today) {
-    background-color: rgb(160, 198, 255);
+    background-color: var(--date-hover-color);
 }
 
 .calendar-body-schedule-events-month {
@@ -81,7 +81,7 @@
 }
 
 .calendar-body-schedule-event:hover {
-    background-color: rgb(196, 243, 243);
+    background-color: var(--date-hover-color);
 }
 
 .calendar-body-schedule-event-color {

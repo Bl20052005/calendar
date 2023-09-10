@@ -40,9 +40,17 @@ export const colorSlice = createSlice({
         changeTotalColorIsLocked: (state, action) => {
             state.totalColorsisLocked[action.payload.color] = action.payload.value;
         },
+
+        changeAllColors: (state, action) => {
+            state.undesiredColors = action.payload.undesiredColors;
+            state.totalColors = action.payload.totalColors;
+            state.totalColorsNumber = action.payload.totalColorsNumber;
+            state.totalColorsLabel = action.payload.totalColorsLabel;
+            state.totalColorsisLocked = action.payload.totalColorsisLocked;
+        },
     }
 })
 
-export const { addUndesiredColor, removeUndesiredColor, addTotalColor, addTotalColorNumber, removeTotalColor, changeTotalColorLabel, changeTotalColorIsLocked } = colorSlice.actions;
+export const { addUndesiredColor, removeUndesiredColor, addTotalColor, addTotalColorNumber, removeTotalColor, changeTotalColorLabel, changeTotalColorIsLocked, changeAllColors } = colorSlice.actions;
 
 export default colorSlice.reducer;

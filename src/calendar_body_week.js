@@ -118,19 +118,19 @@ function BodyWeek() {
             return allDayStart(event);
         }).sort((a, b) => a.startIndex - b.startIndex)
 
-        console.log([...props.currentEvents].map((event, index) => {
-            return {...event, "index" : index};
-        }).filter((event) => {
-            return event.repeat;
-        }).map((event) => {
-            return createEventsRepeated(event, new Date(curDate.year, curDate.month, curDate.day).getTime(), new Date(endDate.year, endDate.month, endDate.day).getTime());
-        }).flat().filter((event) => {
-            return filterEventsStartEnd(event, new Date(curDate.year, curDate.month, curDate.day), new Date(endDate.year, endDate.month, endDate.day), props.currentUnwantedColors);
-        }).concat([...props.currentEvents].map((event, index) => {
-            return {...event, "index" : index};
-        }).filter((event) => {
-            return !event.repeat && filterEventsStartEnd(event, new Date(curDate.year, curDate.month, curDate.day), new Date(endDate.year, endDate.month, endDate.day), props.currentUnwantedColors) && isAllDay(event);
-        })))
+        // console.log([...props.currentEvents].map((event, index) => {
+        //     return {...event, "index" : index};
+        // }).filter((event) => {
+        //     return event.repeat;
+        // }).map((event) => {
+        //     return createEventsRepeated(event, new Date(curDate.year, curDate.month, curDate.day).getTime(), new Date(endDate.year, endDate.month, endDate.day).getTime());
+        // }).flat().filter((event) => {
+        //     return filterEventsStartEnd(event, new Date(curDate.year, curDate.month, curDate.day), new Date(endDate.year, endDate.month, endDate.day), props.currentUnwantedColors);
+        // }).concat([...props.currentEvents].map((event, index) => {
+        //     return {...event, "index" : index};
+        // }).filter((event) => {
+        //     return !event.repeat && filterEventsStartEnd(event, new Date(curDate.year, curDate.month, curDate.day), new Date(endDate.year, endDate.month, endDate.day), props.currentUnwantedColors) && isAllDay(event);
+        // })))
     
         const ReturnedEvents = eventsToday.map((event, index) => {
     
@@ -377,7 +377,7 @@ function BodyWeek() {
         }
     }
 
-    console.log(currentEvents)
+    //console.log(currentEvents)
 
     return(
         <div className="calendar-body-week-container">
