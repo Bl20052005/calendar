@@ -2,13 +2,13 @@ import React from 'react';
 import { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 import { changeDate, changeDateSpecifics } from './redux_slices/dateSlice';
-import { userSignIn, userSignOut } from './redux_slices/signInSlice';
+import { updatePfp, updateName, updateBio, resetSignIn } from './redux_slices/signInSlice';
 import { replaceAll } from './redux_slices/eventSlice';
 import { changeAllColors } from './redux_slices/colorSlice';
 import createEventsRepeated from './calendar_body_useful_functions/create_repeating_events';
 import getHourAndMinutes from './calendar_body_useful_functions/get_hours_and_minutes';
 import filterEventsStartEnd from './calendar_body_useful_functions/filter_events_start_end';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile } from "firebase/auth";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 function HeaderToggleSideMenu({menuHidden, setMenuHidden}) {
@@ -131,6 +131,7 @@ function HeaderSignInPopup(props) {
                     // Create a storage reference from our storage service
                     const userRef = ref(storage, user.uid + "/events");
                     const colorRef = ref(storage, user.uid + "/colors")
+                    const bioRef = ref(storage, user.uid + "/bio")
 
                     const file = new Blob([[]], {
                         type: "application/json",
@@ -146,12 +147,35 @@ function HeaderSignInPopup(props) {
                         type: "application/json",
                     });
 
+                    const bio = new Blob([""], {
+                        type: "application/json",
+                    });
+
+                    const errorReport = (error) => {
+                        props.setErrorVisible("visibility-visible");
+                        props.setErrorMessage("Error with creating events: " + error.code + ", use save icon to create instead");
+                        clearTimeout(props.errorTimeID);
+                        props.setErrorTimeID(setTimeout(() => {
+                            props.setErrorVisible("visibility-hidden");
+                        }, 10000));
+                    }
+
                     uploadBytes(userRef, file).then((snapshot) => {
                         console.log('Uploaded a blob or file!');
+                    }).catch((error) => {
+                        errorReport(error);
                     });
 
                     uploadBytes(colorRef, colors).then((snapshot) => {
                         console.log('Uploaded a blob or file!');
+                    }).catch((error) => {
+                        errorReport(error);
+                    });
+
+                    uploadBytes(bioRef, bio).then((snapshot) => {
+                        console.log('Uploaded a blob or file!');
+                    }).catch((error) => {
+                        errorReport(error);
                     });
                     //props.dispatch(replaceAll());
                     handleClose();
@@ -179,6 +203,8 @@ function HeaderSignInPopup(props) {
                     }
                     const user = userCredential.user;
                     const storage = getStorage();
+                    props.dispatch(updatePfp(user.photoURL));
+                    props.dispatch(updateName(user.displayName));
                     getDownloadURL(ref(storage, user.uid + "/events"))
                         .then((url) => {
                             fetch(url)
@@ -198,6 +224,20 @@ function HeaderSignInPopup(props) {
                                 .then((val) => val.json())
                                 .then((ans) => props.dispatch(changeAllColors(ans)))
                                 .catch((error) => {
+                                    errorReport(error);
+                                })
+                            })
+                        .catch((error) => {
+                            errorReport(error);
+                        });
+
+                        getDownloadURL(ref(storage, user.uid + "/bio"))
+                        .then((url) => {
+                            fetch(url)
+                                .then((val) => val.text())
+                                .then((ans) => props.dispatch(updateBio(ans)))
+                                .catch((error) => {
+                                    console.log("whatshisname")
                                     errorReport(error);
                                 })
                             })
@@ -333,6 +373,7 @@ function HeaderSignIn(props) {
         signOut(auth).then(() => {
           // Sign-out successful.
             props.dispatch(replaceAll([]));
+            props.dispatch(resetSignIn());
             props.dispatch(changeAllColors({
                 undesiredColors: [],
                 totalColors: [],
@@ -351,9 +392,9 @@ function HeaderSignIn(props) {
     }
 
     //until further notice
-    useEffect(() => {
-        handleSignOut();
-    }, [])
+    // useEffect(() => {
+    //     handleSignOut();
+    // }, [])
 
     const auth = getAuth();
     const user = auth.currentUser;
@@ -371,7 +412,7 @@ function HeaderSignIn(props) {
         return(
             <div className='header-signIn-container'>
                 <div className='header-signIn-text' onClick={() => handleSignOut()}>Sign Out</div>
-                <img className='header-signIn-profile-pic' src="https://i.pinimg.com/736x/83/bc/8b/83bc8b88cf6bc4b4e04d153a418cde62.jpg"/>
+                <img className='header-signIn-profile-pic' src={user ? user.photoURL ? props.signInStatus.pfp : "https://i.pinimg.com/736x/83/bc/8b/83bc8b88cf6bc4b4e04d153a418cde62.jpg" : "https://i.pinimg.com/736x/83/bc/8b/83bc8b88cf6bc4b4e04d153a418cde62.jpg"}/>
             </div>
         );
     }
@@ -504,6 +545,16 @@ function HeaderSave(props) {
     const user = auth.currentUser;
 
     const handleUploadOnClick = () => {
+        
+        const errorReport = (error) => {
+            props.setErrorVisible("visibility-visible");
+            props.setErrorMessage("Error with loading events: " + error.code + ", try reloading again");
+            clearTimeout(props.errorTimeID);
+            props.setErrorTimeID(setTimeout(() => {
+                props.setErrorVisible("visibility-hidden");
+            }, 10000));
+        }
+
         // Get a reference to the storage service, which is used to create references in your storage bucket
         const storage = getStorage();
         const auth = getAuth();
@@ -526,10 +577,14 @@ function HeaderSave(props) {
 
         uploadBytes(userRef, file).then((snapshot) => {
             console.log('Uploaded a blob or file!');
+        }).catch((error) => {
+            errorReport(error);
         });
 
         uploadBytes(colorRef, colors).then((snapshot) => {
             console.log('Uploaded a blob or file!');
+        }).catch((error) => {
+            errorReport(error);
         });
     }
 
@@ -772,17 +827,30 @@ function HeaderSettings(props) {
             });
 
             getDownloadURL(ref(storage, user.uid + "/colors"))
-                .then((url) => {
-                    fetch(url)
-                        .then((val) => val.json())
-                        .then((ans) => props.dispatch(changeAllColors(ans)))
-                        .catch((error) => {
-                            errorReport(error);
-                        })
+            .then((url) => {
+                fetch(url)
+                    .then((val) => val.json())
+                    .then((ans) => props.dispatch(changeAllColors(ans)))
+                    .catch((error) => {
+                        errorReport(error);
                     })
-                .catch((error) => {
-                    errorReport(error);
-                });
+                })
+            .catch((error) => {
+                errorReport(error);
+            });
+
+            getDownloadURL(ref(storage, user.uid + "/bio"))
+            .then((url) => {
+                fetch(url)
+                    .then((val) => val.text())
+                    .then((ans) => props.dispatch(updateBio(ans)))
+                    .catch((error) => {
+                        errorReport(error);
+                    })
+                })
+            .catch((error) => {
+                errorReport(error);
+            });
         } else {
             props.setErrorVisible("visibility-visible");
             props.setErrorMessage("Error with loading events: user not signed in, sign in before reloading data");
@@ -831,7 +899,7 @@ function HeaderSettings(props) {
                 <div className='header-settings-pfp-button' onClick={() => handleProfileOnClick()}>
                     <div className='header-settings-pfp-text'>View Profile</div>
                 </div>
-                <HeaderProfile pfpVisibility={pfpVisibility} setPfpVisibility={setPfpVisibility}/>
+                <HeaderProfile pfpVisibility={pfpVisibility} setPfpVisibility={setPfpVisibility} dispatch={props.dispatch} signInStatus={props.signInStatus}/>
                 <div className='header-settings-reload-button' onClick={() => handleReloadOnClick()}>
                     <div className='header-settings-reload-text'>Reload Data</div>
                 </div>
@@ -844,13 +912,28 @@ function HeaderProfile(props) {
     const auth = getAuth();
     const user = auth.currentUser;
 
-    // const [img, setImg] = useState("");
+    const [imgVis, setImgVis] = useState("visibility-hidden");
+    const [nameVis, setNameVis] = useState("visibility-hidden");
+    const [bioVis, setBioVis] = useState("visibility-hidden");
     // const [name, setName] = useState(user.displayName);
     // const [bio, setBio] = useState("");
 
     const handleExit = () => {
         props.setPfpVisibility("visibility-hidden");
     }
+
+    const handleImgVisOnClick = () => {
+        setImgVis("visibility-visible");
+    }
+
+    const handleNameVisOnClick = () => {
+        setNameVis("visibility-visible");
+    }
+
+    const handleBioVisOnClick = () => {
+        setBioVis("visibility-visible");
+    }
+
     return(
         <React.Fragment>
             <div className={'header-profile-cover ' + props.pfpVisibility}></div>
@@ -858,27 +941,155 @@ function HeaderProfile(props) {
             <svg className='header-profile-exit svg-fill' onClick={() => handleExit()} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
                 <div className='header-profile-image-container'>
                     <img className='header-profile-image' src={user ? user.photoURL ? user.photoURL : "https://i.pinimg.com/736x/83/bc/8b/83bc8b88cf6bc4b4e04d153a418cde62.jpg" : "https://i.pinimg.com/736x/83/bc/8b/83bc8b88cf6bc4b4e04d153a418cde62.jpg"}/>
-                    <div className='header-profile-image-edit-circle'>
+                    <div className='header-profile-image-edit-circle' onClick={() => handleImgVisOnClick()}>
                         <svg className='header-profile-image-edit-icon svg-fill' xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"/></svg>
                     </div>
                 </div>
+                <HeaderPfpSet imgVis={imgVis} setImgVis={setImgVis} dispatch={props.dispatch}/>
 
                 <div className='header-profile-name-container'>
                     <div className='header-profile-name'>{user ? user.displayName ? user.displayName : "[No name set]" : "[No name set]"}</div>
-                    <div className='header-profile-name-edit-circle'>
+                    <div className='header-profile-name-edit-circle' onClick={() => handleNameVisOnClick()}>
                         <svg className='header-profile-name-edit-icon svg-fill' xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"/></svg>
                     </div>
                 </div>
+                <HeaderNameSet nameVis={nameVis} setNameVis={setNameVis} dispatch={props.dispatch}/>
 
                 <div className='header-profile-bio-container'>
                     <div className='header-profile-bio-title'>Bio:</div>
                     <div className='header-profile-bio'>
-                        <div className='header-profile-text'>Nothing so far...</div>
+                        <div className='header-profile-text'>{props.signInStatus.bio === "" ? "Nothing so far..." : props.signInStatus.bio}</div>
                     </div>
-                    <div className='header-profile-bio-edit-circle'>
+                    <div className='header-profile-bio-edit-circle' onClick={() => handleBioVisOnClick()}>
                         <svg className='header-profile-bio-edit-icon svg-fill' xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"/></svg>
                     </div>
                 </div>
+                <HeaderBioSet bioVis={bioVis} setBioVis={setBioVis} dispatch={props.dispatch}/>
+            </div>
+        </React.Fragment>
+    )
+}
+
+function HeaderPfpSet(props) {
+
+    const [pfp, setPfp] = useState("");
+
+    const auth = getAuth();
+    const handleSubmitOnClick = (e) => {
+        e.preventDefault();
+        props.dispatch(updatePfp(pfp));
+        updateProfile(auth.currentUser, {
+            photoURL: pfp
+          }).then(() => {
+            // Profile updated!
+            props.setImgVis("visibility-hidden");
+            setPfp("");
+          }).catch((error) => {
+            // An error occurred
+            // ...
+          });
+    }
+
+    const handleExit = () => {
+        props.setImgVis("visibility-hidden");
+        setPfp("");
+    }
+
+    return(
+        <React.Fragment>
+            <div className={'header-pfp-change-cover ' + props.imgVis}></div>
+            <div className={'header-pfp-change-container ' + props.imgVis}>
+                <svg className='header-pfp-exit svg-fill' onClick={() => handleExit()} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+                <div>Input new pfp link:</div>
+                <form className='header-pfp-change-form' onSubmit={(e) => handleSubmitOnClick(e)}>
+                    <input className='header-pfp-change-input' type="url" value={pfp} onChange={(e) => setPfp(e.target.value)} required/>
+                    <input type="submit" className='header-pfp-change-submit' value="Change"/>
+                </form>
+            </div>
+        </React.Fragment>
+    )
+}
+
+function HeaderNameSet(props) {
+    const [pfp, setPfp] = useState("");
+
+    const auth = getAuth();
+    const handleSubmitOnClick = (e) => {
+        e.preventDefault();
+        props.dispatch(updateName(pfp));
+        updateProfile(auth.currentUser, {
+            displayName: pfp
+          }).then(() => {
+            // Profile updated!
+            props.setNameVis("visibility-hidden");
+            setPfp("");
+          }).catch((error) => {
+            // An error occurred
+            // ...
+          });
+    }
+
+    const handleExit = () => {
+        props.setNameVis("visibility-hidden");
+        setPfp("");
+    }
+
+    return(
+        <React.Fragment>
+            <div className={'header-pfp-change-cover ' + props.nameVis}></div>
+            <div className={'header-pfp-change-container ' + props.nameVis}>
+                <svg className='header-pfp-exit svg-fill' onClick={() => handleExit()} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+                <div>Input new display name:</div>
+                <form className='header-pfp-change-form' onSubmit={(e) => handleSubmitOnClick(e)}>
+                    <input className='header-pfp-change-input' type="text" value={pfp} onChange={(e) => setPfp(e.target.value)} required/>
+                    <input type="submit" className='header-pfp-change-submit' value="Change"/>
+                </form>
+            </div>
+        </React.Fragment>
+    )
+}
+
+function HeaderBioSet(props) {
+    const [pfp, setPfp] = useState("");
+
+    const handleSubmitOnClick = (e) => {
+        e.preventDefault();
+        const storage = getStorage();
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        // Create a storage reference from our storage service
+        const userRef = ref(storage, user.uid + "/bio");
+
+        const file = new Blob([pfp], {
+            type: "application/json",
+        });
+
+        uploadBytes(userRef, file).then((snapshot) => {
+            props.dispatch(updateBio(pfp));
+            props.setBioVis("visibility-hidden");
+            setPfp("");
+            console.log('Uploaded a blob or file!');
+        }).catch((error) => {
+
+        });
+    }
+
+    const handleExit = () => {
+        props.setBioVis("visibility-hidden");
+        setPfp("");
+    }
+
+    return(
+        <React.Fragment>
+            <div className={'header-pfp-change-cover ' + props.bioVis}></div>
+            <div className={'header-pfp-change-container ' + props.bioVis}>
+                <svg className='header-pfp-exit svg-fill' onClick={() => handleExit()} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+                <div>Input new bio:</div>
+                <form className='header-pfp-change-form' onSubmit={(e) => handleSubmitOnClick(e)}>
+                    <textarea className='header-bio-change-input' onChange={(e) => setPfp(e.target.value)} required></textarea>
+                    <input type="submit" className='header-pfp-change-submit' value="Change"/>
+                </form>
             </div>
         </React.Fragment>
     )
