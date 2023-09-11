@@ -5,6 +5,9 @@ import { changeDate, changeDateSpecifics } from './redux_slices/dateSlice';
 import { userSignIn, userSignOut } from './redux_slices/signInSlice';
 import { replaceAll } from './redux_slices/eventSlice';
 import { changeAllColors } from './redux_slices/colorSlice';
+import createEventsRepeated from './calendar_body_useful_functions/create_repeating_events';
+import getHourAndMinutes from './calendar_body_useful_functions/get_hours_and_minutes';
+import filterEventsStartEnd from './calendar_body_useful_functions/filter_events_start_end';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "firebase/auth";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -122,7 +125,6 @@ function HeaderSignInPopup(props) {
                 .then((userCredential) => {
                     // Signed in 
                     const user = userCredential.user;
-                    props.dispatch(userSignIn(user.uid));
                     const storage = getStorage();
                     const auth = getAuth();
 
@@ -166,9 +168,16 @@ function HeaderSignInPopup(props) {
         } else if (switchbtwn === "log in") {
             signInWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
-                    // Signed in 
+                    // Signed in
+                    const errorReport = (error) => {
+                        props.setErrorVisible("visibility-visible");
+                        props.setErrorMessage("Error with loading events: " + error.code + ", try reloading data in settings");
+                        clearTimeout(props.errorTimeID);
+                        props.setErrorTimeID(setTimeout(() => {
+                            props.setErrorVisible("visibility-hidden");
+                        }, 10000));
+                    }
                     const user = userCredential.user;
-                    props.dispatch(userSignIn(user.uid));
                     const storage = getStorage();
                     getDownloadURL(ref(storage, user.uid + "/events"))
                         .then((url) => {
@@ -176,21 +185,11 @@ function HeaderSignInPopup(props) {
                                 .then((val) => val.json())
                                 .then((ans) => props.dispatch(replaceAll(ans)))
                                 .catch((error) => {
-                                    props.setErrorVisible("visibility-visible");
-                                    props.setErrorMessage("Error with loading events: " + error.code + ", try reloading data in settings");
-                                    clearTimeout(props.errorTimeID);
-                                    props.setErrorTimeID(setTimeout(() => {
-                                        props.setErrorVisible("visibility-hidden");
-                                    }, 10000));
+                                    errorReport(error);
                                 })
                         })
                         .catch((error) => {
-                            props.setErrorVisible("visibility-visible");
-                            props.setErrorMessage("Error with loading events: " + error.code + ", try reloading data in settings");
-                            clearTimeout(props.errorTimeID);
-                            props.setErrorTimeID(setTimeout(() => {
-                                props.setErrorVisible("visibility-hidden");
-                            }, 10000));
+                            errorReport(error);
                         });
 
                     getDownloadURL(ref(storage, user.uid + "/colors"))
@@ -199,21 +198,11 @@ function HeaderSignInPopup(props) {
                                 .then((val) => val.json())
                                 .then((ans) => props.dispatch(changeAllColors(ans)))
                                 .catch((error) => {
-                                    props.setErrorVisible("visibility-visible");
-                                    props.setErrorMessage("Error with loading events: " + error.code + ", try reloading data in settings");
-                                    clearTimeout(props.errorTimeID);
-                                    props.setErrorTimeID(setTimeout(() => {
-                                        props.setErrorVisible("visibility-hidden");
-                                    }, 10000));
+                                    errorReport(error);
                                 })
                             })
                         .catch((error) => {
-                            props.setErrorVisible("visibility-visible");
-                            props.setErrorMessage("Error with loading events: " + error.code + ", try reloading data in settings");
-                            clearTimeout(props.errorTimeID);
-                            props.setErrorTimeID(setTimeout(() => {
-                                props.setErrorVisible("visibility-hidden");
-                            }, 10000));
+                            errorReport(error);
                         });
 
                     handleClose();
@@ -339,12 +328,10 @@ function HeaderSignIn(props) {
         setPopupVisible("visibility-visible");
     }
 
-    const handleSignOut = (e) => {
+    const handleSignOut = () => {
         const auth = getAuth();
         signOut(auth).then(() => {
           // Sign-out successful.
-            props.dispatch(userSignOut());
-            e.stopPropagation();
             props.dispatch(replaceAll([]));
             props.dispatch(changeAllColors({
                 undesiredColors: [],
@@ -362,8 +349,16 @@ function HeaderSignIn(props) {
             }, 10000));
         });
     }
+
+    //until further notice
+    useEffect(() => {
+        handleSignOut();
+    }, [])
+
+    const auth = getAuth();
+    const user = auth.currentUser;
     
-    if(!props.signInStatus.signIn) {
+    if(!user) {
         return(
             <div className='header-signIn-container'>
                 <div className='header-signIn-text' onClick={() => handleOpenPopup()}>Sign In</div>
@@ -375,7 +370,7 @@ function HeaderSignIn(props) {
     } else {
         return(
             <div className='header-signIn-container'>
-                <div className='header-signIn-text' onClick={(e) => handleSignOut(e)}>Sign Out</div>
+                <div className='header-signIn-text' onClick={() => handleSignOut()}>Sign Out</div>
                 <img className='header-signIn-profile-pic' src="https://i.pinimg.com/736x/83/bc/8b/83bc8b88cf6bc4b4e04d153a418cde62.jpg"/>
             </div>
         );
@@ -505,6 +500,9 @@ function HeaderToday({dispatch}) {
 
 function HeaderSave(props) {
 
+    const auth = getAuth();
+    const user = auth.currentUser;
+
     const handleUploadOnClick = () => {
         // Get a reference to the storage service, which is used to create references in your storage bucket
         const storage = getStorage();
@@ -536,18 +534,84 @@ function HeaderSave(props) {
     }
 
     return(
-        <svg className={props.signInStatus.signIn ? 'header-save-icon svg-fill' : 'header-save-icon svg-fill visibility-hidden'} onClick={() => handleUploadOnClick()} xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><path d="M64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V173.3c0-17-6.7-33.3-18.7-45.3L352 50.7C340 38.7 323.7 32 306.7 32H64zm0 96c0-17.7 14.3-32 32-32H288c17.7 0 32 14.3 32 32v64c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V128zM224 288a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/></svg>
+        <svg className={user ? 'header-save-icon svg-fill' : 'header-save-icon svg-fill visibility-hidden'} onClick={() => handleUploadOnClick()} xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512"><path d="M64 32C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V173.3c0-17-6.7-33.3-18.7-45.3L352 50.7C340 38.7 323.7 32 306.7 32H64zm0 96c0-17.7 14.3-32 32-32H288c17.7 0 32 14.3 32 32v64c0 17.7-14.3 32-32 32H96c-17.7 0-32-14.3-32-32V128zM224 288a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/></svg>
     )
 }
 
 function HeaderSettings(props) {
+    const [settingsVisibility, setSettingsVisibility] = useState("visibility-hidden");
     const [darkMode, setDarkMode] = useState({mode: "light", text: "Light"});
-    const [alerts, setAlerts] = useState("On");
+    const [alerts, setAlerts] = useState("Off");
+    const [startTimes, setStartTimes] = useState([]);
+    const [clearTimeID, setClearTimeID] = useState(0);
+    const [pfpVisibility, setPfpVisibility] = useState("visibility-hidden");
+    const auth = getAuth();
+    const user = auth.currentUser;
+
     //light or dark mode
     //alerts on or off
     //reload data
     //change pfp
     //view account
+
+    // useEffect(() =>{
+    //     setClearTimeID(setInterval(() => {
+    //         setStartTimes((start) => {
+    //             let cur = new Date();
+    //             let str1 = "";
+    //             let str2 = "";
+    //             let num = 0;
+    //             start.map((item) => {
+    //                 if(item.time - cur.getTime() < 305000 && item.time - cur.getTime() > 300000) {
+    //                     if(num === 0) {
+    //                         str1 += item.title;
+    //                     } else if(num === 1) {
+    //                         str2 += item.title;
+    //                     }
+    //                     num++;
+    //                 }
+    //             });
+    //             cur.setMinutes(cur.getMinutes() + 6);
+    //             if(num === 1) {
+    //                 alert(str1 + " will start in 5 minutes at " + getHourAndMinutes(cur.getHours(), cur.getMinutes()) + "!")
+    //             } else if(num === 2) {
+    //                 alert(str1 + " and " + str2 + " will start in 5 minutes at " + getHourAndMinutes(cur.getHours(), cur.getMinutes()) + "!");
+    //             } else if(num > 2) {
+    //                 alert(str1 + ", " + str2 + ", and " + (num - 2) + " more will start in 5 minutes at " + getHourAndMinutes(cur.getHours(), cur.getMinutes()) + "!")
+    //             }
+    //             return start;
+    //         })
+    //     }, 5000));
+    // }, [])
+
+    useEffect(() => {
+        let start = props.currentEvents.filter((item) => !item.isAllDay.one && !item.repeat).map((item) => {
+            return {title: item.title, time: new Date(item.startTime).getTime()};
+        }).concat(props.currentEvents.filter((item) => !item.isAllDay.one && item.repeat).map((event) => {
+            return createEventsRepeated(event, new Date().getTime(), new Date().getTime() + 86400000);
+        }).flat().map((item) => {
+            return {title: item.title, time: new Date(item.startTime).getTime()};
+        })).filter((item) => {
+            return item.time >= new Date().getTime();
+        }).sort((a, b) => a.time - b.time)
+        setStartTimes(start);
+    }, [props.currentEvents]);
+
+    const reference = useRef();
+
+    useEffect(() => {
+        const HeaderDropdownMenuClicked = (e) => {
+            if(settingsVisibility === "visibility-visible" && reference.current && !reference.current.contains(e.target)) {
+                setSettingsVisibility("visibility-hidden")
+            }
+        }
+
+        document.addEventListener("click", HeaderDropdownMenuClicked);
+
+        return () => {
+            document.removeEventListener("click", HeaderDropdownMenuClicked);
+        }
+    }, [settingsVisibility]);
 
     let variables = [
     "--body-background-color", 
@@ -640,19 +704,109 @@ function HeaderSettings(props) {
     const handleChangeAlertsOnClick = () => {
         if(alerts === "On") {
             setAlerts("Off");
-            document.querySelector(".header-settings-alerts-circle-container").style.left = "25px";
-            document.querySelector(".header-settings-alerts-circle").style.fill = "rgb(196, 0, 0)";
-        } else {
-            setAlerts("On");
             document.querySelector(".header-settings-alerts-circle-container").style.left = "";
             document.querySelector(".header-settings-alerts-circle").style.fill = "";
+            clearInterval(clearTimeID);
+        } else {
+            setAlerts("On");
+            document.querySelector(".header-settings-alerts-circle-container").style.left = "0px";
+            document.querySelector(".header-settings-alerts-circle").style.fill = "rgb(0, 179, 24)";
+
+            setClearTimeID(setInterval(() => {
+                setStartTimes((start) => {
+                    let cur = new Date();
+                    let str1 = "";
+                    let str2 = "";
+                    let num = 0;
+                    start.map((item) => {
+                        if(item.time - cur.getTime() < 305000 && item.time - cur.getTime() > 300000) {
+                            if(num === 0) {
+                                str1 += item.title;
+                            } else if(num === 1) {
+                                str2 += item.title;
+                            }
+                            num++;
+                        }
+                    });
+                    cur.setMinutes(cur.getMinutes() + 6);
+                    if(num === 1) {
+                        alert(str1 + " will start in 5 minutes at " + getHourAndMinutes(cur.getHours(), cur.getMinutes()) + "!")
+                    } else if(num === 2) {
+                        alert(str1 + " and " + str2 + " will start in 5 minutes at " + getHourAndMinutes(cur.getHours(), cur.getMinutes()) + "!");
+                    } else if(num > 2) {
+                        alert(str1 + ", " + str2 + ", and " + (num - 2) + " more will start in 5 minutes at " + getHourAndMinutes(cur.getHours(), cur.getMinutes()) + "!")
+                    }
+                    return start;
+                })
+            }, 5000));
         }
     }
 
+    const handleReloadOnClick = () => {
+
+        const errorReport = (error) => {
+            props.setErrorVisible("visibility-visible");
+            props.setErrorMessage("Error with loading events: " + error.code + ", try reloading again");
+            clearTimeout(props.errorTimeID);
+            props.setErrorTimeID(setTimeout(() => {
+                props.setErrorVisible("visibility-hidden");
+            }, 10000));
+        }
+
+        const auth = getAuth();
+        const user = auth.currentUser;
+        const storage = getStorage();
+
+        if(user) {
+            getDownloadURL(ref(storage, user.uid + "/events"))
+            .then((url) => {
+                fetch(url)
+                    .then((val) => val.json())
+                    .then((ans) => props.dispatch(replaceAll(ans)))
+                    .catch((error) => {
+                        errorReport(error);
+                    })
+            })
+            .catch((error) => {
+                errorReport(error);
+            });
+
+            getDownloadURL(ref(storage, user.uid + "/colors"))
+                .then((url) => {
+                    fetch(url)
+                        .then((val) => val.json())
+                        .then((ans) => props.dispatch(changeAllColors(ans)))
+                        .catch((error) => {
+                            errorReport(error);
+                        })
+                    })
+                .catch((error) => {
+                    errorReport(error);
+                });
+        } else {
+            props.setErrorVisible("visibility-visible");
+            props.setErrorMessage("Error with loading events: user not signed in, sign in before reloading data");
+            clearTimeout(props.errorTimeID);
+            props.setErrorTimeID(setTimeout(() => {
+                props.setErrorVisible("visibility-hidden");
+            }, 10000));
+        }
+        setSettingsVisibility("visibility-hidden");
+    }
+
+    const handleProfileOnClick = () => {
+        setPfpVisibility("visibility-visible");
+        setSettingsVisibility("visibility-hidden");
+    }
+
+    const handleSettingsVisibleOnClick = () => {
+        setSettingsVisibility("visibility-visible");
+    }
+
     return(
-        <div className='header-settings-container'>
-            <svg className={props.signInStatus.signIn ? 'header-settings-icon svg-fill' : 'header-settings-icon svg-fill visibility-hidden'} xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"/></svg>
-            <div className='header-settings'>
+        <div className='header-settings-container' ref={reference}>
+            <svg onClick={() => handleSettingsVisibleOnClick()} className={user ? 'header-settings-icon svg-fill' : 'header-settings-icon svg-fill visibility-hidden'} xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z"/></svg>
+            <div className={'header-settings ' + settingsVisibility}>
                 <div className='header-settings-dark-mode-container'>
                     <div className='header-settings-dark-mode-text'>{darkMode.text}</div>
                     <div className='header-settings-dark-mode-graphics' onClick={() => handleChangeModeOnClick()}>
@@ -672,11 +826,61 @@ function HeaderSettings(props) {
                             <svg className='header-settings-alerts-circle' xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512z"/></svg>
                             <div className='header-settings-alert-circle-text'>{alerts}</div>
                         </div>
-                        
                     </div>
+                </div>
+                <div className='header-settings-pfp-button' onClick={() => handleProfileOnClick()}>
+                    <div className='header-settings-pfp-text'>View Profile</div>
+                </div>
+                <HeaderProfile pfpVisibility={pfpVisibility} setPfpVisibility={setPfpVisibility}/>
+                <div className='header-settings-reload-button' onClick={() => handleReloadOnClick()}>
+                    <div className='header-settings-reload-text'>Reload Data</div>
                 </div>
             </div>
         </div>
+    )
+}
+
+function HeaderProfile(props) {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    // const [img, setImg] = useState("");
+    // const [name, setName] = useState(user.displayName);
+    // const [bio, setBio] = useState("");
+
+    const handleExit = () => {
+        props.setPfpVisibility("visibility-hidden");
+    }
+    return(
+        <React.Fragment>
+            <div className={'header-profile-cover ' + props.pfpVisibility}></div>
+            <div className={'header-profile-container ' + props.pfpVisibility}>
+            <svg className='header-profile-exit svg-fill' onClick={() => handleExit()} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>
+                <div className='header-profile-image-container'>
+                    <img className='header-profile-image' src={user ? user.photoURL ? user.photoURL : "https://i.pinimg.com/736x/83/bc/8b/83bc8b88cf6bc4b4e04d153a418cde62.jpg" : "https://i.pinimg.com/736x/83/bc/8b/83bc8b88cf6bc4b4e04d153a418cde62.jpg"}/>
+                    <div className='header-profile-image-edit-circle'>
+                        <svg className='header-profile-image-edit-icon svg-fill' xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"/></svg>
+                    </div>
+                </div>
+
+                <div className='header-profile-name-container'>
+                    <div className='header-profile-name'>{user ? user.displayName ? user.displayName : "[No name set]" : "[No name set]"}</div>
+                    <div className='header-profile-name-edit-circle'>
+                        <svg className='header-profile-name-edit-icon svg-fill' xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"/></svg>
+                    </div>
+                </div>
+
+                <div className='header-profile-bio-container'>
+                    <div className='header-profile-bio-title'>Bio:</div>
+                    <div className='header-profile-bio'>
+                        <div className='header-profile-text'>Nothing so far...</div>
+                    </div>
+                    <div className='header-profile-bio-edit-circle'>
+                        <svg className='header-profile-bio-edit-icon svg-fill' xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><path d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"/></svg>
+                    </div>
+                </div>
+            </div>
+        </React.Fragment>
     )
 }
 
@@ -709,7 +913,7 @@ function Header() {
             <HeaderDescription currentDate={currentDate} dispatch={dispatch}/>
             <HeaderDropdownMenu currentDate={currentDate} dispatch={dispatch}/>
             <HeaderSave currentEvents={currentEvents} signInStatus={signInStatus} currentColors={currentColors} setErrorVisible={setErrorVisible} setErrorMessage={setErrorMessage} errorTimeID={errorTimeID} setErrorTimeID={setErrorTimeID}/>
-            <HeaderSettings signInStatus={signInStatus}/>
+            <HeaderSettings currentEvents={currentEvents} signInStatus={signInStatus} dispatch={dispatch} setErrorVisible={setErrorVisible} setErrorMessage={setErrorMessage} errorTimeID={errorTimeID} setErrorTimeID={setErrorTimeID}/>
             <HeaderSignIn dispatch={dispatch} signInStatus={signInStatus} currentEvents={currentEvents} currentColors={currentColors} setErrorVisible={setErrorVisible} setErrorMessage={setErrorMessage} errorTimeID={errorTimeID} setErrorTimeID={setErrorTimeID}/>
             <HeaderError errorVisible={errorVisible} errorMessage={errorMessage}/>
         </div>

@@ -99,7 +99,7 @@
     }
 }
 
-@media only screen and (max-width: 545px) {
+@media only screen and (max-width: 500px) {
     body {
         overflow: none;
     }
@@ -161,7 +161,7 @@
 
     .add-event-popup {
         width: 250px;
-        height: 520px;
+        height: 535px;
     }
 
     .add-event-popup-time-container svg, .add-event-popup-description-container svg, 
@@ -231,7 +231,7 @@
     }
 }
 
-@media only screen and (max-width: 700px) and (min-width: 546px) {
+@media only screen and (max-width: 700px) and (min-width: 501px) {
     .header-calendar-container {
         display: none;
     }
@@ -272,7 +272,7 @@
     }
 
     .toggle-header-menu-container {
-        display: flex;
+        display: none;
         margin-left: 10px;
     }
 
@@ -330,6 +330,7 @@
     }
 
     .header-today {
+        margin-left: 20px;
         padding: 10px;
     }
 
@@ -855,6 +856,7 @@ body {
     z-index: 10;
     display: flex;
     align-items: center;
+    white-space: nowrap;
 }
 
 .header-error-text {
@@ -867,28 +869,40 @@ body {
     cursor: pointer;
 }
 
+.header-settings-container {
+    position: relative;
+}
+
 .header-settings {
-    width: 120px;
-    height: 150px;
+    width: 140px;
     position: absolute;
-    top: 60px;
-    transform: translateX(calc(-50% + 15px));
+    top: 40px;
+    left: -55px;
     background-color: var(--header-dropdown-color);
     z-index: 5;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    padding: 10px;
     box-shadow: 2px 2px 4px var(--box-shadow-color);
     transition: background-color 0.5s;
+}
+
+.header-settings-dark-mode-container {
+    gap: 20px;
+}
+
+.header-settings-alerts-container {
+    gap: 15px;
 }
 
 .header-settings-dark-mode-container, .header-settings-alerts-container {
     display: flex;
     align-items: center;
-    gap: 20px;
+    justify-content: center;
     text-align: center;
+    width: 100%;
+    height: 40px;
+    transition: background-color 0.5s;
 }
 
 .header-settings-dark-mode-text {
@@ -967,7 +981,7 @@ body {
     width: 25px;
     position: absolute;
     left: 0px;
-    fill:rgb(0, 179, 24);
+    fill:rgb(196, 0, 0);
     transition: fill 0.5s;
 }
 
@@ -979,7 +993,7 @@ body {
     justify-content: center;
     align-items: center;
     position: absolute;
-    left: 0px;
+    left: 25px;
     transition: left 0.5s;
 }
 
@@ -987,6 +1001,172 @@ body {
     z-index: 1;
     color: white;
     font-size: 12px;
+}
+
+.header-settings-alerts-text {
+    font-size: 20px;
+}
+
+.header-settings-pfp-button, .header-settings-reload-button {
+    height: 40px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.5s;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.header-settings-pfp-button:hover, .header-settings-reload-button:hover, .header-settings-dark-mode-container:hover, .header-settings-alerts-container:hover {
+    background-color: var(--header-popup-color);
+}
+
+.header-profile-cover {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.1);
+    cursor: auto;
+}
+
+.header-profile-container {
+    cursor: auto;
+    z-index: 1;
+    width: 230px;
+    height: 380px;
+    position: fixed;
+    top: 50vh;
+    left: 50vw;
+    transform: translate(-50%, -50%);
+    background-color: var(--popup-background-color);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    box-shadow: 2px 2px 4px var(--box-shadow-color);
+}
+
+.header-profile-exit {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    height: 25px;
+    
+    cursor: pointer;
+}
+
+.header-profile-image-container, .header-profile-bio-container, .header-profile-name-container {
+    position: relative;
+}
+
+.header-profile-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid var(--border-text-color);
+}
+
+.header-profile-image-edit-circle {
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    background-color: var(--header-dark-mode-light);
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 75px;
+    left: 75px;
+    border: 2px solid var(--border-text-color);
+    cursor: pointer;
+}
+
+.header-profile-name-edit-circle {
+    border-radius: 50%;
+    width: 19px;
+    height: 19px;
+    background-color: var(--header-dark-mode-light);
+    font-size: 13px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 25px;
+    left: 90px;
+    border: 2px solid var(--border-text-color);
+    cursor: pointer;
+}
+
+.header-profile-name {
+    width: 210px;
+    text-align: center;
+    height: 50px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.header-profile-bio-container {
+    display: flex;
+    gap: 5px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.header-profile-bio-edit-circle {
+    border-radius: 50%;
+    width: 19px;
+    height: 19px;
+    background-color: var(--header-dark-mode-light);
+    font-size: 13px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 158px;
+    left: 188px;
+    border: 2px solid var(--border-text-color);
+    cursor: pointer;
+}
+
+.header-profile-bio {
+    padding: 7px;
+    width: 190px;
+    height: 130px;
+    border: 2px solid var(--border-text-color);
+    border-radius: 20px;
+    font-size: 16px;
+    position: relative;
+}
+
+.header-profile-text {
+    height: 127px;
+    width: 193px;
+    top: 12px;
+    position: absolute;
+    left: 10px;
+    overflow: auto;
+}
+
+.header-profile-text::-webkit-scrollbar {
+    width: 5px;
+}
+
+.header-profile-text::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.header-profile-text::-webkit-scrollbar-thumb {
+    background: var(--clickable-hover-background-color);
+    border-radius: 4px;
 }
 
 
