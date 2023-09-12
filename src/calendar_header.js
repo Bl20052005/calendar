@@ -137,17 +137,20 @@ function HeaderSignInPopup(props) {
                     const colorRef = ref(storage, user.uid + "/colors");
                     const bioRef = ref(storage, user.uid + "/bio");
 
-                    const file = new Blob([[]], {
-                        type: "application/json",
-                    });
-
-                    const colors = new Blob([{
+                    let f = JSON.stringify([]);
+                    let c = JSON.stringify({
                         undesiredColors: [],
                         totalColors: [],
                         totalColorsNumber: {"#9fc0f5" : 0, "#4332d9" : 0, "#ae99e0" : 0, "#320699" : 0, "#c979bf" : 0, "#8a0e79" : 0, "#cf5f66" : 0, "#9e0812" : 0, "#93db7f" : 0, "#26820d" : 0, "#7adedc" : 0, "#0da3a1" : 0},
                         totalColorsLabel: {"#9fc0f5" : "", "#4332d9" : "", "#ae99e0" : "", "#320699" : "", "#c979bf" : "", "#8a0e79" : "", "#cf5f66" : "", "#9e0812" : "", "#93db7f" : "", "#26820d" : "", "#7adedc" : "", "#0da3a1" : ""},
                         totalColorsisLocked: {"#9fc0f5" : false, "#4332d9" : false, "#ae99e0" : false, "#320699" : false, "#c979bf" : false, "#8a0e79" : false, "#cf5f66" : false, "#9e0812" : false, "#93db7f" : false, "#26820d" : false, "#7adedc" : false, "#0da3a1" : false},
-                    }], {
+                    });
+
+                    const file = new Blob([f], {
+                        type: "application/json",
+                    });
+
+                    const colors = new Blob([c], {
                         type: "application/json",
                     });
 
@@ -200,6 +203,7 @@ function HeaderSignInPopup(props) {
                     const errorReport = (error) => {
                         props.setErrorVisible("visibility-visible");
                         props.setErrorMessage("Error with loading events: " + error.code + ", try reloading data in settings");
+                        console.log('aaaaaa')
                         clearTimeout(props.errorTimeID);
                         props.setErrorTimeID(setTimeout(() => {
                             props.setErrorVisible("visibility-hidden");
@@ -405,7 +409,7 @@ function HeaderSignIn(props) {
     const auth = getAuth();
     const user = auth.currentUser;
 
-    useState(() => {
+    useEffect(() => {
         const auth = getAuth();
         onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -414,6 +418,7 @@ function HeaderSignIn(props) {
             const errorReport = (error) => {
                 props.setErrorVisible("visibility-visible");
                 props.setErrorMessage("Error with loading events: " + error.code + ", try reloading again");
+                console.log('bbbbbb')
                 clearTimeout(props.errorTimeID);
                 props.setErrorTimeID(setTimeout(() => {
                     props.setErrorVisible("visibility-hidden");
@@ -439,7 +444,11 @@ function HeaderSignIn(props) {
                     })
             })
             .catch((error) => {
-                errorReport(error);
+                if(error.code === 'storage/object-not-found') {
+                    props.dispatch(replaceAll([]));
+                } else {
+                    errorReport(error);
+                }
             });
 
             getDownloadURL(ref(storage, user.uid + "/colors"))
@@ -452,7 +461,17 @@ function HeaderSignIn(props) {
                     })
                 })
             .catch((error) => {
-                errorReport(error);
+                if(error.code === 'storage/object-not-found') {
+                    props.dispatch(changeAllColors({
+                        undesiredColors: [],
+                        totalColors: [],
+                        totalColorsNumber: {"#9fc0f5" : 0, "#4332d9" : 0, "#ae99e0" : 0, "#320699" : 0, "#c979bf" : 0, "#8a0e79" : 0, "#cf5f66" : 0, "#9e0812" : 0, "#93db7f" : 0, "#26820d" : 0, "#7adedc" : 0, "#0da3a1" : 0},
+                        totalColorsLabel: {"#9fc0f5" : "", "#4332d9" : "", "#ae99e0" : "", "#320699" : "", "#c979bf" : "", "#8a0e79" : "", "#cf5f66" : "", "#9e0812" : "", "#93db7f" : "", "#26820d" : "", "#7adedc" : "", "#0da3a1" : ""},
+                        totalColorsisLocked: {"#9fc0f5" : false, "#4332d9" : false, "#ae99e0" : false, "#320699" : false, "#c979bf" : false, "#8a0e79" : false, "#cf5f66" : false, "#9e0812" : false, "#93db7f" : false, "#26820d" : false, "#7adedc" : false, "#0da3a1" : false},
+                    }));
+                } else {
+                    errorReport(error);
+                }
             });
 
             getDownloadURL(ref(storage, user.uid + "/bio"))
@@ -465,7 +484,11 @@ function HeaderSignIn(props) {
                     })
                 })
             .catch((error) => {
-                errorReport(error);
+                if(error.code === 'storage/object-not-found') {
+                    props.dispatch(updateBio(""));
+                } else {
+                    errorReport(error);
+                }
             });
             
             // ...
@@ -627,6 +650,7 @@ function HeaderSave(props) {
         const errorReport = (error) => {
             props.setErrorVisible("visibility-visible");
             props.setErrorMessage("Error with loading events: " + error.code + ", try reloading again");
+            console.log('cccccc')
             clearTimeout(props.errorTimeID);
             props.setErrorTimeID(setTimeout(() => {
                 props.setErrorVisible("visibility-hidden");
@@ -892,6 +916,7 @@ function HeaderSettings(props) {
         const errorReport = (error) => {
             props.setErrorVisible("visibility-visible");
             props.setErrorMessage("Error with loading events: " + error.code + ", try reloading again");
+            console.log('dddddd')
             clearTimeout(props.errorTimeID);
             props.setErrorTimeID(setTimeout(() => {
                 props.setErrorVisible("visibility-hidden");
