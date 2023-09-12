@@ -3,11 +3,21 @@ import { createSlice } from '@reduxjs/toolkit';
 export const signInSlice = createSlice({
     name: "signIn",
     initialState : {
+        signedIn: false,
+        uid: "",
         pfp: "",
         name: "",
         bio: "",
     },
     reducers: {
+        updateSignIn: (state, action) => {
+            state.signedIn = action.payload;
+        },
+
+        updateUid: (state, action) => {
+            state.uid = action.payload;
+        },
+
         updatePfp: (state, action) => {
             state.pfp = action.payload;
         },
@@ -24,10 +34,12 @@ export const signInSlice = createSlice({
             state.pfp = "";
             state.name = "";
             state.bio = "";
+            state.uid = "";
+            state.signedIn = false;
         }
     }
 })
 
-export const { updatePfp, updateName, updateBio, resetSignIn } = signInSlice.actions;
+export const { updateSignIn, updateUid, updatePfp, updateName, updateBio, resetSignIn } = signInSlice.actions;
 
 export default signInSlice.reducer;

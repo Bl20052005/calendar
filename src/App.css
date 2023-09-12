@@ -69,8 +69,10 @@
     --date-hover-color: rgb(160, 198, 255);
     --label-disabled-color: rgb(211, 211, 211);
     --add-event-hover-color: rgb(140, 226, 226);
-    --add-event-hover-color-day: rgb(200, 250, 250);
+    --add-event-hover-color-day: rgb(180, 194, 255);
     --header-sign-in-text-color: rgb(0, 99, 99);
+    --opposite-text-color: rgb(0, 0, 0);
+    --date-hover-hover-color: rgb(92, 157, 255);
 }
 
 @media only screen and (max-height: 450px) {
@@ -1155,15 +1157,15 @@ body {
     overflow: auto;
 }
 
-.header-profile-text::-webkit-scrollbar {
+.header-profile-text::-webkit-scrollbar, .header-bio-change-input::-webkit-scrollbar {
     width: 5px;
 }
 
-.header-profile-text::-webkit-scrollbar-track {
+.header-profile-text::-webkit-scrollbar-track, .header-bio-change-input::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.header-profile-text::-webkit-scrollbar-thumb {
+.header-profile-text::-webkit-scrollbar-thumb, .header-bio-change-input::-webkit-scrollbar-thumb {
     background: var(--clickable-hover-background-color);
     border-radius: 4px;
 }
@@ -1539,7 +1541,7 @@ body {
 }
 
 .date-highlighted:hover {
-    background-color: rgb(92, 157, 255);
+    background-color: var(--date-hover-hover-color);
 }
 
 .add-event-popup-position {
@@ -1726,6 +1728,8 @@ body {
     align-self: center;
     border: 1px solid var(--border-text-color);
     transition: border 0.2s;
+    color: var(--text-color-black);
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
     padding: 4px;
 }
 
@@ -2119,7 +2123,7 @@ body {
 }
 
 .add-event-popup-repeat-advanced-week-day-clicked {
-    background-color: var(--popup-view-all-background-color);
+    background-color: var(--add-event-popup-time-hover);
 }
 
 
@@ -2368,6 +2372,10 @@ body {
     gap: 10px;
     max-height: 200px;
     z-index: 3;
+}
+
+.popup-preview-icons {
+    fill: var(--opposite-text-color);
 }
 
 .popup-preview-icons:hover {
