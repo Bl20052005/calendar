@@ -535,7 +535,7 @@ function CalendarBodyLabelsTime(props) {
 
             const cleanUpListener = () => {
                 window.removeEventListener("mouseup", handleOnMouseUp);
-                window.addEventListener("touchend", handleOnMouseUp);
+                window.removeEventListener("touchend", handleOnMouseUp);
             }
             return cleanUpListener;
         }

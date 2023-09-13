@@ -98,6 +98,10 @@ const createEventsRepeated = (event, monthStart, monthEnd) => {
         addFunction();
     }
 
+    if(onEndDay !== "none" && new Date(event.startDate).getTime() > new Date(onEndDay).getTime() && new Date(event.startDate).getTime() <= monthEnd && new Date(event.startDate).getTime() >= monthStart) {
+        return event;
+    }
+
     return returnedArr;
 }
 

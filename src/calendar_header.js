@@ -203,7 +203,6 @@ function HeaderSignInPopup(props) {
                     const errorReport = (error) => {
                         props.setErrorVisible("visibility-visible");
                         props.setErrorMessage("Error with loading events: " + error.code + ", try reloading data in settings");
-                        console.log('aaaaaa')
                         clearTimeout(props.errorTimeID);
                         props.setErrorTimeID(setTimeout(() => {
                             props.setErrorVisible("visibility-hidden");
@@ -418,7 +417,6 @@ function HeaderSignIn(props) {
             const errorReport = (error) => {
                 props.setErrorVisible("visibility-visible");
                 props.setErrorMessage("Error with loading events: " + error.code + ", try reloading again");
-                console.log('bbbbbb')
                 clearTimeout(props.errorTimeID);
                 props.setErrorTimeID(setTimeout(() => {
                     props.setErrorVisible("visibility-hidden");
@@ -650,7 +648,6 @@ function HeaderSave(props) {
         const errorReport = (error) => {
             props.setErrorVisible("visibility-visible");
             props.setErrorMessage("Error with loading events: " + error.code + ", try reloading again");
-            console.log('cccccc')
             clearTimeout(props.errorTimeID);
             props.setErrorTimeID(setTimeout(() => {
                 props.setErrorVisible("visibility-hidden");
@@ -718,36 +715,6 @@ function HeaderSettings(props) {
     //reload data
     //change pfp
     //view account
-
-    // useEffect(() =>{
-    //     setClearTimeID(setInterval(() => {
-    //         setStartTimes((start) => {
-    //             let cur = new Date();
-    //             let str1 = "";
-    //             let str2 = "";
-    //             let num = 0;
-    //             start.map((item) => {
-    //                 if(item.time - cur.getTime() < 305000 && item.time - cur.getTime() > 300000) {
-    //                     if(num === 0) {
-    //                         str1 += item.title;
-    //                     } else if(num === 1) {
-    //                         str2 += item.title;
-    //                     }
-    //                     num++;
-    //                 }
-    //             });
-    //             cur.setMinutes(cur.getMinutes() + 6);
-    //             if(num === 1) {
-    //                 alert(str1 + " will start in 5 minutes at " + getHourAndMinutes(cur.getHours(), cur.getMinutes()) + "!")
-    //             } else if(num === 2) {
-    //                 alert(str1 + " and " + str2 + " will start in 5 minutes at " + getHourAndMinutes(cur.getHours(), cur.getMinutes()) + "!");
-    //             } else if(num > 2) {
-    //                 alert(str1 + ", " + str2 + ", and " + (num - 2) + " more will start in 5 minutes at " + getHourAndMinutes(cur.getHours(), cur.getMinutes()) + "!")
-    //             }
-    //             return start;
-    //         })
-    //     }, 5000));
-    // }, [])
 
     useEffect(() => {
         let start = props.currentEvents.filter((item) => !item.isAllDay.one && !item.repeat).map((item) => {
@@ -916,7 +883,6 @@ function HeaderSettings(props) {
         const errorReport = (error) => {
             props.setErrorVisible("visibility-visible");
             props.setErrorMessage("Error with loading events: " + error.code + ", try reloading again");
-            console.log('dddddd')
             clearTimeout(props.errorTimeID);
             props.setErrorTimeID(setTimeout(() => {
                 props.setErrorVisible("visibility-hidden");

@@ -81,7 +81,7 @@
 }
 
 .calendar-body-schedule-event:hover {
-    background-color: var(--date-hover-color);
+    background-color: var(--add-event-popup-background-color);
 }
 
 .calendar-body-schedule-event-color {
